@@ -1,0 +1,84 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "../../node_modules/wrangler/config-schema.json",
+	"name": "gyoka-editor",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-04-05",
+	"env": {
+		"test": {
+			"vars": {
+				"FEEDGEN_PUBLISHER_DID": "did:example:developer",
+				"FEEDGEN_HOST": "gyoka-editor.example.com",
+				"DEVELOPER_MODE": "enabled"
+			},
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "gyoka-db",
+					"database_id": "test_id"
+				}
+			]
+		},
+		"dev": {
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "gyoka-db",
+					"database_id": "dev_id"
+				}
+			],
+			/**
+			* Environment Variables
+			* https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+			*/
+			"vars": {
+				"FEEDGEN_PUBLISHER_DID": "did:example:developer",
+				"FEEDGEN_HOST": "dev.example.com",
+				"DEVELOPER_MODE": "enabled"
+			}
+		},
+		"production": {
+			// "routes": [
+			// 	{
+			// 		"pattern": "gyoka-editor.example.com",
+			// 		"custom_domain": true
+			// 	}
+			// ],
+			"preview_urls": false,
+			"workers_dev": true, // false for custom_domain
+			"observability": {
+				"enabled": true,
+				"head_sampling_rate": 1.0
+			},
+			"vars": {
+				"FEEDGEN_PUBLISHER_DID": "did:plc:xxxxxxxxxxxx",
+				"FEEDGEN_HOST": "gyoka-editor.example.com",
+				"DEVELOPER_MODE": "disabled"
+			},
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "gyoka-db",
+					"database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+				}
+			]
+		}
+	}
+	/**
+	 * Note: Use secrets to store sensitive data.
+	 * https://developers.cloudflare.com/workers/configuration/secrets/
+	 */
+	/**
+	 * Static Assets
+	 * https://developers.cloudflare.com/workers/static-assets/binding/
+	 */
+	// "assets": { "directory": "./public/", "binding": "ASSETS" },
+	/**
+	 * Service Bindings (communicate between multiple Workers)
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
+	 */
+	// "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
+}

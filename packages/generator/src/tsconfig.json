@@ -1,0 +1,8 @@
+{
+	"extends": "../../../tsconfig.workerd.json",
+	"include": [
+		"./**/*.ts",
+		"../worker-configuration.d.ts",
+		"../../shared/src/types.ts"
+	]
+}

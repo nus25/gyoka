@@ -1,0 +1,23 @@
+{
+  "name": "gyoka",
+  "version": "0.1.0",
+  "description": "simple feed generator for bluesky which works on cloudflare workers",
+  "private": "true",
+  "scripts": {
+    "editor-dev": "npm run dev -w packages/editor",
+    "generator-dev": "npm run dev -w packages/generator",
+    "d1-create": "npx wrangler d1 create gyoka-db",
+    "d1-init-local": "npm run d1-init-local --workspaces --if-present"
+  },
+  "author": "Nus",
+  "license": "MIT",
+  "workspaces": [
+    "packages/editor",
+    "packages/generator",
+    "packages/shared"
+  ],
+  "devDependencies": {
+    "@vitest/coverage-istanbul": "^3.1.x",
+    "vitest": "^3.1.x"
+  }
+}

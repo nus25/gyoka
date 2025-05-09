@@ -1,0 +1,10 @@
+{
+  "name": "shared",
+  "version": "0.1.0",
+  "author": "Nus",
+  "license": "MIT",
+  "description": "shared code for gyoka",
+  "dependencies": {
+    "@hono/zod-openapi": "^0.19.6"
+  }
+}

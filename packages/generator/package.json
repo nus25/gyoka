@@ -1,0 +1,30 @@
+{
+	"name": "gyoka-generator",
+	"version": "0.1.0",
+	"scripts": {
+		"postinstall": "node ../shared/scripts/copy-config.js",
+		"deploy": "wrangler deploy --env production",
+		"dev": "wrangler dev --persist-to=../../data  --env dev",
+		"cf-typegen": "wrangler types --strict-vars=false --env production",
+		"test": "vitest",
+		"coverage": "vitest run --coverage",
+		"d1-init-production": "wrangler d1 execute gyoka-db --remote --file=../shared/migrations/0000_initial.sql  --env production",
+		"d1-init-local": "wrangler d1 execute gyoka-db --local --file=../shared/migrations/0000_initial.sql  --persist-to=../../data  --env dev",
+		"d1-add-dummy-local": "wrangler d1 execute gyoka-db --local --file=../shared/migrations/0001_dummydata.sql  --persist-to=../../data --env dev"
+	},
+	"dependencies": {
+		"chanfana": "^2.8.0",
+		"hono": "^4.7.9",
+		"shared": "file:../shared",
+		"zod": "^3.24.4"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.8.27",
+		"@cloudflare/workers-types": "^4.20250509.0",
+		"@types/node": "^22.15.17",
+		"@types/service-worker-mock": "^2.0.4",
+		"wrangler": "^4.14.4"
+	},
+	"author": "Nus",
+	"license": "MIT"
+}
