@@ -57,7 +57,9 @@
 				"head_sampling_rate": 1.0
 			},
 			"vars": {
+				/* DID of your Bluesky account or alternative publisher */
 				"FEEDGEN_PUBLISHER_DID": "did:example:publisher",
+				/* hostname of the feed generator service endpoint */
 				"FEEDGEN_HOST": "feed-generator.example.com",
 				"DEVELOPER_MODE": "disabled"
 			},
