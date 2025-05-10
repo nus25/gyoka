@@ -47,9 +47,6 @@ app.use(
 );
 // configuration check for each endpoint
 app.use('/api/*', async (c: AppContext, next) => {
-  if (!c.env.FEEDGEN_PUBLISHER_DID || !c.env.FEEDGEN_HOST) {
-    throw new ApiException('Missing required environment variables');
-  }
   if (!c.env.DB) {
     throw new ApiException('Missing database configuration');
   }

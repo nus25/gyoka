@@ -10,8 +10,6 @@
 	"env": {
 		"test": {
 			"vars": {
-				"FEEDGEN_PUBLISHER_DID": "did:example:developer",
-				"FEEDGEN_HOST": "gyoka-editor.example.com",
 				"DEVELOPER_MODE": "enabled"
 			},
 			"d1_databases": [
@@ -35,8 +33,6 @@
 			* https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 			*/
 			"vars": {
-				"FEEDGEN_PUBLISHER_DID": "did:example:developer",
-				"FEEDGEN_HOST": "dev.example.com",
 				"DEVELOPER_MODE": "enabled"
 			}
 		},
@@ -54,8 +50,6 @@
 				"head_sampling_rate": 1.0
 			},
 			"vars": {
-				"FEEDGEN_PUBLISHER_DID": "did:plc:xxxxxxxxxxxx",
-				"FEEDGEN_HOST": "gyoka-editor.example.com",
 				"DEVELOPER_MODE": "disabled"
 			},
 			"d1_databases": [
