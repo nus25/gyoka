@@ -3,73 +3,75 @@
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
 {
-	"$schema": "../../node_modules/wrangler/config-schema.json",
-	"name": "gyoka-generator",
-	"main": "src/index.ts",
-	"compatibility_date": "2025-04-05",
-	"compatibility_flags": [
-		"nodejs_compat"
-	],
-	"env": {
-		"test": {
-			"vars": {
-				"FEEDGEN_PUBLISHER_DID": "did:example:developer",
-				"FEEDGEN_HOST": "test-generator.example.com",
-				"DEVELOPER_MODE": "enabled"
-			},
-			"d1_databases": [
-				{
-					"binding": "DB",
-					"database_name": "gyoka-db",
-					"database_id": "test_id"
-				}
-			]
-		},
-		"dev": {
-			"d1_databases": [
-				{
-					"binding": "DB",
-					"database_name": "gyoka-db",
-					"database_id": "dev_id"
-				}
-			],
-			/**
-			* Environment Variables
-			* https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-			*/
-			"vars": {
-				"FEEDGEN_PUBLISHER_DID": "did:example:developer",
-				"FEEDGEN_HOST": "dev.example.com",
-				"DEVELOPER_MODE": "enabled"
-			}
-		},
-		"production": {
-			// "routes": [
-			// 	{
-			// 		"pattern": "feed-generator.example.com",
-			// 		"custom_domain": true
-			// 	}
-			// ],
-			"preview_urls": false,
-			"workers_dev": true, // false for custom_domain
-			"observability": {
-				"enabled": true,
-				"head_sampling_rate": 1.0
-			},
-			"vars": {
-				/* DID of your Bluesky account or alternative publisher */
-				"FEEDGEN_PUBLISHER_DID": "did:example:publisher",
-				/* hostname of the feed generator service endpoint */
-				"FEEDGEN_HOST": "feed-generator.example.com",
-				"DEVELOPER_MODE": "disabled"
-			},
-			"d1_databases": [
-				{
-					"binding": "DB",
-					"database_name": "gyoka-db",
-					"database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-				}
-			]
-		}
-	}
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "gyoka-generator",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "env": {
+    "test": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "gyoka-db",
+          "database_id": "test_id"
+        }
+      ]
+    },
+    "dev": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "gyoka-db",
+          "database_id": "dev_id"
+        }
+      ],
+      /**
+       * Environment Variables
+       * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+       */
+      "vars": {
+        "FEEDGEN_PUBLISHER_DID": "did:example:developer",
+        "FEEDGEN_HOST": "dev.example.com",
+        "SWAGGER_UI": "enabled",
+        "REDOC": "enabled",
+        "OPENAPI_JSON": "enabled",
+        "DEVELOPER_MODE": "enabled"
+      }
+    },
+    "production": {
+      // "routes": [
+      // 	{
+      // 		"pattern": "feed-generator.example.com",
+      // 		"custom_domain": true
+      // 	}
+      // ],
+      "preview_urls": false,
+      "workers_dev": true, // false for custom_domain
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1.0
+      },
+      "vars": {
+        /* DID of your Bluesky account or alternative publisher */
+        "FEEDGEN_PUBLISHER_DID": "did:example:publisher",
+        /* hostname of the feed generator service endpoint */
+        "FEEDGEN_HOST": "feed-generator.example.com",
+        /* Flag to enable the Swagger document at /docs */
+        "SWAGGER_UI": "disabled",
+        /* Flag to enable the ReDoc document at /redocs */
+        "REDOC": "disabled",
+        /* Flag to enable the OpenAPI JSON document at /openapi.json */
+        "OPENAPI_JSON": "disabled",
+        "DEVELOPER_MODE": "disabled"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "gyoka-db",
+          "database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        }
+      ]
+    }
+  }
 }

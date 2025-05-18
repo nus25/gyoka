@@ -13,6 +13,7 @@ import { GetPosts } from './endpoints/getPosts';
 import { TrimFeed } from './endpoints/trimFeed';
 import { UpdateDocument } from './endpoints/updateDocument';
 import { AppContext, createErrorResponse } from 'shared/src/types';
+import process from 'node:process';
 
 const API_VERSION = '1.0.0';
 
@@ -20,8 +21,9 @@ const API_VERSION = '1.0.0';
 const app = new Hono<{ Bindings: EnvWithSecret }>();
 // Setup OpenAPI registry
 const openapi = fromHono(app, {
-  docs_url: '/docs',
-  redoc_url: '/redocs',
+  docs_url: process.env.SWAGGER_UI === 'enabled' ? '/docs' : null,
+  redoc_url: process.env.REDOC === 'enabled' ? '/redocs' : null,
+  openapi_url: process.env.OPENAPI_JSON === 'enabled' ? '/openapi.json' : null,
   openapiVersion: '3',
   schema: {
     info: {

@@ -22,10 +22,10 @@
 		"target": "esnext",
 		"module": "esnext",
 		"types": [
-			"@types/node",
+			"node",
 			"@types/service-worker-mock",
 			"@cloudflare/workers-types/2023-07-01"
-		]
+		]       
 	},
 	"exclude": ["node_modules", "dist", "tests"],
 }

@@ -24,5 +24,8 @@ export default defineConfig([
     plugins: { json },
     language: 'json/jsonc',
     extends: ['json/recommended'],
+    rules: {
+      indent: ['error', 2],
+    },
   },
 ]);

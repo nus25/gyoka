@@ -1,18 +1,34 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect} from 'vitest';
 import app from '../src/index';
 const BASE_URL = 'http://localhost:8787';
 
 // This test suite ensures that each endpoint responds to requests as expected.
 
-describe('root', () => {
-  it('returns app doc', async () => {
+describe('document settings', () => {
+  it('returns app swagger doc', async () => {
     const request = new Request(`${BASE_URL}/docs`);
     const ctx = createExecutionContext();
     const response = await app.fetch(request, env, ctx);
     await waitOnExecutionContext(ctx);
     expect(response.status).toBe(200);
   });
+  it('returns app redoc', async () => {
+    const request = new Request(`${BASE_URL}/redocs`);
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(200);
+  });
+
+  it('returns openapi.json', async () => {
+    const request = new Request(`${BASE_URL}/openapi.json`);
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(200);
+  });
+
 });
 
 describe('configuration error test', () => {

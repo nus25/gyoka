@@ -1,0 +1,6 @@
+FEEDGEN_PUBLISHER_DID=did:example:developer
+FEEDGEN_HOST=test-generator.example.com
+SWAGGER_UI=enabled
+REDOC=enabled
+OPENAPI_JSON=enabled
+DEVELOPER_MODE=enabled

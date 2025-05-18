@@ -1,1 +1,5 @@
+SWAGGER_UI=enabled
+REDOC=enabled
+OPENAPI_JSON=enabled
+DEVELOPER_MODE=enabled
 GYOKA_API_KEY=

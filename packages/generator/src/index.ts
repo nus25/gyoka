@@ -7,13 +7,14 @@ import { GetFeedSkeleton } from './endpoints/app/bsky/feed/getFeedSkeleton';
 import { GetDidDocument } from './endpoints/getDidDocument';
 import { GetDocument } from './endpoints/getDocument';
 import { AppContext, createErrorResponse } from 'shared/src/types';
-
+import process from 'node:process';
 const app = new Hono();
 
 // Setup OpenAPI registry
 const openapi = fromHono(app, {
-  docs_url: '/',
-  redoc_url: '/redocs',
+  docs_url: process.env.SWAGGER_UI === 'enabled'? '/docs': null,
+  redoc_url: process.env.REDOC === 'enabled'?'/redocs':null,
+  openapi_url: process.env.OPENAPI_JSON === 'enabled'?'/openapi.json':null,
 });
 
 app.use('*', etag());

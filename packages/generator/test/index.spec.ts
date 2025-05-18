@@ -6,8 +6,22 @@ const BASE_URL = 'http://localhost:8787';
 // This test suite ensures that each endpoint responds to requests as expected.
 
 describe('root', () => {
-  it('returns app doc', async () => {
-    const request = new Request(`${BASE_URL}`);
+  it('returns app swagger doc', async () => {
+    const request = new Request(`${BASE_URL}/docs`);
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(200);
+  });
+  it('returns app redoc', async () => {
+    const request = new Request(`${BASE_URL}/redocs`);
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(200);
+  });
+  it('returns openapi.json', async () => {
+    const request = new Request(`${BASE_URL}/openapi.json`);
     const ctx = createExecutionContext();
     const response = await app.fetch(request, env, ctx);
     await waitOnExecutionContext(ctx);
@@ -22,7 +36,7 @@ describe('app.bsky.feed.describeFeedGenerator', () => {
     console.log('DB cleared');
   });
   it('returns server discription', async () => {
-    const request = new Request(`${BASE_URL}/`);
+    const request = new Request(`${BASE_URL}/xrpc/app.bsky.feed.describeFeedGenerator`);
     const ctx = createExecutionContext();
     const response = await app.fetch(request, env, ctx);
     await waitOnExecutionContext(ctx);
