@@ -8,7 +8,7 @@ export default defineWorkersProject(async () => {
 
 	return {
 		test: {
-			name: 'editor',
+			name: 'generator',
 			include: ["**/*.spec.ts"],
 			setupFiles: ['../shared/migrations/apply-migrations.ts'],
 			poolOptions: {
