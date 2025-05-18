@@ -1,6 +1,6 @@
 {
   "name": "gyoka",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "simple feed generator for bluesky which works on cloudflare workers",
   "private": "true",
   "scripts": {
