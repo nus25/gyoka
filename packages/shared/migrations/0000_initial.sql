@@ -20,15 +20,18 @@ CREATE TABLE IF NOT EXISTS posts (
     cid TEXT NOT NULL,         -- post CID
     did TEXT NOT NULL,         -- author DID
     uri TEXT NOT NULL,         -- post AT URI
-    indexed_at INTEGER NOT NULL, -- ISO8601（ms）timestamp
-    feed_context TEXT,         -- feedContextを格納
-    reason TEXT,               -- reasonをJSON形式で格納
+    indexed_at TEXT NOT NULL CHECK(indexed_at GLOB '????-??-??T??:??:??*Z'), -- ISO8601（ms）timestamp string
+    feed_context TEXT,         -- feedContext
+    reason TEXT CHECK (json_valid(reason)), -- JSON format reason
     FOREIGN KEY (feed_id) REFERENCES feeds(feed_id) ON DELETE CASCADE
 );
 -- ポストの言語テーブルの作成
 CREATE TABLE IF NOT EXISTS post_languages (
     post_id INTEGER NOT NULL, 
-    language TEXT NOT NULL, -- BCP-47 language tag(en, ja, etc.). '*' is for all languages
+    language TEXT NOT NULL   CHECK (
+        language = '*' OR
+        (length(language) = 2 AND language GLOB '[a-z][a-z]')
+    ), -- BCP-47 language tag(en, ja, etc.). '*' is for all languages
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     PRIMARY KEY (post_id, language)
 );
@@ -53,3 +56,6 @@ CREATE INDEX IF NOT EXISTS idx_posts_feed_indexed_cid_post_id ON posts(feed_id, 
 CREATE INDEX IF NOT EXISTS idx_post_languages_language_post_id ON post_languages(language, post_id);
 CREATE INDEX IF NOT EXISTS idx_posts_did ON posts(did); -- DIDによる削除用
 CREATE INDEX IF NOT EXISTS idx_posts_uri ON posts(uri); -- URIによる削除用
+
+-- optimize the database
+PRAGMA optimize;

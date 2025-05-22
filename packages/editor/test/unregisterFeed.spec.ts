@@ -177,7 +177,7 @@ describe(ENDPOINT_PATH, async () => {
         'test-cid',
         'did:plc:testuser',
         'at://did:plc:testuser/app.bsky.feed.post/post1',
-        Date.now(),
+        new Date().toISOString(),
         feedUri
       )
       .run();
