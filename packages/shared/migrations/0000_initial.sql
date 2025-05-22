@@ -56,3 +56,6 @@ CREATE INDEX IF NOT EXISTS idx_posts_feed_indexed_cid_post_id ON posts(feed_id, 
 CREATE INDEX IF NOT EXISTS idx_post_languages_language_post_id ON post_languages(language, post_id);
 CREATE INDEX IF NOT EXISTS idx_posts_did ON posts(did); -- DIDによる削除用
 CREATE INDEX IF NOT EXISTS idx_posts_uri ON posts(uri); -- URIによる削除用
+
+-- optimize the database
+PRAGMA optimize;
