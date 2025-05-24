@@ -131,10 +131,10 @@ export class AddPost extends OpenAPIRoute {
       //error if no valid code in request field.
       return createErrorResponse('BadRequest', 'At least one valid language code is required', 400);
     }
-    if (languageCodes.some((code) => !/^(?:[a-z]{2}|\*)$/.test(code))) {
+    if (languageCodes.some((code) => !(code === '*' || /^[a-z]{2,3}$/.test(code)))) {
       return createErrorResponse(
         'BadRequest',
-        'All language codes must be exactly two lowercase alphabetic characters (e.g., "en").',
+        'All primary language tags must be exactly two or three lowercase alphabetic characters (e.g., "en", "jp").',
         400
       );
     }
