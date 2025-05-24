@@ -167,7 +167,7 @@ describe(ENDPOINT_PATH, () => {
 
     const postWithMixedLangs = {
       ...dummyPost,
-      languages: ['en-US', 'ja-JP', 'en', 'ja'], // Should normalize to ['en', 'ja']
+      languages: ['en-US', 'JA-JP', 'EN', 'JA', 'tlh'], // Should normalize to ['en', 'ja', 'tlh]
     };
 
     const { response } = await addPost(dummyFeed.uri, postWithMixedLangs);
@@ -185,8 +185,8 @@ describe(ENDPOINT_PATH, () => {
       .prepare('SELECT DISTINCT language FROM post_languages WHERE post_id = ?')
       .bind(posts[0].post_id)
       .all();
-    expect(languages.length).toBe(2);
-    expect(languages.map((l) => l.language).sort()).toEqual(['en', 'ja']);
+    expect(languages.length).toBe(3);
+    expect(languages.map((l) => l.language).sort()).toEqual(['en', 'ja', 'tlh']);
   });
 
   it('handles invalid language codes', async () => {
@@ -194,7 +194,7 @@ describe(ENDPOINT_PATH, () => {
 
     const postWithInvalidLangs = {
       ...dummyPost,
-      languages: ['invalid', '123'],
+      languages: ['invalid', '11'],
     };
 
     const { response } = await addPost(dummyFeed.uri, postWithInvalidLangs);

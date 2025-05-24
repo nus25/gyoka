@@ -30,8 +30,9 @@ CREATE TABLE IF NOT EXISTS post_languages (
     post_id INTEGER NOT NULL, 
     language TEXT NOT NULL   CHECK (
         language = '*' OR
-        (length(language) = 2 AND language GLOB '[a-z][a-z]')
-    ), -- BCP-47 language tag(en, ja, etc.). '*' is for all languages
+        (length(language) = 2 AND language GLOB '[a-z][a-z]') or
+        (length(language) = 3 AND language GLOB '[a-z][a-z][a-z]')
+    ), -- BCP-47 primary language tag(en, ja, tlh etc.). '*' is for all languages
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     PRIMARY KEY (post_id, language)
 );
