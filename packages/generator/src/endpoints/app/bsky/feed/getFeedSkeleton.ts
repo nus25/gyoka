@@ -210,9 +210,24 @@ export class GetFeedSkeleton extends OpenAPIRoute {
           }`
         : undefined;
 
-    return c.json({
+    // create response body
+    const responseBody = {
       cursor: nextCursor,
       feed,
+    };
+
+    // Create headers
+    const headers = new Headers();
+    headers.set('Content-Type', 'application/json');
+
+    // Set Content-Language header if language codes are available
+    if (languageCodes.length > 0) {
+      headers.set('Content-Language', Array.from(languageCodes).join(', '));
+    }
+
+    return new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers,
     });
   }
 }

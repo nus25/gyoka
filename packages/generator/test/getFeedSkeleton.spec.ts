@@ -273,6 +273,24 @@ describe('GetFeedSkeleton Endpoint', () => {
       'at://did:plc:testuser/app.bsky.feed.post/getfeedskeleton/post1'
     );
   });
+  it('should set Content-Language header in response', async () => {
+    const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
+
+    // request français
+    const frResponse = await sendRequest(`feed=${feedUri}`, { 'Accept-Language': 'fr' });
+    expect(frResponse.status).toBe(200);
+    expect(frResponse.headers.get('Content-Language')).toBe('fr');
+
+    // request english with fallback to Japanese
+    const enResponse = await sendRequest(`feed=${feedUri}`, { 'Accept-Language': 'en-US, jp' });
+    expect(enResponse.status).toBe(200);
+    expect(enResponse.headers.get('Content-Language')).toBe('en, jp');
+
+    // Accept-Language header not set, should return null
+    const defaultResponse = await sendRequest(`feed=${feedUri}`);
+    expect(defaultResponse.status).toBe(200);
+    expect(defaultResponse.headers.get('Content-Language')).toBe(null); 
+  });
   it('should return feedcontext', async () => {
     const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
     const db = env.DB;
