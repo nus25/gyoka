@@ -146,7 +146,7 @@ export class GetFeedSkeleton extends OpenAPIRoute {
             .map((lang) => lang.toLowerCase())
             .filter((lang) => lang)
         ),
-      ];
+      ].slice(0, 10); // Limit to first 10 primary language tags
     }
 
     const SQL_TEMPLATE_SELECT_POST_WITH_LANGUAGE = `
