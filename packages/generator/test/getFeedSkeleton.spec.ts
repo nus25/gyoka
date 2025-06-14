@@ -273,6 +273,24 @@ describe('GetFeedSkeleton Endpoint', () => {
       'at://did:plc:testuser/app.bsky.feed.post/getfeedskeleton/post1'
     );
   });
+  it('should set Content-Language header in response', async () => {
+    const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
+
+    // request français
+    const frResponse = await sendRequest(`feed=${feedUri}`, { 'Accept-Language': 'fr' });
+    expect(frResponse.status).toBe(200);
+    expect(frResponse.headers.get('Content-Language')).toBe('fr');
+
+    // request english with fallback to Japanese
+    const enResponse = await sendRequest(`feed=${feedUri}`, { 'Accept-Language': 'en-US, jp' });
+    expect(enResponse.status).toBe(200);
+    expect(enResponse.headers.get('Content-Language')).toBe('en, jp');
+
+    // Accept-Language header not set, should return null
+    const defaultResponse = await sendRequest(`feed=${feedUri}`);
+    expect(defaultResponse.status).toBe(200);
+    expect(defaultResponse.headers.get('Content-Language')).toBe(null); 
+  });
   it('should return feedcontext', async () => {
     const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
     const db = env.DB;
@@ -418,5 +436,53 @@ describe('GetFeedSkeleton Endpoint', () => {
     expect(response2.status).toBe(404);
     const errorData: expectedErrorResponseType = await response2.json();
     expect(errorData.error).toBe('UnknownFeed');
+  });
+
+  it('should limit Accept-Language to maximum 10 primary language tags', async () => {
+    const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
+    const db = env.DB;
+    const { results } = await db
+      .prepare('SELECT feed_id FROM feeds WHERE feed_uri = ? AND is_active = 1')
+      .bind(feedUri)
+      .all();
+    const feedId = parseInt(results[0].feed_id as string);
+
+    const indexedAt = new Date();
+
+    // Create posts with different languages
+    const languages = ['en', 'fr', 'de', 'es', 'it', 'pt', 'ru', 'ja', 'ko', 'zh', 'ar', 'hi', 'nl', 'sv', 'da'];
+    
+    for (let i = 0; i < languages.length; i++) {
+      indexedAt.setSeconds(indexedAt.getSeconds() + 1);
+      await insertPost(feedId, {
+        id: i + 1,
+        uri: `at://did:plc:testuser/app.bsky.feed.post/getfeedskeleton/post${i + 1}`,
+        cid: `cid${i + 1}`,
+        indexedAt: indexedAt.toISOString(),
+        langs: [languages[i]],
+      });
+    }
+
+    // Create Accept-Language header with 15 language tags (more than the 10 limit)
+    // Using realistic language-country combinations
+    const acceptLanguageHeader = 'en-us,fr-fr,de-de,es-es,it-it,pt-br,ru-ru,ja-jp,ko-kr,zh-cn,ar-sa,hi-in,nl-nl,sv-se,da-dk';
+    
+    const response = await sendRequest(`feed=${feedUri}&limit=50`, { 
+      'Accept-Language': acceptLanguageHeader 
+    });
+    
+    expect(response.status).toBe(200);
+    const data: expectedResponseType = await response.json();
+    
+    // Should return posts, but only for the first 10 languages due to the limit
+    expect(data).toHaveProperty('feed');
+    expect(Array.isArray(data.feed)).toBe(true);
+    
+    // Verify Content-Language header contains only first 10 primary language codes
+    const contentLanguage = response.headers.get('Content-Language');
+    expect(contentLanguage).toBe('en, fr, de, es, it, pt, ru, ja, ko, zh');
+    
+    // Should have 10 posts (one for each of the first 10 languages)
+    expect(data.feed.length).toBe(10);
   });
 });
