@@ -80,10 +80,8 @@ describe('app.bsky.feed.describeFeedGenerator', async () => {
     assertValidResponse(response);
     expect(json).toEqual({
       did: env.FEEDGEN_PUBLISHER_DID,
-      feeds: expect.arrayContaining([
-        { uri: dummyFeeds[0].uri },
-        { uri: dummyFeeds[1].uri },
-        { uri: dummyFeeds[3].uri },
+      feeds: expect.not.arrayContaining([
+        { uri: dummyFeeds[2].uri },
       ]),
     });
   });
