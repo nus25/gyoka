@@ -1,0 +1,107 @@
+import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
+import { z } from 'zod';
+import {
+  BadRequestErrorSchema,
+  InternalServerErrorSchema,
+  NotFoundErrorSchema,
+  UnauthorizedErrorSchema,
+} from 'shared/src/constants';
+import { feedUri, did } from 'shared/src/validators';
+import { AppContext, createErrorResponse } from 'shared/src/types';
+
+const SQL_SELECT_FEED = 'SELECT feed_id FROM feeds WHERE feed_uri = ?';
+const SQL_COUNT_POSTS_BY_AUTHOR = 'SELECT COUNT(*) as count FROM posts WHERE feed_id = ? AND did = ?';
+const SQL_DELETE_POSTS_BY_AUTHOR = 'DELETE FROM posts WHERE feed_id = ? AND did = ?';
+
+export class RemovePostByAuthor extends OpenAPIRoute {
+  schema = {
+    tags: ['Feed Editor'],
+    summary: 'Remove all posts by a specific author from a feed',
+    request: {
+      body: contentJson(
+        z.object({
+          feed: feedUri,
+          author: did,
+        })
+      ),
+    },
+    responses: {
+      '200': {
+        description: 'Posts by author removed successfully',
+        content: {
+          'application/json': {
+            schema: z.object({
+              message: z.string(),
+              feed: feedUri,
+              author: did,
+              deletedCount: z.number().int().min(0),
+            }),
+          },
+        },
+      },
+      ...UnauthorizedErrorSchema,
+      ...BadRequestErrorSchema,
+      ...NotFoundErrorSchema,
+      ...InternalServerErrorSchema,
+    },
+  };
+
+  handleValidationError(errors: z.ZodIssue[]): Response {
+    return createErrorResponse(
+      'BadRequest',
+      JSON.stringify(
+        errors.map((error) => ({
+          message: error.message,
+          path: error.path,
+        }))
+      ),
+      400
+    );
+  }
+
+  async handle(c: AppContext): Promise<Response> {
+    const db: D1Database = c.env.DB;
+    const data = await this.getValidatedData<typeof this.schema>();
+    const { feed: feed_uri, author } = data.body;
+
+    // Check if the feed exists
+    const { success: selectFeedSuccess, results: feedResults } = await db
+      .prepare(SQL_SELECT_FEED)
+      .bind(feed_uri)
+      .all();
+    if (!selectFeedSuccess) {
+      throw new ApiException('Failed to query the database');
+    }
+    if (feedResults.length === 0) {
+      return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
+    }
+    const feed_id = feedResults[0].feed_id;
+
+    // Count posts by the author before deletion
+    const { success: countSuccess, results: countResults } = await db
+      .prepare(SQL_COUNT_POSTS_BY_AUTHOR)
+      .bind(feed_id, author)
+      .all();
+    if (!countSuccess) {
+      throw new ApiException('Failed to count posts');
+    }
+    const deletedCount = countResults[0]?.count || 0;
+
+    // Delete all posts by the author from the database
+    if (c.env.DEVELOPER_MODE === 'enabled') {
+      console.log('feed id:', feed_id, 'author:', author, 'deletedCount:', deletedCount);
+    }
+    const deletePostsStmt = db.prepare(SQL_DELETE_POSTS_BY_AUTHOR).bind(feed_id, author);
+    const deleteResult = await deletePostsStmt.run();
+    if (!deleteResult.success) {
+      throw new ApiException('Failed to remove posts from the database');
+    }
+
+    return Response.json({
+      message: 'Posts by author removed successfully',
+      feed: feed_uri,
+      author: author,
+      deletedCount: deletedCount,
+    });
+  }
+}

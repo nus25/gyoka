@@ -99,6 +99,37 @@ To remove a post from the feed, use the `/api/feed/removePost` endpoint.
 }
 ```
 
+## Removing a Post by Author (removePostByAuthor)
+
+To remove all posts by a specific author from the feed, use the `/api/feed/removePostByAuthor` endpoint.
+
+### Request Example
+
+```json
+{
+    "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+    "author": "did:plc:authoruser"
+}
+```
+
+### Parameter Description
+
+- `feed`: The URI of the feed (required)
+- `author`: The DID of the author whose posts should be removed (required)
+
+### Response Example
+
+```json
+{
+    "message": "Posts by author removed successfully",
+    "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+    "author": "did:plc:authoruser",
+    "deletedCount": 3
+}
+```
+
+This operation removes all posts in the specified feed that were authored by the given DID. Use with caution, as it may affect multiple posts at once.
+
 ## Trimming the Feed (trimFeed)
 
 To limit the number of posts in the feed, use the `/api/feed/trimPosts` endpoint. This endpoint keeps the specified number of latest posts and removes older ones.
