@@ -36,7 +36,7 @@ export const did = z
   })
   .openapi({
     format: 'did',
-    example: 'did:plc:user.example.com',
+    example: 'did:plc:1234abcd',
   });
 
 //CIDv1
