@@ -6,6 +6,7 @@ The Gyoka-editor allows you to edit feed content using the following operations:
 
 - Add a post to a specified feed (`/api/feed/addPost`)
 - Remove a post from a specified feed (`/api/feed/removePost`)
+- Remove posts from a aspecifed feed by a specified author (`/api/feed/removePostByAuthor`)
 - Trim the feed to keep a specified number of posts (`/api/feed/trimPosts`)
 
 These APIs can be tested through the Swagger UI at `/docs` endpoint.
