@@ -50,6 +50,7 @@ export class TrimFeed extends OpenAPIRoute {
           'application/json': {
             schema: z.object({
               message: z.string(),
+              feed: feedUri,
               deletedCount: z.number(),
             }),
           },

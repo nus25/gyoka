@@ -36,6 +36,11 @@ export class RemovePost extends OpenAPIRoute {
           'application/json': {
             schema: z.object({
               message: z.string(),
+              feed: feedUri,
+              post: z.object({
+                uri: postUri,
+                indexedAt: z.string().datetime({ offset: true }),
+              }),
             }),
           },
         },
