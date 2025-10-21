@@ -70,7 +70,7 @@ To add a new post to the feed, use the `/api/feed/addPost` endpoint.
 To add multiple posts to multiple feeds in a single request, use the `/api/feed/batchAddPosts` endpoint.
 
 This endpoint allows you to specify several feed and post combinations at once.  
-By default, you can add posts to up to 25 feeds per request.
+up to a total of 25 posts across all feeds in a single request.
 
 ### Request Example
 
@@ -105,7 +105,6 @@ By default, you can add posts to up to 25 feeds per request.
                 }
             ]
         }
-        // ...up to 25 entries
     ]
 }
 ```
