@@ -17,7 +17,7 @@ import { UpdateDocument } from './endpoints/updateDocument';
 import { AppContext, createErrorResponse } from 'shared/src/types';
 import process from 'node:process';
 
-const API_VERSION = '1.0.0';
+const API_VERSION = '1.1.0';
 
 // Start a Hono app
 const app = new Hono<{ Bindings: EnvWithSecret }>();
@@ -29,7 +29,7 @@ const openapi = fromHono(app, {
   openapiVersion: '3',
   schema: {
     info: {
-      title: 'Gyoka API',
+      title: 'Gyoka Editor API',
       version: API_VERSION,
     },
     security: [{ ApiKeyAuth: [] }],
