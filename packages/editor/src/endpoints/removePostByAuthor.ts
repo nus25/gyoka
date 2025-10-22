@@ -6,41 +6,35 @@ import {
   NotFoundErrorSchema,
   UnauthorizedErrorSchema,
 } from 'shared/src/constants';
-import { feedUri, postUri } from 'shared/src/validators';
+import { feedUri, did } from 'shared/src/validators';
 import { AppContext, createErrorResponse } from 'shared/src/types';
 
 const SQL_SELECT_FEED = 'SELECT feed_id FROM feeds WHERE feed_uri = ?';
-const SQL_DELETE_POST =
-  'DELETE FROM posts WHERE feed_id = ? AND uri = ? AND ( ? is NULL OR indexed_at = ?)';
-export class RemovePost extends OpenAPIRoute {
+const SQL_COUNT_POSTS_BY_AUTHOR = 'SELECT COUNT(*) as count FROM posts WHERE feed_id = ? AND did = ?';
+const SQL_DELETE_POSTS_BY_AUTHOR = 'DELETE FROM posts WHERE feed_id = ? AND did = ?';
+
+export class RemovePostByAuthor extends OpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
-    summary: 'Remove a post from a feed',
+    summary: 'Remove all posts by a specific author from a feed',
     request: {
       body: contentJson(
         z.object({
           feed: feedUri,
-          post: z
-            .object({
-              uri: postUri,
-              indexedAt: z.string().datetime({ offset: true }).optional(),
-            })
-            .openapi('removePostPostParam'),
+          author: did,
         })
       ),
     },
     responses: {
       '200': {
-        description: 'Post removed successfully',
+        description: 'Posts by author removed successfully',
         content: {
           'application/json': {
             schema: z.object({
               message: z.string(),
               feed: feedUri,
-              post: z.object({
-                uri: postUri,
-                indexedAt: z.string().datetime({ offset: true }),
-              }),
+              author: did,
+              deletedCount: z.number().int().min(0),
             }),
           },
         },
@@ -68,7 +62,7 @@ export class RemovePost extends OpenAPIRoute {
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;
     const data = await this.getValidatedData<typeof this.schema>();
-    const { feed: feed_uri, post } = data.body;
+    const { feed: feed_uri, author } = data.body;
 
     // Check if the feed exists
     const { success: selectFeedSuccess, results: feedResults } = await db
@@ -83,34 +77,31 @@ export class RemovePost extends OpenAPIRoute {
     }
     const feed_id = feedResults[0].feed_id;
 
-    // Delete the post from the database
-    const indexed_at = post.indexedAt ? new Date(post.indexedAt).toISOString() : null;
+    // Count posts by the author before deletion
+    const { success: countSuccess, results: countResults } = await db
+      .prepare(SQL_COUNT_POSTS_BY_AUTHOR)
+      .bind(feed_id, author)
+      .all();
+    if (!countSuccess) {
+      throw new ApiException('Failed to count posts');
+    }
+    const deletedCount = countResults[0]?.count || 0;
+
+    // Delete all posts by the author from the database
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('feed id:', feed_id, 'post:', post);
+      console.log('feed id:', feed_id, 'author:', author, 'deletedCount:', deletedCount);
     }
-    const deletePostStmt = db
-      .prepare(SQL_DELETE_POST)
-      .bind(feed_id, post.uri, indexed_at, indexed_at);
-
-    const deleteResult = await deletePostStmt.run();
-
+    const deletePostsStmt = db.prepare(SQL_DELETE_POSTS_BY_AUTHOR).bind(feed_id, author);
+    const deleteResult = await deletePostsStmt.run();
     if (!deleteResult.success) {
-      throw new ApiException('Failed to remove post from the database');
-    }
-    if (!deleteResult.meta.changed_db) {
-      return createErrorResponse(
-        'NotFound',
-        `Post not found feed:${feed_uri}, post:{uri:${post.uri} ${
-          post.indexedAt ? 'post:' + post.indexedAt : ''
-        }}`,
-        404
-      );
+      throw new ApiException('Failed to remove posts from the database');
     }
 
     return Response.json({
-      message: 'Post removed successfully',
+      message: 'Posts by author removed successfully',
       feed: feed_uri,
-      post: post,
+      author: author,
+      deletedCount: deletedCount,
     });
   }
 }

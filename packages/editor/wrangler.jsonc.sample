@@ -57,7 +57,9 @@
         "REDOC": "disabled",
         /* Flag to enable the OpenAPI JSON document at /openapi.json */
         "OPENAPI_JSON": "disabled",
-        "DEVELOPER_MODE": "disabled"
+        "DEVELOPER_MODE": "disabled",
+        /* Maximum number of posts allowed per batchAddPosts request (integer, >= 1). */
+        "MAX_BATCH_POSTS": "25"
       },
       "d1_databases": [
         {
