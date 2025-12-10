@@ -6,7 +6,8 @@
 - The editor is private endpoint with feed edit APIs. You need a client tool to edit posts in feed like [Yuge](https://github.com/nus25/yuge).
 
 # Requirements
-- Node.js v23
+- Node.js v22 or later
+- pnpm v10 or later
 - Wrangler v4
 - Your own Cloudflare account
 
@@ -14,13 +15,13 @@
 1. Clone repository and install packages.
 
     ```sh
-    npm install
+    pnpm install
     ```
 
 2. Create new D1 database and copy the `database_id`.
 
     ```sh
-    npm run d1-create
+    pnpm d1-create
     ```
 
 3. Add the `database_id` to the production environment settings in both `packages/editor/wrangler.jsonc` and `packages/generator/wrangler.jsonc`. Also update the `vars` and other configuration settings as needed.
@@ -47,15 +48,15 @@
 4. Initialize database.
 
     ```sh
-    npm run d1-init-local -w packages/generator
-    npm run d1-init-production -w packages/generator
+    pnpm d1-init-local
+    pnpm d1-add-dummy-local
     ```
 
 5. Run at local.
 
     ```sh
-    npm run editor-dev
-    npm run generator-dev
+    pnpm editor dev
+    pnpm generator dev
     ```
 
 6. Access documents.
@@ -68,8 +69,8 @@
 Deploy editor and generator workers to Cloudflare workers.
 
 ```sh
-npm run deploy -w packages/editor
-npm run deploy -w packages/generator
+pnpm editor deploy
+pnpm generator deploy
 ```
 # Authentication
 The Gyoka-editor API supports simple API key authentication when an API key is configured.
@@ -82,7 +83,7 @@ GYOKA_API_KEY=some-api-key
 For the deploy worker, use `wrangler secret put` at `packages/editor` directory.
 
 ```sh
-npx wrangler secret put GYOKA_API_KEY --env production
+pnpx wrangler secret put GYOKA_API_KEY --env production
 ```
 
 ## License
