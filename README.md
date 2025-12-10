@@ -69,8 +69,8 @@
 Deploy editor and generator workers to Cloudflare workers.
 
 ```sh
-pnpm editor deploy
-pnpm generator deploy
+pnpm editor run deploy
+pnpm generator run deploy
 ```
 # Authentication
 The Gyoka-editor API supports simple API key authentication when an API key is configured.
