@@ -5,6 +5,18 @@
 - The generator is public endpoint for feed requests from Bluesky services.
 - The editor is private endpoint with feed edit APIs. You need a client tool to edit posts in feed like [Yuge](https://github.com/nus25/yuge).
 
+## Features
+Gyoka supports:
+- Response for `/xrpc/app.bsky.feed.getFeedSkeleton`
+- Response for `/xrpc/app.bsky.feed.describeFeedGenerator`
+- Response for `/.well-known/did.json`
+- Language tag filtering via `/xrpc/app.bsky.feed.getFeedSkeleton` request header
+
+Gyoka does **not** support:
+- JWT in `/xrpc/app.bsky.feed.getFeedSkeleton` requests (they are ignored)
+- Setting the `acceptsInteractions` value in `app.bsky.feed.generator` record (it must be `false`)
+
+
 # Requirements
 - Node.js v22 or later
 - pnpm v10 or later
