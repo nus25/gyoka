@@ -1,10 +1,16 @@
 {
-  "name": "shared",
-  "version": "0.5.0",
-  "author": "Nus",
-  "license": "MIT",
-  "description": "shared code for gyoka",
-  "dependencies": {
-    "@hono/zod-openapi": "^0.19.10"
-  }
+    "name": "shared",
+    "version": "0.6.0",
+    "main": "./src/index.ts",
+    "scripts": {},
+    "dependencies": {
+        "@hono/zod-openapi": "^0.19.10",
+        "zod": "^3.24.4"
+    },
+    "devDependencies": {
+        "@types/node": "^22.15.35"
+    },
+    "packageManager": "pnpm@10.25.0",
+    "author": "Nus",
+    "license": "MIT"
 }
