@@ -12,7 +12,7 @@ describe('GET /.well-known/did.json', () => {
     const response = await app.fetch(request, env, ctx);
     await waitOnExecutionContext(ctx);
     expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('application/did+json');
+    expect(response.headers.get('Content-Type')).toBe('application/did+ld+json');
     const json = await response.json();
     expect(json).toEqual({
       '@context': ['https://www.w3.org/ns/did/v1'],
