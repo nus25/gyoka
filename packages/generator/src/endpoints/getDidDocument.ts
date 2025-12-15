@@ -57,7 +57,7 @@ export class GetDidDocument extends OpenAPIRoute {
 
     return new Response(JSON.stringify(response), {
       headers: {
-        'Content-Type': 'application/did+json',
+        'Content-Type': 'application/did+ld+json',
       },
     });
   }
