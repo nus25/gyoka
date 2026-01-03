@@ -150,7 +150,7 @@ export class GetFeedSkeleton extends OpenAPIRoute {
     }
 
     const SQL_TEMPLATE_SELECT_POST_WITH_LANGUAGE = `
-        SELECT p.*
+        SELECT p.uri, p.cid, p.indexed_at, p.reason, p.feed_context
         FROM posts p
             WHERE
                 p.feed_id = ?
