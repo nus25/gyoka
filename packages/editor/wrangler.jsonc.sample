@@ -59,7 +59,11 @@
         "OPENAPI_JSON": "disabled",
         "DEVELOPER_MODE": "disabled",
         /* Maximum number of posts allowed per batchAddPosts request (integer, >= 1). */
-        "MAX_BATCH_POSTS": "25"
+        "MAX_BATCH_POSTS": "25",
+        /* Version from package.json (overridden by --var during deploy) */
+        "VERSION": "0.0.0",
+        /* Git commit hash (overridden by --var during deploy) */
+        "GIT_SHA": "unknown"
       },
       "d1_databases": [
         {

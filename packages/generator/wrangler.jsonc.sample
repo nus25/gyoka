@@ -63,7 +63,11 @@
         "REDOC": "disabled",
         /* Flag to enable the OpenAPI JSON document at /openapi.json */
         "OPENAPI_JSON": "disabled",
-        "DEVELOPER_MODE": "disabled"
+        "DEVELOPER_MODE": "disabled",
+        /* Version from package.json (overridden by --var during deploy) */
+        "VERSION": "0.0.0",
+        /* Git commit hash (overridden by --var during deploy) */
+        "GIT_SHA": "unknown"
       },
       "d1_databases": [
         {
