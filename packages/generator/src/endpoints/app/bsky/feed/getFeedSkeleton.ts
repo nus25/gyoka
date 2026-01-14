@@ -88,6 +88,27 @@ export class GetFeedSkeleton extends OpenAPIRoute {
     );
   }
 
+  extractLanguageCodes(acceptLanguage: string, maxCount: number = 10): string[] {
+    if (!acceptLanguage) return [];
+
+    const seen = new Set<string>();
+    const parts = acceptLanguage.split(',');
+
+    for (let i = 0; i < parts.length && seen.size < maxCount; i++) {
+      const semicolonPos = parts[i].indexOf(';');
+      const lang = semicolonPos === -1 ? parts[i] : parts[i].substring(0, semicolonPos);
+      const trimmed = lang.trim();
+      const dashPos = trimmed.indexOf('-');
+      const langCode = (dashPos === -1 ? trimmed : trimmed.substring(0, dashPos)).toLowerCase();
+
+      if (langCode) {
+        seen.add(langCode);
+      }
+    }
+
+    return Array.from(seen);
+  }
+
   async handle(c: AppContext): Promise<Response> {
     const {
       feed: feedUri,
@@ -110,70 +131,47 @@ export class GetFeedSkeleton extends OpenAPIRoute {
       cursorCid = cursorParts[1];
     }
 
-    // get feed
-    const SQL_SELECT_FEED = `
-        SELECT * 
-        FROM feeds 
-        WHERE feed_uri = ?1 
-        AND is_active = 1
-        LIMIT 1;`;
-
-    const { success: feedCheckSuccess, results: feedResults } = await c.env.DB.prepare(
-      SQL_SELECT_FEED
-    )
-      .bind(feedUri)
-      .all();
-    if (!feedCheckSuccess) {
-      throw new ApiException('Failed to check feed existence');
-    }
-    if (feedResults.length === 0 || !feedResults[0].is_active) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${feedUri} does not exist.`, 404);
-    }
-    const feedId = feedResults[0].feed_id;
-    const lang_filter = feedResults[0].lang_filter;
-
     // get posts
     // language codes for filter
     const acceptLanguage = c.req.header('Accept-Language') || '';
-    let languageCodes = [];
-    if (lang_filter) {
-      languageCodes = [
-        ...new Set(
-          acceptLanguage
-            .split(',')
-            .map((lang) => lang.split(';')[0].trim())
-            .map((lang) => lang.split('-')[0]) // Extract language code (e.g., "en" from "en-US")
-            .map((lang) => lang.toLowerCase())
-            .filter((lang) => lang)
-        ),
-      ].slice(0, 10); // Limit to first 10 primary language tags
+    const languageCodes = this.extractLanguageCodes(acceptLanguage, 10);
+    const SQL_TEMPLATE_SELECT_POST = `
+SELECT p.uri, p.cid, p.indexed_at, p.reason, p.feed_context
+FROM feeds f
+INNER JOIN posts p ON p.feed_id = f.feed_id
+WHERE f.feed_uri = ?
+  AND f.is_active = 1
+  AND (
+    ? IS NULL
+    OR (
+      p.indexed_at < ?
+      OR (
+        p.indexed_at = ?
+        AND p.cid < ?
+      )
+    )
+  )
+  AND (
+    f.lang_filter = 0
+    OR ${
+      // if no language codes is send, always true
+      languageCodes.length === 0
+        ? '1=1'
+        : `EXISTS (
+            SELECT 1
+            FROM post_languages pl
+            WHERE pl.post_id = p.post_id
+              AND pl.language IN (${languageCodes.map(() => '?').join(',')}, "*")
+          )`
     }
+  )
+ORDER BY p.indexed_at DESC, p.cid DESC, p.post_id DESC
+LIMIT ?;`;
 
-    const SQL_TEMPLATE_SELECT_POST_WITH_LANGUAGE = `
-        SELECT p.uri, p.cid, p.indexed_at, p.reason, p.feed_context
-        FROM posts p
-            WHERE
-                p.feed_id = ?
-                AND (
-                    ? IS NULL OR
-                    (p.indexed_at < ? OR (p.indexed_at = ? AND p.cid < ?))
-                )
-                :ENABLE_LANGS AND EXISTS (SELECT 1 FROM post_languages pl WHERE pl.post_id = p.post_id  AND pl.language IN :ARRAY_LANGS)
-            ORDER BY p.indexed_at DESC, p.cid DESC, p.post_id DESC
-            LIMIT ?
-        `;
-
-    const query = SQL_TEMPLATE_SELECT_POST_WITH_LANGUAGE.replace(
-      ':ARRAY_LANGS',
-      `(${languageCodes.map(() => '?').join(',')},'*')` // '*' is used to match posts without language
-    ).replace(
-      ':ENABLE_LANGS',
-      languageCodes.length > 0 ? '' : '--' //comment out if languageCodes is unnecessary
-    );
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('Generated query:', query);
+      console.log('Generated query:', SQL_TEMPLATE_SELECT_POST);
       console.log('Bindings:', [
-        feedId,
+        feedUri,
         cursor || null,
         cursorIndexedAt,
         cursorIndexedAt,
@@ -182,9 +180,9 @@ export class GetFeedSkeleton extends OpenAPIRoute {
         limit,
       ]);
     }
-    const { success, results } = await c.env.DB.prepare(query)
+    const { success, results } = await c.env.DB.prepare(SQL_TEMPLATE_SELECT_POST)
       .bind(
-        feedId,
+        feedUri,
         cursor || null,
         cursorIndexedAt,
         cursorIndexedAt,
@@ -196,6 +194,28 @@ export class GetFeedSkeleton extends OpenAPIRoute {
 
     if (!success) {
       throw new ApiException('Failed to fetch feed skeleton');
+    }
+
+    if (results.length === 0) {
+      // find out if feed exists
+      const feedExistsQuery = `
+      SELECT feed_id
+      FROM feeds
+      WHERE feed_uri = ?
+        AND is_active = 1
+      LIMIT 1;`;
+      const feedExistsResult = await c.env.DB.prepare(feedExistsQuery).bind(feedUri).all();
+      if (!feedExistsResult.success) {
+        throw new ApiException('Failed to verify feed existence');
+      }
+      console.log(feedExistsResult);
+      if (!feedExistsResult.results[0]?.feed_id) {
+        return createErrorResponse(
+          'UnknownFeed',
+          `The feed generator with URI ${feedUri} does not exist.`,
+          404
+        );
+      }
     }
 
     const feed = results.map((post) => ({

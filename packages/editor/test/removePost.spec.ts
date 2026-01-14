@@ -178,10 +178,16 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('handles database query failure when checking feed existence', async () => {
-    // Mock a database that will fail on the SELECT query
+    // Mock a database where DELETE returns 0 changes, then SELECT fails
     const mockDb = {
       prepare: (query: string) => {
-        if (query.includes('SELECT')) {
+        if (query.includes('DELETE')) {
+          return {
+            bind: () => ({
+              run: async () => ({ success: true, meta: { changed_db: false } }),
+            }),
+          };
+        } else if (query.includes('SELECT')) {
           return {
             bind: () => ({
               all: async () => ({ success: false, results: [] }),
@@ -189,9 +195,7 @@ describe(ENDPOINT_PATH, () => {
           };
         }
         return {
-          bind: () => ({
-            run: async () => ({ success: true, meta: { changed_db: true } }),
-          }),
+          bind: () => ({}),
         };
       },
     };
@@ -216,19 +220,10 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('handles database delete operation failure', async () => {
-    // Mock a database that will succeed on SELECT but fail on DELETE
+    // Mock a database where DELETE fails
     const mockDb = {
       prepare: (query: string) => {
-        if (query.includes('SELECT')) {
-          return {
-            bind: () => ({
-              all: async () => ({
-                success: true,
-                results: [{ feed_id: 1 }],
-              }),
-            }),
-          };
-        } else if (query.includes('DELETE')) {
+        if (query.includes('DELETE')) {
           return {
             bind: () => ({
               run: async () => ({ success: false }),

@@ -9,8 +9,12 @@ import {
 import { feedUri, did } from 'shared/src/validators';
 import { AppContext, createErrorResponse } from 'shared/src/types';
 
-const SQL_SELECT_FEED = 'SELECT feed_id FROM feeds WHERE feed_uri = ?';
-const SQL_COUNT_POSTS_BY_AUTHOR = 'SELECT COUNT(*) as count FROM posts WHERE feed_id = ? AND did = ?';
+const SQL_SELECT_FEED_AND_COUNT = `
+SELECT 
+  f.feed_id,
+  (SELECT COUNT(*) FROM posts p WHERE p.feed_id = f.feed_id AND p.did = ?) as count
+FROM feeds f
+WHERE f.feed_uri = ?`;
 const SQL_DELETE_POSTS_BY_AUTHOR = 'DELETE FROM posts WHERE feed_id = ? AND did = ?';
 
 export class RemovePostByAuthor extends OpenAPIRoute {
@@ -64,35 +68,28 @@ export class RemovePostByAuthor extends OpenAPIRoute {
     const data = await this.getValidatedData<typeof this.schema>();
     const { feed: feed_uri, author } = data.body;
 
-    // Check if the feed exists
-    const { success: selectFeedSuccess, results: feedResults } = await db
-      .prepare(SQL_SELECT_FEED)
-      .bind(feed_uri)
+    // Check if the feed exists and count posts by author in single query
+    const { success: selectSuccess, results } = await db
+      .prepare(SQL_SELECT_FEED_AND_COUNT)
+      .bind(author, feed_uri)
       .all();
-    if (!selectFeedSuccess) {
+    if (!selectSuccess) {
       throw new ApiException('Failed to query the database');
     }
-    if (feedResults.length === 0) {
+    if (results.length === 0) {
       return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
     }
-    const feed_id = feedResults[0].feed_id;
-
-    // Count posts by the author before deletion
-    const { success: countSuccess, results: countResults } = await db
-      .prepare(SQL_COUNT_POSTS_BY_AUTHOR)
-      .bind(feed_id, author)
-      .all();
-    if (!countSuccess) {
-      throw new ApiException('Failed to count posts');
-    }
-    const deletedCount = countResults[0]?.count || 0;
+    const feed_id = results[0].feed_id;
+    const deletedCount = results[0].count as number;
 
     // Delete all posts by the author from the database
     if (c.env.DEVELOPER_MODE === 'enabled') {
       console.log('feed id:', feed_id, 'author:', author, 'deletedCount:', deletedCount);
     }
-    const deletePostsStmt = db.prepare(SQL_DELETE_POSTS_BY_AUTHOR).bind(feed_id, author);
-    const deleteResult = await deletePostsStmt.run();
+    const deleteResult = await db
+      .prepare(SQL_DELETE_POSTS_BY_AUTHOR)
+      .bind(feed_id, author)
+      .run();
     if (!deleteResult.success) {
       throw new ApiException('Failed to remove posts from the database');
     }
