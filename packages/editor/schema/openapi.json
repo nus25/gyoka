@@ -1,22 +1,9 @@
 {
   "openapi": "3.0.3",
-  "info": {
-    "title": "Gyoka Editor API",
-    "version": "1.1.0"
-  },
-  "security": [
-    {
-      "ApiKeyAuth": []
-    }
-  ],
+  "info": { "title": "Gyoka Editor API", "version": "1.2.0" },
+  "security": [{ "ApiKeyAuth": [] }],
   "components": {
-    "securitySchemes": {
-      "ApiKeyAuth": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-API-Key"
-      }
-    },
+    "securitySchemes": { "ApiKeyAuth": { "type": "apiKey", "in": "header", "name": "X-API-Key" } },
     "schemas": {
       "AddPostReasonParam": {
         "type": "object",
@@ -53,26 +40,15 @@
             "format": "cid",
             "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
           },
-          "languages": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "indexedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
+          "languages": { "type": "array", "nullable": true, "items": { "type": "string" } },
+          "indexedAt": { "type": "string", "format": "date-time" },
           "feedContext": {
             "type": "string",
             "maxLength": 2000,
             "description": "Context passed through to the client and feed generator.",
             "example": "Some feed context"
           },
-          "reason": {
-            "$ref": "#/components/schemas/AddPostReasonParam"
-          }
+          "reason": { "$ref": "#/components/schemas/AddPostReasonParam" }
         },
         "required": ["uri", "cid"]
       },
@@ -111,26 +87,15 @@
             "format": "cid",
             "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
           },
-          "languages": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "indexedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
+          "languages": { "type": "array", "nullable": true, "items": { "type": "string" } },
+          "indexedAt": { "type": "string", "format": "date-time" },
           "feedContext": {
             "type": "string",
             "maxLength": 2000,
             "description": "Context passed through to the client and feed generator.",
             "example": "Some feed context"
           },
-          "reason": {
-            "$ref": "#/components/schemas/BatchAddPostReasonParam"
-          }
+          "reason": { "$ref": "#/components/schemas/BatchAddPostReasonParam" }
         },
         "required": ["uri", "cid"]
       },
@@ -146,9 +111,7 @@
             },
             "posts": {
               "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/BatchAddPostPostParam"
-              },
+              "items": { "$ref": "#/components/schemas/BatchAddPostPostParam" },
               "minItems": 1
             }
           },
@@ -163,12 +126,40 @@
             "format": "at-uri",
             "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
           },
-          "indexedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
+          "indexedAt": { "type": "string", "format": "date-time" }
         },
         "required": ["uri"]
+      },
+      "BatchRemovePostPostParam": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "at-uri",
+            "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+          },
+          "indexedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["uri"]
+      },
+      "BatchRemovePostsEntriesParam": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri",
+              "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+            },
+            "posts": {
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/BatchRemovePostPostParam" },
+              "minItems": 1
+            }
+          },
+          "required": ["feed", "posts"]
+        }
       }
     },
     "parameters": {}
@@ -197,12 +188,8 @@
                             "format": "at-uri",
                             "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
                           },
-                          "langFilter": {
-                            "type": "boolean"
-                          },
-                          "isActive": {
-                            "type": "boolean"
-                          }
+                          "langFilter": { "type": "boolean" },
+                          "isActive": { "type": "boolean" }
                         },
                         "required": ["uri", "langFilter", "isActive"]
                       }
@@ -220,10 +207,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -241,14 +225,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -274,14 +252,8 @@
                     "format": "at-uri",
                     "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
                   },
-                  "langFilter": {
-                    "type": "boolean",
-                    "default": true
-                  },
-                  "isActive": {
-                    "type": "boolean",
-                    "default": true
-                  }
+                  "langFilter": { "type": "boolean", "default": true },
+                  "isActive": { "type": "boolean", "default": true }
                 },
                 "required": ["uri"]
               }
@@ -296,9 +268,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string"
-                    },
+                    "message": { "type": "string" },
                     "feed": {
                       "type": "object",
                       "properties": {
@@ -307,12 +277,8 @@
                           "format": "at-uri",
                           "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
                         },
-                        "langFilter": {
-                          "type": "boolean"
-                        },
-                        "isActive": {
-                          "type": "boolean"
-                        }
+                        "langFilter": { "type": "boolean" },
+                        "isActive": { "type": "boolean" }
                       },
                       "required": ["uri", "langFilter", "isActive"]
                     }
@@ -329,10 +295,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["BadRequest"]
-                    },
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
                       "example": "The request could not be understood or was missing required parameters"
@@ -350,10 +313,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -371,13 +331,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Conflict"]
-                    },
-                    "message": {
-                      "type": "string"
-                    }
+                    "error": { "type": "string", "enum": ["Conflict"] },
+                    "message": { "type": "string" }
                   },
                   "required": ["error", "message"]
                 }
@@ -391,14 +346,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -437,11 +386,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
+                  "properties": { "message": { "type": "string" } },
                   "required": ["message"]
                 }
               }
@@ -454,10 +399,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["BadRequest"]
-                    },
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
                       "example": "The request could not be understood or was missing required parameters"
@@ -475,10 +417,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -496,10 +435,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["UnknownFeed"]
-                    },
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
                     "message": {
                       "type": "string",
                       "example": "Feed with URI {feedUri} does not exist."
@@ -517,14 +453,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -550,12 +480,8 @@
                     "format": "at-uri",
                     "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
                   },
-                  "langFilter": {
-                    "type": "boolean"
-                  },
-                  "isActive": {
-                    "type": "boolean"
-                  }
+                  "langFilter": { "type": "boolean" },
+                  "isActive": { "type": "boolean" }
                 },
                 "required": ["uri"]
               }
@@ -570,9 +496,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string"
-                    },
+                    "message": { "type": "string" },
                     "feed": {
                       "type": "object",
                       "properties": {
@@ -581,12 +505,8 @@
                           "format": "at-uri",
                           "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
                         },
-                        "langFilter": {
-                          "type": "boolean"
-                        },
-                        "isActive": {
-                          "type": "boolean"
-                        }
+                        "langFilter": { "type": "boolean" },
+                        "isActive": { "type": "boolean" }
                       },
                       "required": ["uri", "langFilter", "isActive"]
                     }
@@ -603,10 +523,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["BadRequest"]
-                    },
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
                       "example": "The request could not be understood or was missing required parameters"
@@ -624,10 +541,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -645,10 +559,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["UnknownFeed"]
-                    },
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
                     "message": {
                       "type": "string",
                       "example": "Feed with URI {feedUri} does not exist."
@@ -666,14 +577,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -718,17 +623,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string"
-                    },
+                    "message": { "type": "string" },
                     "feed": {
                       "type": "string",
                       "format": "at-uri",
                       "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
                     },
-                    "deletedCount": {
-                      "type": "number"
-                    }
+                    "deletedCount": { "type": "number" }
                   },
                   "required": ["message", "feed", "deletedCount"]
                 }
@@ -742,10 +643,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["BadRequest"]
-                    },
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
                       "example": "The request could not be understood or was missing required parameters"
@@ -763,10 +661,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -784,10 +679,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["UnknownFeed"]
-                    },
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
                     "message": {
                       "type": "string",
                       "example": "Feed with URI {feedUri} does not exist."
@@ -805,14 +697,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -838,9 +724,7 @@
                     "format": "at-uri",
                     "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
                   },
-                  "post": {
-                    "$ref": "#/components/schemas/AddPostPostParam"
-                  }
+                  "post": { "$ref": "#/components/schemas/AddPostPostParam" }
                 },
                 "required": ["feed", "post"]
               }
@@ -855,9 +739,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string"
-                    },
+                    "message": { "type": "string" },
                     "feed": {
                       "type": "string",
                       "format": "at-uri",
@@ -878,16 +760,8 @@
                           "format": "cid",
                           "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
                         },
-                        "languages": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "indexedAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
+                        "languages": { "type": "array", "items": { "type": "string" } },
+                        "indexedAt": { "type": "string", "format": "date-time" },
                         "feedContext": {
                           "type": "string",
                           "maxLength": 2000,
@@ -930,10 +804,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["BadRequest"]
-                    },
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
                       "example": "The request could not be understood or was missing required parameters"
@@ -951,10 +822,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -972,10 +840,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["UnknownFeed"]
-                    },
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
                     "message": {
                       "type": "string",
                       "example": "Feed with URI {feedUri} does not exist."
@@ -993,14 +858,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -1021,9 +880,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "entries": {
-                    "$ref": "#/components/schemas/BatchAddPostsEntriesParam"
-                  }
+                  "entries": { "$ref": "#/components/schemas/BatchAddPostsEntriesParam" }
                 },
                 "required": ["entries"]
               }
@@ -1058,13 +915,8 @@
                                   "format": "at-uri",
                                   "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
                                 },
-                                "status": {
-                                  "type": "string",
-                                  "enum": ["added", "error"]
-                                },
-                                "error": {
-                                  "type": "string"
-                                }
+                                "status": { "type": "string", "enum": ["added", "error"] },
+                                "error": { "type": "string" }
                               },
                               "required": ["uri", "status"]
                             }
@@ -1086,10 +938,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["BadRequest"]
-                    },
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
                       "example": "The request could not be understood or was missing required parameters"
@@ -1107,10 +956,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -1128,10 +974,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["UnknownFeed"]
-                    },
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
                     "message": {
                       "type": "string",
                       "example": "Feed with URI {feedUri} does not exist."
@@ -1149,14 +992,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -1182,9 +1019,7 @@
                     "format": "at-uri",
                     "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
                   },
-                  "post": {
-                    "$ref": "#/components/schemas/removePostPostParam"
-                  }
+                  "post": { "$ref": "#/components/schemas/removePostPostParam" }
                 },
                 "required": ["feed", "post"]
               }
@@ -1199,9 +1034,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string"
-                    },
+                    "message": { "type": "string" },
                     "feed": {
                       "type": "string",
                       "format": "at-uri",
@@ -1215,10 +1048,7 @@
                           "format": "at-uri",
                           "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
                         },
-                        "indexedAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        }
+                        "indexedAt": { "type": "string", "format": "date-time" }
                       },
                       "required": ["uri", "indexedAt"]
                     }
@@ -1235,10 +1065,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["BadRequest"]
-                    },
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
                       "example": "The request could not be understood or was missing required parameters"
@@ -1256,10 +1083,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -1277,10 +1101,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["NotFound"]
-                    },
+                    "error": { "type": "string", "enum": ["NotFound"] },
                     "message": {
                       "type": "string",
                       "example": "The requested resource was not found"
@@ -1298,14 +1119,142 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feed/batchRemovePosts": {
+      "post": {
+        "tags": ["Feed Editor"],
+        "summary": "Remove multiple posts from multiple feeds",
+        "operationId": "post_BatchRemovePosts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "entries": { "$ref": "#/components/schemas/BatchRemovePostsEntriesParam" }
+                },
+                "required": ["entries"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch remove posts from feeds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "feed": {
+                            "type": "string",
+                            "format": "at-uri",
+                            "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                          },
+                          "results": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "uri": {
+                                  "type": "string",
+                                  "format": "at-uri",
+                                  "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+                                },
+                                "status": { "type": "string", "enum": ["removed", "error"] },
+                                "error": { "type": "string" }
+                              },
+                              "required": ["uri", "status"]
+                            }
+                          }
+                        },
+                        "required": ["feed", "results"]
+                      }
+                    }
+                  },
+                  "required": ["results"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
-                      "example": "An unexpected error occurred"
+                      "example": "The request could not be understood or was missing required parameters"
                     }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown Feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Feed with URI {feedUri} does not exist."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -1331,11 +1280,7 @@
                     "format": "at-uri",
                     "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
                   },
-                  "author": {
-                    "type": "string",
-                    "format": "did",
-                    "example": "did:plc:1234abcd"
-                  }
+                  "author": { "type": "string", "format": "did", "example": "did:plc:1234abcd" }
                 },
                 "required": ["feed", "author"]
               }
@@ -1350,23 +1295,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string"
-                    },
+                    "message": { "type": "string" },
                     "feed": {
                       "type": "string",
                       "format": "at-uri",
                       "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
                     },
-                    "author": {
-                      "type": "string",
-                      "format": "did",
-                      "example": "did:plc:1234abcd"
-                    },
-                    "deletedCount": {
-                      "type": "integer",
-                      "minimum": 0
-                    }
+                    "author": { "type": "string", "format": "did", "example": "did:plc:1234abcd" },
+                    "deletedCount": { "type": "integer", "minimum": 0 }
                   },
                   "required": ["message", "feed", "author", "deletedCount"]
                 }
@@ -1380,10 +1316,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["BadRequest"]
-                    },
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
                       "example": "The request could not be understood or was missing required parameters"
@@ -1401,10 +1334,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -1422,10 +1352,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["NotFound"]
-                    },
+                    "error": { "type": "string", "enum": ["NotFound"] },
                     "message": {
                       "type": "string",
                       "example": "The requested resource was not found"
@@ -1443,14 +1370,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -1488,14 +1409,7 @@
             "name": "limit",
             "in": "query"
           },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "cursor",
-            "in": "query"
-          }
+          { "schema": { "type": "string" }, "required": false, "name": "cursor", "in": "query" }
         ],
         "responses": {
           "200": {
@@ -1527,16 +1441,8 @@
                             "format": "cid",
                             "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
                           },
-                          "langs": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "indexedAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
+                          "langs": { "type": "array", "items": { "type": "string" } },
+                          "indexedAt": { "type": "string", "format": "date-time" },
                           "reason": {
                             "type": "object",
                             "properties": {
@@ -1548,16 +1454,12 @@
                             },
                             "required": ["repost"]
                           },
-                          "feedContext": {
-                            "type": "string"
-                          }
+                          "feedContext": { "type": "string" }
                         },
                         "required": ["uri", "cid", "langs", "indexedAt"]
                       }
                     },
-                    "cursor": {
-                      "type": "string"
-                    }
+                    "cursor": { "type": "string" }
                   },
                   "required": ["feed", "posts"]
                 }
@@ -1571,10 +1473,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["BadRequest"]
-                    },
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
                       "example": "The request could not be understood or was missing required parameters"
@@ -1592,10 +1491,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -1613,10 +1509,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["UnknownFeed"]
-                    },
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
                     "message": {
                       "type": "string",
                       "example": "Feed with URI {feedUri} does not exist."
@@ -1634,14 +1527,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -1663,11 +1550,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
+                  "properties": { "message": { "type": "string" } },
                   "required": ["message"]
                 }
               }
@@ -1680,10 +1563,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -1701,14 +1581,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
@@ -1729,19 +1603,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": ["tos", "privacy_policy"]
-                  },
-                  "url": {
-                    "type": "string",
-                    "nullable": true,
-                    "format": "uri"
-                  },
-                  "content": {
-                    "type": "string",
-                    "nullable": true
-                  }
+                  "type": { "type": "string", "enum": ["tos", "privacy_policy"] },
+                  "url": { "type": "string", "nullable": true, "format": "uri" },
+                  "content": { "type": "string", "nullable": true }
                 },
                 "required": ["type"]
               }
@@ -1756,19 +1620,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "type": {
-                      "type": "string",
-                      "enum": ["tos", "privacy_policy"]
-                    },
-                    "url": {
-                      "type": "string",
-                      "nullable": true,
-                      "format": "uri"
-                    },
-                    "content": {
-                      "type": "string",
-                      "nullable": true
-                    }
+                    "type": { "type": "string", "enum": ["tos", "privacy_policy"] },
+                    "url": { "type": "string", "nullable": true, "format": "uri" },
+                    "content": { "type": "string", "nullable": true }
                   },
                   "required": ["type", "url", "content"]
                 }
@@ -1782,10 +1636,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["BadRequest"]
-                    },
+                    "error": { "type": "string", "enum": ["BadRequest"] },
                     "message": {
                       "type": "string",
                       "example": "The request could not be understood or was missing required parameters"
@@ -1803,10 +1654,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["Unauthorized"]
-                    },
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
@@ -1824,14 +1672,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string",
-                      "enum": ["InternalServerError"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "An unexpected error occurred"
-                    }
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
                   },
                   "required": ["error"]
                 }
