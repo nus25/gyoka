@@ -24,8 +24,8 @@ importers:
         specifier: ^2.8.3
         version: 2.8.3
       hono:
-        specifier: ^4.9.10
-        version: 4.10.7
+        specifier: ^4.11.4
+        version: 4.11.4
       shared:
         specifier: workspace:*
         version: link:../shared
@@ -55,8 +55,8 @@ importers:
         specifier: ^2.8.3
         version: 2.8.3
       hono:
-        specifier: ^4.9.10
-        version: 4.10.7
+        specifier: ^4.11.4
+        version: 4.11.4
       shared:
         specifier: workspace:*
         version: link:../shared
@@ -84,7 +84,7 @@ importers:
     dependencies:
       '@hono/zod-openapi':
         specifier: ^0.19.10
-        version: 0.19.10(hono@4.10.7)(zod@3.25.76)
+        version: 0.19.10(hono@4.11.4)(zod@3.25.76)
       zod:
         specifier: ^3.24.4
         version: 3.25.76
@@ -1076,8 +1076,8 @@ packages:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
     engines: {node: '>=8'}
 
-  hono@4.10.7:
-    resolution: {integrity: sha512-icXIITfw/07Q88nLSkB9aiUrd8rYzSweK681Kjo/TSggaGbOX4RRyxxm71v+3PC8C/j+4rlxGeoTRxQDkaJkUw==}
+  hono@4.11.4:
+    resolution: {integrity: sha512-U7tt8JsyrxSRKspfhtLET79pU8K+tInj5QZXs1jSugO1Vq5dFj3kmZsRldo29mTBfcjDRVRXrEZ6LS63Cog9ZA==}
     engines: {node: '>=16.9.0'}
 
   html-escaper@2.0.2:
@@ -1811,17 +1811,17 @@ snapshots:
 
   '@fastify/busboy@2.1.1': {}
 
-  '@hono/zod-openapi@0.19.10(hono@4.10.7)(zod@3.25.76)':
+  '@hono/zod-openapi@0.19.10(hono@4.11.4)(zod@3.25.76)':
     dependencies:
       '@asteasolutions/zod-to-openapi': 7.3.4(zod@3.25.76)
-      '@hono/zod-validator': 0.7.5(hono@4.10.7)(zod@3.25.76)
-      hono: 4.10.7
+      '@hono/zod-validator': 0.7.5(hono@4.11.4)(zod@3.25.76)
+      hono: 4.11.4
       openapi3-ts: 4.5.0
       zod: 3.25.76
 
-  '@hono/zod-validator@0.7.5(hono@4.10.7)(zod@3.25.76)':
+  '@hono/zod-validator@0.7.5(hono@4.11.4)(zod@3.25.76)':
     dependencies:
-      hono: 4.10.7
+      hono: 4.11.4
       zod: 3.25.76
 
   '@img/sharp-darwin-arm64@0.33.5':
@@ -2293,7 +2293,7 @@ snapshots:
 
   has-flag@4.0.0: {}
 
-  hono@4.10.7: {}
+  hono@4.11.4: {}
 
   html-escaper@2.0.2: {}
 
