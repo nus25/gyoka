@@ -10,6 +10,7 @@ import { UnregisterFeed } from './endpoints/unregisterFeed';
 import { AddPost } from './endpoints/addPost';
 import { BatchAddPosts } from './endpoints/batchAddPosts';
 import { RemovePost } from './endpoints/removePost';
+import { BatchRemovePosts } from './endpoints/batchRemovePosts';
 import { RemovePostByAuthor } from './endpoints/removePostByAuthor';
 import { GetPosts } from './endpoints/getPosts';
 import { TrimFeed } from './endpoints/trimFeed';
@@ -17,7 +18,7 @@ import { UpdateDocument } from './endpoints/updateDocument';
 import { AppContext, createErrorResponse } from 'shared/src/types';
 import process from 'node:process';
 
-const API_VERSION = '1.1.0';
+const API_VERSION = '1.2.0';
 
 // Start a Hono app
 const app = new Hono<{ Bindings: EnvWithSecret }>();
@@ -78,6 +79,7 @@ openapi.post('/api/feed/trimPosts', TrimFeed);
 openapi.post('/api/feed/addPost', AddPost);
 openapi.post('/api/feed/batchAddPosts', BatchAddPosts);
 openapi.post('/api/feed/removePost', RemovePost);
+openapi.post('/api/feed/batchRemovePosts', BatchRemovePosts);
 openapi.post('/api/feed/removePostByAuthor', RemovePostByAuthor);
 openapi.get('/api/feed/getPosts', GetPosts);
 openapi.get('/api/gyoka/ping', Ping);
