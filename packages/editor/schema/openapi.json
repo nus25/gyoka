@@ -1,2161 +1,1687 @@
 {
-    "openapi": "3.0.3",
-    "info": {
-        "title": "Gyoka Editor API",
-        "version": "1.1.0"
-    },
-    "security": [
-        {
-            "ApiKeyAuth": []
-        }
-    ],
-    "components": {
-        "securitySchemes": {
-            "ApiKeyAuth": {
-                "type": "apiKey",
-                "in": "header",
-                "name": "X-API-Key"
-            }
+  "openapi": "3.0.3",
+  "info": { "title": "Gyoka Editor API", "version": "1.2.0" },
+  "security": [{ "ApiKeyAuth": [] }],
+  "components": {
+    "securitySchemes": { "ApiKeyAuth": { "type": "apiKey", "in": "header", "name": "X-API-Key" } },
+    "schemas": {
+      "AddPostReasonParam": {
+        "type": "object",
+        "properties": {
+          "$type": {
+            "type": "string",
+            "enum": [
+              "app.bsky.feed.defs#skeletonReasonRepost",
+              "app.bsky.feed.defs#skeletonReasonPin"
+            ]
+          },
+          "repost": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Repost uri for repost type.",
+            "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
+          }
         },
-        "schemas": {
-            "AddPostReasonParam": {
-                "type": "object",
-                "properties": {
-                    "$type": {
-                        "type": "string",
-                        "enum": [
-                            "app.bsky.feed.defs#skeletonReasonRepost",
-                            "app.bsky.feed.defs#skeletonReasonPin"
-                        ]
-                    },
-                    "repost": {
-                        "type": "string",
-                        "format": "at-uri",
-                        "description": "Repost uri for repost type.",
-                        "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
-                    }
-                },
-                "required": [
-                    "$type"
-                ],
-                "description": "Reason for including the post in the feed skeleton. Currently only 'repost' reason is supported."
+        "required": ["$type"],
+        "description": "Reason for including the post in the feed skeleton. Currently only 'repost' reason is supported."
+      },
+      "AddPostPostParam": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "at-uri",
+            "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+          },
+          "cid": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128,
+            "format": "cid",
+            "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
+          },
+          "languages": { "type": "array", "nullable": true, "items": { "type": "string" } },
+          "indexedAt": { "type": "string", "format": "date-time" },
+          "feedContext": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Context passed through to the client and feed generator.",
+            "example": "Some feed context"
+          },
+          "reason": { "$ref": "#/components/schemas/AddPostReasonParam" }
+        },
+        "required": ["uri", "cid"]
+      },
+      "BatchAddPostReasonParam": {
+        "type": "object",
+        "properties": {
+          "$type": {
+            "type": "string",
+            "enum": [
+              "app.bsky.feed.defs#skeletonReasonRepost",
+              "app.bsky.feed.defs#skeletonReasonPin"
+            ]
+          },
+          "repost": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Repost uri for repost type.",
+            "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
+          }
+        },
+        "required": ["$type"],
+        "description": "Reason for including the post in the feed skeleton. Currently only 'repost' reason is supported."
+      },
+      "BatchAddPostPostParam": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "at-uri",
+            "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+          },
+          "cid": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128,
+            "format": "cid",
+            "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
+          },
+          "languages": { "type": "array", "nullable": true, "items": { "type": "string" } },
+          "indexedAt": { "type": "string", "format": "date-time" },
+          "feedContext": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Context passed through to the client and feed generator.",
+            "example": "Some feed context"
+          },
+          "reason": { "$ref": "#/components/schemas/BatchAddPostReasonParam" }
+        },
+        "required": ["uri", "cid"]
+      },
+      "BatchAddPostsEntriesParam": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri",
+              "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
             },
-            "AddPostPostParam": {
-                "type": "object",
-                "properties": {
-                    "uri": {
-                        "type": "string",
-                        "format": "at-uri",
-                        "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
-                    },
-                    "cid": {
-                        "type": "string",
-                        "minLength": 8,
-                        "maxLength": 128,
-                        "format": "cid",
-                        "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
-                    },
-                    "languages": {
-                        "type": "array",
-                        "nullable": true,
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "indexedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "feedContext": {
-                        "type": "string",
-                        "maxLength": 2000,
-                        "description": "Context passed through to the client and feed generator.",
-                        "example": "Some feed context"
-                    },
-                    "reason": {
-                        "$ref": "#/components/schemas/AddPostReasonParam"
-                    }
-                },
-                "required": [
-                    "uri",
-                    "cid"
-                ]
+            "posts": {
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/BatchAddPostPostParam" },
+              "minItems": 1
+            }
+          },
+          "required": ["feed", "posts"]
+        }
+      },
+      "removePostPostParam": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "at-uri",
+            "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+          },
+          "indexedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["uri"]
+      },
+      "BatchRemovePostPostParam": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "at-uri",
+            "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+          },
+          "indexedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["uri"]
+      },
+      "BatchRemovePostsEntriesParam": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri",
+              "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
             },
-            "BatchAddPostReasonParam": {
-                "type": "object",
-                "properties": {
-                    "$type": {
-                        "type": "string",
-                        "enum": [
-                            "app.bsky.feed.defs#skeletonReasonRepost",
-                            "app.bsky.feed.defs#skeletonReasonPin"
-                        ]
-                    },
-                    "repost": {
-                        "type": "string",
-                        "format": "at-uri",
-                        "description": "Repost uri for repost type.",
-                        "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
-                    }
-                },
-                "required": [
-                    "$type"
-                ],
-                "description": "Reason for including the post in the feed skeleton. Currently only 'repost' reason is supported."
-            },
-            "BatchAddPostPostParam": {
-                "type": "object",
-                "properties": {
-                    "uri": {
-                        "type": "string",
-                        "format": "at-uri",
-                        "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
-                    },
-                    "cid": {
-                        "type": "string",
-                        "minLength": 8,
-                        "maxLength": 128,
-                        "format": "cid",
-                        "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
-                    },
-                    "languages": {
-                        "type": "array",
-                        "nullable": true,
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "indexedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "feedContext": {
-                        "type": "string",
-                        "maxLength": 2000,
-                        "description": "Context passed through to the client and feed generator.",
-                        "example": "Some feed context"
-                    },
-                    "reason": {
-                        "$ref": "#/components/schemas/BatchAddPostReasonParam"
-                    }
-                },
-                "required": [
-                    "uri",
-                    "cid"
-                ]
-            },
-            "BatchAddPostsEntriesParam": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "feed": {
+            "posts": {
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/BatchRemovePostPostParam" },
+              "minItems": 1
+            }
+          },
+          "required": ["feed", "posts"]
+        }
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/api/feed/listFeeds": {
+      "get": {
+        "tags": ["Feed Editor"],
+        "summary": "Get feed list",
+        "operationId": "get_ListFeeds",
+        "responses": {
+          "200": {
+            "description": "Feed list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "feeds": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "uri": {
                             "type": "string",
                             "format": "at-uri",
                             "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                          },
+                          "langFilter": { "type": "boolean" },
+                          "isActive": { "type": "boolean" }
                         },
-                        "posts": {
+                        "required": ["uri", "langFilter", "isActive"]
+                      }
+                    }
+                  },
+                  "required": ["feeds"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feed/registerFeed": {
+      "post": {
+        "tags": ["Feed Editor"],
+        "summary": "Register new feed",
+        "operationId": "post_RegisterFeed",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uri": {
+                    "type": "string",
+                    "format": "at-uri",
+                    "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                  },
+                  "langFilter": { "type": "boolean", "default": true },
+                  "isActive": { "type": "boolean", "default": true }
+                },
+                "required": ["uri"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Register feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "feed": {
+                      "type": "object",
+                      "properties": {
+                        "uri": {
+                          "type": "string",
+                          "format": "at-uri",
+                          "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                        },
+                        "langFilter": { "type": "boolean" },
+                        "isActive": { "type": "boolean" }
+                      },
+                      "required": ["uri", "langFilter", "isActive"]
+                    }
+                  },
+                  "required": ["message", "feed"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Conflict"] },
+                    "message": { "type": "string" }
+                  },
+                  "required": ["error", "message"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feed/unregisterFeed": {
+      "post": {
+        "tags": ["Feed Editor"],
+        "summary": "Unregister a feed",
+        "operationId": "post_UnregisterFeed",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uri": {
+                    "type": "string",
+                    "format": "at-uri",
+                    "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                  }
+                },
+                "required": ["uri"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feed unregistered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "message": { "type": "string" } },
+                  "required": ["message"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown Feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Feed with URI {feedUri} does not exist."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feed/updateFeed": {
+      "post": {
+        "tags": ["Feed Editor"],
+        "summary": "Update feed setting",
+        "operationId": "post_UpdateFeed",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uri": {
+                    "type": "string",
+                    "format": "at-uri",
+                    "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                  },
+                  "langFilter": { "type": "boolean" },
+                  "isActive": { "type": "boolean" }
+                },
+                "required": ["uri"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feed update succeed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "feed": {
+                      "type": "object",
+                      "properties": {
+                        "uri": {
+                          "type": "string",
+                          "format": "at-uri",
+                          "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                        },
+                        "langFilter": { "type": "boolean" },
+                        "isActive": { "type": "boolean" }
+                      },
+                      "required": ["uri", "langFilter", "isActive"]
+                    }
+                  },
+                  "required": ["message", "feed"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown Feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Feed with URI {feedUri} does not exist."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feed/trimPosts": {
+      "post": {
+        "tags": ["Feed Editor"],
+        "summary": "Remove a post from a feed",
+        "operationId": "post_TrimFeed",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "feed": {
+                    "type": "string",
+                    "format": "at-uri",
+                    "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                  },
+                  "remain": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Number of posts remain in the feed."
+                  }
+                },
+                "required": ["feed", "remain"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feed trimed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "feed": {
+                      "type": "string",
+                      "format": "at-uri",
+                      "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                    },
+                    "deletedCount": { "type": "number" }
+                  },
+                  "required": ["message", "feed", "deletedCount"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown Feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Feed with URI {feedUri} does not exist."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feed/addPost": {
+      "post": {
+        "tags": ["Feed Editor"],
+        "summary": "Add new post to feed",
+        "operationId": "post_AddPost",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "feed": {
+                    "type": "string",
+                    "format": "at-uri",
+                    "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                  },
+                  "post": { "$ref": "#/components/schemas/AddPostPostParam" }
+                },
+                "required": ["feed", "post"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Add post to feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "feed": {
+                      "type": "string",
+                      "format": "at-uri",
+                      "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                    },
+                    "post": {
+                      "type": "object",
+                      "properties": {
+                        "uri": {
+                          "type": "string",
+                          "format": "at-uri",
+                          "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+                        },
+                        "cid": {
+                          "type": "string",
+                          "minLength": 8,
+                          "maxLength": 128,
+                          "format": "cid",
+                          "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
+                        },
+                        "languages": { "type": "array", "items": { "type": "string" } },
+                        "indexedAt": { "type": "string", "format": "date-time" },
+                        "feedContext": {
+                          "type": "string",
+                          "maxLength": 2000,
+                          "description": "Context passed through to the client and feed generator.",
+                          "example": "Some feed context"
+                        },
+                        "reason": {
+                          "type": "object",
+                          "properties": {
+                            "$type": {
+                              "type": "string",
+                              "enum": [
+                                "app.bsky.feed.defs#skeletonReasonRepost",
+                                "app.bsky.feed.defs#skeletonReasonPin"
+                              ]
+                            },
+                            "repost": {
+                              "type": "string",
+                              "format": "at-uri",
+                              "description": "Repost uri for repost type.",
+                              "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
+                            }
+                          },
+                          "required": ["$type"],
+                          "description": "Reason for including the post in the feed skeleton. Currently only 'repost' reason is supported."
+                        }
+                      },
+                      "required": ["uri", "cid", "languages", "indexedAt"]
+                    }
+                  },
+                  "required": ["message", "feed", "post"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown Feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Feed with URI {feedUri} does not exist."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feed/batchAddPosts": {
+      "post": {
+        "tags": ["Feed Editor"],
+        "summary": "Add multiple posts to multiple feeds",
+        "operationId": "post_BatchAddPosts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "entries": { "$ref": "#/components/schemas/BatchAddPostsEntriesParam" }
+                },
+                "required": ["entries"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch add posts to feeds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "feed": {
+                            "type": "string",
+                            "format": "at-uri",
+                            "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                          },
+                          "results": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/components/schemas/BatchAddPostPostParam"
-                            },
-                            "minItems": 1
-                        }
-                    },
-                    "required": [
-                        "feed",
-                        "posts"
-                    ]
+                              "type": "object",
+                              "properties": {
+                                "uri": {
+                                  "type": "string",
+                                  "format": "at-uri",
+                                  "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+                                },
+                                "status": { "type": "string", "enum": ["added", "error"] },
+                                "error": { "type": "string" }
+                              },
+                              "required": ["uri", "status"]
+                            }
+                          }
+                        },
+                        "required": ["feed", "results"]
+                      }
+                    }
+                  },
+                  "required": ["results"]
                 }
-            },
-            "removePostPostParam": {
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown Feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Feed with URI {feedUri} does not exist."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feed/removePost": {
+      "post": {
+        "tags": ["Feed Editor"],
+        "summary": "Remove a post from a feed",
+        "operationId": "post_RemovePost",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
                 "type": "object",
                 "properties": {
-                    "uri": {
-                        "type": "string",
-                        "format": "at-uri",
-                        "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
-                    },
-                    "indexedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
+                  "feed": {
+                    "type": "string",
+                    "format": "at-uri",
+                    "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                  },
+                  "post": { "$ref": "#/components/schemas/removePostPostParam" }
                 },
-                "required": [
-                    "uri"
-                ]
+                "required": ["feed", "post"]
+              }
             }
+          }
         },
-        "parameters": {}
+        "responses": {
+          "200": {
+            "description": "Post removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "feed": {
+                      "type": "string",
+                      "format": "at-uri",
+                      "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                    },
+                    "post": {
+                      "type": "object",
+                      "properties": {
+                        "uri": {
+                          "type": "string",
+                          "format": "at-uri",
+                          "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+                        },
+                        "indexedAt": { "type": "string", "format": "date-time" }
+                      },
+                      "required": ["uri", "indexedAt"]
+                    }
+                  },
+                  "required": ["message", "feed", "post"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["NotFound"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The requested resource was not found"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
     },
-    "paths": {
-        "/api/feed/listFeeds": {
-            "get": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Get feed list",
-                "operationId": "get_ListFeeds",
-                "responses": {
-                    "200": {
-                        "description": "Feed list",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "feeds": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "uri": {
-                                                        "type": "string",
-                                                        "format": "at-uri",
-                                                        "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                                    },
-                                                    "langFilter": {
-                                                        "type": "boolean"
-                                                    },
-                                                    "isActive": {
-                                                        "type": "boolean"
-                                                    }
-                                                },
-                                                "required": [
-                                                    "uri",
-                                                    "langFilter",
-                                                    "isActive"
-                                                ]
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "feeds"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/feed/registerFeed": {
-            "post": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Register new feed",
-                "operationId": "post_RegisterFeed",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "uri": {
-                                        "type": "string",
-                                        "format": "at-uri",
-                                        "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                    },
-                                    "langFilter": {
-                                        "type": "boolean",
-                                        "default": true
-                                    },
-                                    "isActive": {
-                                        "type": "boolean",
-                                        "default": true
-                                    }
-                                },
-                                "required": [
-                                    "uri"
-                                ]
-                            }
-                        }
-                    }
+    "/api/feed/batchRemovePosts": {
+      "post": {
+        "tags": ["Feed Editor"],
+        "summary": "Remove multiple posts from multiple feeds",
+        "operationId": "post_BatchRemovePosts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "entries": { "$ref": "#/components/schemas/BatchRemovePostsEntriesParam" }
                 },
-                "responses": {
-                    "200": {
-                        "description": "Register feed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "feed": {
-                                            "type": "object",
-                                            "properties": {
-                                                "uri": {
-                                                    "type": "string",
-                                                    "format": "at-uri",
-                                                    "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                                },
-                                                "langFilter": {
-                                                    "type": "boolean"
-                                                },
-                                                "isActive": {
-                                                    "type": "boolean"
-                                                }
-                                            },
-                                            "required": [
-                                                "uri",
-                                                "langFilter",
-                                                "isActive"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "message",
-                                        "feed"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "BadRequest"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The request could not be understood or was missing required parameters"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Conflict"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "error",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
+                "required": ["entries"]
+              }
             }
+          }
         },
-        "/api/feed/unregisterFeed": {
-            "post": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Unregister a feed",
-                "operationId": "post_UnregisterFeed",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "uri": {
-                                        "type": "string",
-                                        "format": "at-uri",
-                                        "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                    }
-                                },
-                                "required": [
-                                    "uri"
-                                ]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Feed unregistered successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "BadRequest"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The request could not be understood or was missing required parameters"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Unknown Feed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "UnknownFeed"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Feed with URI {feedUri} does not exist."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/feed/updateFeed": {
-            "post": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Update feed setting",
-                "operationId": "post_UpdateFeed",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "uri": {
-                                        "type": "string",
-                                        "format": "at-uri",
-                                        "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                    },
-                                    "langFilter": {
-                                        "type": "boolean"
-                                    },
-                                    "isActive": {
-                                        "type": "boolean"
-                                    }
-                                },
-                                "required": [
-                                    "uri"
-                                ]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Feed update succeed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "feed": {
-                                            "type": "object",
-                                            "properties": {
-                                                "uri": {
-                                                    "type": "string",
-                                                    "format": "at-uri",
-                                                    "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                                },
-                                                "langFilter": {
-                                                    "type": "boolean"
-                                                },
-                                                "isActive": {
-                                                    "type": "boolean"
-                                                }
-                                            },
-                                            "required": [
-                                                "uri",
-                                                "langFilter",
-                                                "isActive"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "message",
-                                        "feed"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "BadRequest"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The request could not be understood or was missing required parameters"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Unknown Feed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "UnknownFeed"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Feed with URI {feedUri} does not exist."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/feed/trimPosts": {
-            "post": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Remove a post from a feed",
-                "operationId": "post_TrimFeed",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "feed": {
-                                        "type": "string",
-                                        "format": "at-uri",
-                                        "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                    },
-                                    "remain": {
-                                        "type": "integer",
-                                        "minimum": 0,
-                                        "description": "Number of posts remain in the feed."
-                                    }
-                                },
-                                "required": [
-                                    "feed",
-                                    "remain"
-                                ]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Feed trimed successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "feed": {
-                                            "type": "string",
-                                            "format": "at-uri",
-                                            "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                        },
-                                        "deletedCount": {
-                                            "type": "number"
-                                        }
-                                    },
-                                    "required": [
-                                        "message",
-                                        "feed",
-                                        "deletedCount"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "BadRequest"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The request could not be understood or was missing required parameters"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Unknown Feed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "UnknownFeed"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Feed with URI {feedUri} does not exist."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/feed/addPost": {
-            "post": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Add new post to feed",
-                "operationId": "post_AddPost",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "feed": {
-                                        "type": "string",
-                                        "format": "at-uri",
-                                        "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                    },
-                                    "post": {
-                                        "$ref": "#/components/schemas/AddPostPostParam"
-                                    }
-                                },
-                                "required": [
-                                    "feed",
-                                    "post"
-                                ]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Add post to feed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "feed": {
-                                            "type": "string",
-                                            "format": "at-uri",
-                                            "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                        },
-                                        "post": {
-                                            "type": "object",
-                                            "properties": {
-                                                "uri": {
-                                                    "type": "string",
-                                                    "format": "at-uri",
-                                                    "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
-                                                },
-                                                "cid": {
-                                                    "type": "string",
-                                                    "minLength": 8,
-                                                    "maxLength": 128,
-                                                    "format": "cid",
-                                                    "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
-                                                },
-                                                "languages": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "indexedAt": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                },
-                                                "feedContext": {
-                                                    "type": "string",
-                                                    "maxLength": 2000,
-                                                    "description": "Context passed through to the client and feed generator.",
-                                                    "example": "Some feed context"
-                                                },
-                                                "reason": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "$type": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "app.bsky.feed.defs#skeletonReasonRepost",
-                                                                "app.bsky.feed.defs#skeletonReasonPin"
-                                                            ]
-                                                        },
-                                                        "repost": {
-                                                            "type": "string",
-                                                            "format": "at-uri",
-                                                            "description": "Repost uri for repost type.",
-                                                            "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "$type"
-                                                    ],
-                                                    "description": "Reason for including the post in the feed skeleton. Currently only 'repost' reason is supported."
-                                                }
-                                            },
-                                            "required": [
-                                                "uri",
-                                                "cid",
-                                                "languages",
-                                                "indexedAt"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "message",
-                                        "feed",
-                                        "post"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "BadRequest"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The request could not be understood or was missing required parameters"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Unknown Feed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "UnknownFeed"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Feed with URI {feedUri} does not exist."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/feed/batchAddPosts": {
-            "post": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Add multiple posts to multiple feeds",
-                "operationId": "post_BatchAddPosts",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "entries": {
-                                        "$ref": "#/components/schemas/BatchAddPostsEntriesParam"
-                                    }
-                                },
-                                "required": [
-                                    "entries"
-                                ]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Batch add posts to feeds",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "results": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "feed": {
-                                                        "type": "string",
-                                                        "format": "at-uri",
-                                                        "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                                    },
-                                                    "results": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "object",
-                                                            "properties": {
-                                                                "uri": {
-                                                                    "type": "string",
-                                                                    "format": "at-uri",
-                                                                    "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
-                                                                },
-                                                                "status": {
-                                                                    "type": "string",
-                                                                    "enum": [
-                                                                        "added",
-                                                                        "error"
-                                                                    ]
-                                                                },
-                                                                "error": {
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "required": [
-                                                                "uri",
-                                                                "status"
-                                                            ]
-                                                        }
-                                                    }
-                                                },
-                                                "required": [
-                                                    "feed",
-                                                    "results"
-                                                ]
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "results"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "BadRequest"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The request could not be understood or was missing required parameters"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Unknown Feed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "UnknownFeed"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Feed with URI {feedUri} does not exist."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/feed/removePost": {
-            "post": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Remove a post from a feed",
-                "operationId": "post_RemovePost",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "feed": {
-                                        "type": "string",
-                                        "format": "at-uri",
-                                        "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                    },
-                                    "post": {
-                                        "$ref": "#/components/schemas/removePostPostParam"
-                                    }
-                                },
-                                "required": [
-                                    "feed",
-                                    "post"
-                                ]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Post removed successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "feed": {
-                                            "type": "string",
-                                            "format": "at-uri",
-                                            "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                        },
-                                        "post": {
-                                            "type": "object",
-                                            "properties": {
-                                                "uri": {
-                                                    "type": "string",
-                                                    "format": "at-uri",
-                                                    "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
-                                                },
-                                                "indexedAt": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                }
-                                            },
-                                            "required": [
-                                                "uri",
-                                                "indexedAt"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "message",
-                                        "feed",
-                                        "post"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "BadRequest"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The request could not be understood or was missing required parameters"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "NotFound"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The requested resource was not found"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/feed/removePostByAuthor": {
-            "post": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Remove all posts by a specific author from a feed",
-                "operationId": "post_RemovePostByAuthor",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "feed": {
-                                        "type": "string",
-                                        "format": "at-uri",
-                                        "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                    },
-                                    "author": {
-                                        "type": "string",
-                                        "format": "did",
-                                        "example": "did:plc:1234abcd"
-                                    }
-                                },
-                                "required": [
-                                    "feed",
-                                    "author"
-                                ]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Posts by author removed successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "feed": {
-                                            "type": "string",
-                                            "format": "at-uri",
-                                            "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                        },
-                                        "author": {
-                                            "type": "string",
-                                            "format": "did",
-                                            "example": "did:plc:1234abcd"
-                                        },
-                                        "deletedCount": {
-                                            "type": "integer",
-                                            "minimum": 0
-                                        }
-                                    },
-                                    "required": [
-                                        "message",
-                                        "feed",
-                                        "author",
-                                        "deletedCount"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "BadRequest"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The request could not be understood or was missing required parameters"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "NotFound"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The requested resource was not found"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/feed/getPosts": {
-            "get": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Get posts from a feed",
-                "operationId": "get_GetPosts",
-                "parameters": [
-                    {
-                        "schema": {
+        "responses": {
+          "200": {
+            "description": "Batch remove posts from feeds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "feed": {
                             "type": "string",
                             "format": "at-uri",
                             "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                        },
-                        "required": true,
-                        "name": "feed",
-                        "in": "query"
-                    },
-                    {
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
-                            "maximum": 3000,
-                            "default": 1000
-                        },
-                        "required": false,
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": false,
-                        "name": "cursor",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of posts with pagination cursor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "feed": {
-                                            "type": "string",
-                                            "format": "at-uri",
-                                            "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-                                        },
-                                        "posts": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "uri": {
-                                                        "type": "string",
-                                                        "format": "at-uri",
-                                                        "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
-                                                    },
-                                                    "cid": {
-                                                        "type": "string",
-                                                        "minLength": 8,
-                                                        "maxLength": 128,
-                                                        "format": "cid",
-                                                        "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
-                                                    },
-                                                    "langs": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "indexedAt": {
-                                                        "type": "string",
-                                                        "format": "date-time"
-                                                    },
-                                                    "reason": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "repost": {
-                                                                "type": "string",
-                                                                "format": "at-uri",
-                                                                "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "repost"
-                                                        ]
-                                                    },
-                                                    "feedContext": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "required": [
-                                                    "uri",
-                                                    "cid",
-                                                    "langs",
-                                                    "indexedAt"
-                                                ]
-                                            }
-                                        },
-                                        "cursor": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "feed",
-                                        "posts"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "BadRequest"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The request could not be understood or was missing required parameters"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Unknown Feed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "UnknownFeed"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Feed with URI {feedUri} does not exist."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/gyoka/ping": {
-            "get": {
-                "tags": [
-                    "Feed Editor"
-                ],
-                "summary": "Ping system",
-                "operationId": "get_Ping",
-                "responses": {
-                    "200": {
-                        "description": "respond ping request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/gyoka/updateDocument": {
-            "post": {
-                "tags": [
-                    "Documents"
-                ],
-                "summary": "Update document content and URL",
-                "operationId": "post_UpdateDocument",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "type": {
-                                        "type": "string",
-                                        "enum": [
-                                            "tos",
-                                            "privacy_policy"
-                                        ]
-                                    },
-                                    "url": {
-                                        "type": "string",
-                                        "nullable": true,
-                                        "format": "uri"
-                                    },
-                                    "content": {
-                                        "type": "string",
-                                        "nullable": true
-                                    }
+                          },
+                          "results": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "uri": {
+                                  "type": "string",
+                                  "format": "at-uri",
+                                  "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
                                 },
-                                "required": [
-                                    "type"
-                                ]
+                                "status": { "type": "string", "enum": ["removed", "error"] },
+                                "error": { "type": "string" }
+                              },
+                              "required": ["uri", "status"]
                             }
-                        }
+                          }
+                        },
+                        "required": ["feed", "results"]
+                      }
                     }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Document updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "type": {
-                                            "type": "string",
-                                            "enum": [
-                                                "tos",
-                                                "privacy_policy"
-                                            ]
-                                        },
-                                        "url": {
-                                            "type": "string",
-                                            "nullable": true,
-                                            "format": "uri"
-                                        },
-                                        "content": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "type",
-                                        "url",
-                                        "content"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "BadRequest"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The request could not be understood or was missing required parameters"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "Unauthorized"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Authentication credentials were missing or invalid."
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "enum": [
-                                                "InternalServerError"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    }
+                  },
+                  "required": ["results"]
                 }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown Feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Feed with URI {feedUri} does not exist."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
         }
+      }
+    },
+    "/api/feed/removePostByAuthor": {
+      "post": {
+        "tags": ["Feed Editor"],
+        "summary": "Remove all posts by a specific author from a feed",
+        "operationId": "post_RemovePostByAuthor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "feed": {
+                    "type": "string",
+                    "format": "at-uri",
+                    "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                  },
+                  "author": { "type": "string", "format": "did", "example": "did:plc:1234abcd" }
+                },
+                "required": ["feed", "author"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Posts by author removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "feed": {
+                      "type": "string",
+                      "format": "at-uri",
+                      "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                    },
+                    "author": { "type": "string", "format": "did", "example": "did:plc:1234abcd" },
+                    "deletedCount": { "type": "integer", "minimum": 0 }
+                  },
+                  "required": ["message", "feed", "author", "deletedCount"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["NotFound"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The requested resource was not found"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feed/getPosts": {
+      "get": {
+        "tags": ["Feed Editor"],
+        "summary": "Get posts from a feed",
+        "operationId": "get_GetPosts",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "at-uri",
+              "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+            },
+            "required": true,
+            "name": "feed",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 3000,
+              "default": 1000
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          { "schema": { "type": "string" }, "required": false, "name": "cursor", "in": "query" }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of posts with pagination cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "feed": {
+                      "type": "string",
+                      "format": "at-uri",
+                      "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+                    },
+                    "posts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "uri": {
+                            "type": "string",
+                            "format": "at-uri",
+                            "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+                          },
+                          "cid": {
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 128,
+                            "format": "cid",
+                            "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
+                          },
+                          "langs": { "type": "array", "items": { "type": "string" } },
+                          "indexedAt": { "type": "string", "format": "date-time" },
+                          "reason": {
+                            "type": "object",
+                            "properties": {
+                              "repost": {
+                                "type": "string",
+                                "format": "at-uri",
+                                "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
+                              }
+                            },
+                            "required": ["repost"]
+                          },
+                          "feedContext": { "type": "string" }
+                        },
+                        "required": ["uri", "cid", "langs", "indexedAt"]
+                      }
+                    },
+                    "cursor": { "type": "string" }
+                  },
+                  "required": ["feed", "posts"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown Feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Feed with URI {feedUri} does not exist."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gyoka/ping": {
+      "get": {
+        "tags": ["Feed Editor"],
+        "summary": "Ping system",
+        "operationId": "get_Ping",
+        "responses": {
+          "200": {
+            "description": "respond ping request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "message": { "type": "string" } },
+                  "required": ["message"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gyoka/updateDocument": {
+      "post": {
+        "tags": ["Documents"],
+        "summary": "Update document content and URL",
+        "operationId": "post_UpdateDocument",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "enum": ["tos", "privacy_policy"] },
+                  "url": { "type": "string", "nullable": true, "format": "uri" },
+                  "content": { "type": "string", "nullable": true }
+                },
+                "required": ["type"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": { "type": "string", "enum": ["tos", "privacy_policy"] },
+                    "url": { "type": "string", "nullable": true, "format": "uri" },
+                    "content": { "type": "string", "nullable": true }
+                  },
+                  "required": ["type", "url", "content"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
     }
+  }
 }

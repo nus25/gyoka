@@ -10,11 +10,14 @@ import {
 import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
 import { AppContext, createErrorResponse } from 'shared/src/types';
 
-const SQL_SELECT_FEED = 'SELECT * FROM feeds WHERE feed_uri = ?';
 const SQL_INSERT_POST = `
-INSERT INTO posts (feed_id, did, uri, cid, indexed_at, feed_context, reason) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+INSERT INTO posts (feed_id, did, uri, cid, indexed_at, feed_context, reason)
+SELECT feed_id, ?, ?, ?, ?, ?, ?
+FROM feeds
+WHERE feed_uri = ?
+RETURNING post_id`;
 const SQL_INSERT_POST_LANG = `
-INSERT INTO post_languages (post_id, language) SELECT post_id, ? FROM posts WHERE feed_id = ? AND cid = ? AND indexed_at = ? LIMIT 1`;
+INSERT INTO post_languages (post_id, language) VALUES (?, ?)`;
 
 export class AddPost extends OpenAPIRoute {
   schema = {
@@ -174,43 +177,38 @@ export class AddPost extends OpenAPIRoute {
     }
 
     try {
-      // Check if the feed exists
-      const { success: selectSuccess, results } = await db
-        .prepare(SQL_SELECT_FEED)
-        .bind(feed_uri)
-        .all();
-      if (!selectSuccess) {
-        throw new ApiException('Failed to query the database');
-      }
-      if (results.length === 0) {
-        return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
-      }
-      const feed_id = results[0].feed_id;
       // extract DID from post.uri for search performance
       const did = post.uri.split('/')[2];
-      // add post and post_langs to DB by batch
-      const addPostStmt = db
+      // Insert post with feed existence check in single query using RETURNING
+      const { success: insertSuccess, results } = await db
         .prepare(SQL_INSERT_POST)
         .bind(
-          feed_id,
           did,
           post.uri,
           post.cid,
           post.indexedAt,
           post.feedContext ?? null,
-          post.reason ? JSON.stringify(reason) : null
-        );
-      const addPostLangStmt = [];
-      for (const lang of post.languages) {
-        addPostLangStmt.push(
-          db.prepare(SQL_INSERT_POST_LANG).bind(lang, feed_id, post.cid, post.indexedAt)
-        );
+          post.reason ? JSON.stringify(reason) : null,
+          feed_uri
+        )
+        .all();
+      if (!insertSuccess) {
+        throw new ApiException('Failed to insert post to the database');
       }
+      // If no rows returned, feed doesn't exist
+      if (results.length === 0) {
+        return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
+      }
+      const post_id = results[0].post_id;
+      // add post_langs to DB by batch using returned post_id
+      const addPostLangStmt = post.languages.map((lang) =>
+        db.prepare(SQL_INSERT_POST_LANG).bind(post_id, lang)
+      );
 
-      const batchResult = await db.batch([addPostStmt, ...addPostLangStmt]);
+      const batchResult = await db.batch(addPostLangStmt);
 
       if (!batchResult.every((result) => result.success)) {
-        throw new ApiException('Failed to add post to DB');
+        throw new ApiException('Failed to add post languages to DB');
       }
     } catch (error) {
       if (error.message.includes('UNIQUE constraint failed')) {

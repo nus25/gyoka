@@ -9,9 +9,13 @@ import {
 import { feedUri, postUri } from 'shared/src/validators';
 import { AppContext, createErrorResponse } from 'shared/src/types';
 
-const SQL_SELECT_FEED = 'SELECT feed_id FROM feeds WHERE feed_uri = ?';
-const SQL_DELETE_POST =
-  'DELETE FROM posts WHERE feed_id = ? AND uri = ? AND ( ? is NULL OR indexed_at = ?)';
+const SQL_DELETE_POST = `
+DELETE FROM posts 
+WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)
+  AND uri = ? 
+  AND (? IS NULL OR indexed_at = ?)`;
+const SQL_CHECK_FEED = 'SELECT feed_id FROM feeds WHERE feed_uri = ?';
+
 export class RemovePost extends OpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
@@ -70,38 +74,36 @@ export class RemovePost extends OpenAPIRoute {
     const data = await this.getValidatedData<typeof this.schema>();
     const { feed: feed_uri, post } = data.body;
 
-    // Check if the feed exists
-    const { success: selectFeedSuccess, results: feedResults } = await db
-      .prepare(SQL_SELECT_FEED)
-      .bind(feed_uri)
-      .all();
-    if (!selectFeedSuccess) {
-      throw new ApiException('Failed to query the database');
-    }
-    if (feedResults.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
-    }
-    const feed_id = feedResults[0].feed_id;
-
-    // Delete the post from the database
+    // Delete the post from the database using subquery for feed_id
     const indexed_at = post.indexedAt ? new Date(post.indexedAt).toISOString() : null;
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('feed id:', feed_id, 'post:', post);
+      console.log('feed uri:', feed_uri, 'post:', post);
     }
-    const deletePostStmt = db
+    const deleteResult = await db
       .prepare(SQL_DELETE_POST)
-      .bind(feed_id, post.uri, indexed_at, indexed_at);
-
-    const deleteResult = await deletePostStmt.run();
+      .bind(feed_uri, post.uri, indexed_at, indexed_at)
+      .run();
 
     if (!deleteResult.success) {
       throw new ApiException('Failed to remove post from the database');
     }
+
+    // If no rows deleted, check if it's because feed doesn't exist or post doesn't exist
     if (!deleteResult.meta.changed_db) {
+      const { success: checkFeedSuccess, results: feedResults } = await db
+        .prepare(SQL_CHECK_FEED)
+        .bind(feed_uri)
+        .all();
+      if (!checkFeedSuccess) {
+        throw new ApiException('Failed to query the database');
+      }
+      if (feedResults.length === 0) {
+        return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
+      }
       return createErrorResponse(
         'NotFound',
         `Post not found feed:${feed_uri}, post:{uri:${post.uri} ${
-          post.indexedAt ? 'post:' + post.indexedAt : ''
+          post.indexedAt ? 'indexedAt:' + post.indexedAt : ''
         }}`,
         404
       );

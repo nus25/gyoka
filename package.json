@@ -1,6 +1,6 @@
 {
   "name": "gyoka",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "simple feed generator for bluesky which works on cloudflare workers",
   "private": "true",
   "scripts": {
@@ -19,7 +19,7 @@
   "packageManager": "pnpm@10.25.0",
   "pnpm": {
     "overrides": {
-      "devalue": "5.3.2"
+      "devalue": "5.6.2"
     }
   }
 }
