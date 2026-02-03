@@ -18,11 +18,11 @@
         "shared": "workspace:*"
     },
     "devDependencies": {
-        "@cloudflare/vitest-pool-workers": "0.8.49",
-        "@cloudflare/workers-types": "^4.20260111.0",
+        "@cloudflare/vitest-pool-workers": "0.12.7",
+        "@cloudflare/workers-types": "4.20260124.0",
         "@types/node": "^22.15.35",
         "@types/service-worker-mock": "^2.0.4",
-        "wrangler": "4.59.1"
+        "wrangler": "4.60.0"
     },
     "packageManager": "pnpm@10.25.0",
     "author": "Nus",
