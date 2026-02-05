@@ -1,4 +1,4 @@
-import { fromHono, ApiException } from 'chanfana';
+import { fromHono } from 'chanfana';
 import { Hono } from 'hono';
 import { etag } from 'hono/etag';
 import { cors } from 'hono/cors';
@@ -15,7 +15,8 @@ import { RemovePostByAuthor } from './endpoints/removePostByAuthor';
 import { GetPosts } from './endpoints/getPosts';
 import { TrimFeed } from './endpoints/trimFeed';
 import { UpdateDocument } from './endpoints/updateDocument';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
+import { GyokaBaseError, InternalServerError, createErrorResponse } from 'shared/src/errors';
 import process from 'node:process';
 
 const API_VERSION = '1.2.0';
@@ -53,7 +54,7 @@ app.use(
 // configuration check for each endpoint
 app.use('/api/*', async (c: AppContext, next) => {
   if (!c.env.DB) {
-    throw new ApiException('Missing database configuration');
+    throw new InternalServerError('Missing database configuration');
   }
   await next();
 });
@@ -87,7 +88,7 @@ openapi.post('/api/gyoka/updateDocument', UpdateDocument);
 
 // Global error handler
 app.onError((err, c) => {
-  if (err instanceof ApiException) {
+  if (err instanceof GyokaBaseError) {
     console.error('API Exception:', err.message, err.status);
     if (c.env.DEVELOPER_MODE === 'enabled') {
       console.error(err.stack);

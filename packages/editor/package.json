@@ -12,9 +12,9 @@
         "d1-add-dummy-local": "wrangler d1 execute gyoka-db --local --file=../shared/migrations/0001_dummydata.sql --persist-to=../../data --env=dev"
     },
     "dependencies": {
-        "chanfana": "^2.8.3",
-         "hono": "^4.11.4",
-        "zod": "^3.24.4",
+        "chanfana": "3.0.0",
+        "hono": "^4.11.4",
+        "zod": "^4.3.5",
         "shared": "workspace:*"
     },
     "devDependencies": {

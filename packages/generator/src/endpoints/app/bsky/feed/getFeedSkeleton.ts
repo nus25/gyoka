@@ -1,12 +1,9 @@
-import { OpenAPIRoute, ApiException, InputValidationException } from 'chanfana';
+import { OpenAPIRoute } from 'chanfana';
 import { z } from 'zod';
 import { feedUri, postUri, repostUri } from 'shared/src/validators';
-import {
-  InternalServerErrorSchema,
-  UnknownFeedErrorSchema,
-  BadRequestErrorSchema,
-} from 'shared/src/constants';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types'
+import { createErrorResponse } from 'shared/src/errors';
+import { InternalServerError,BadRequestError, UnknownFeedError } from 'shared/src/errors';
 
 // https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/getFeedSkeleton.json
 
@@ -69,13 +66,13 @@ export class GetFeedSkeleton extends OpenAPIRoute {
           },
         },
       },
-      ...BadRequestErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...InternalServerErrorSchema,
+      ...BadRequestError.schema(),
+      ...UnknownFeedError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 
-  handleValidationError(errors: z.ZodIssue[]): Response {
+  handleValidationError(errors: z.core.$ZodIssue[]): Response {
     return createErrorResponse(
       'BadRequest',
       JSON.stringify(
@@ -125,7 +122,7 @@ export class GetFeedSkeleton extends OpenAPIRoute {
         cursorParts.some((part) => part === '') ||
         isNaN(parseInt(cursorParts[0], 10))
       ) {
-        throw new InputValidationException('Malformed cursor');
+        throw new BadRequestError('Malformed cursor');
       }
       cursorIndexedAt = new Date(parseInt(cursorParts[0], 10)).toISOString();
       cursorCid = cursorParts[1];
@@ -193,7 +190,7 @@ LIMIT ?;`;
       .all();
 
     if (!success) {
-      throw new ApiException('Failed to fetch feed skeleton');
+      throw new InternalServerError('Failed to fetch feed skeleton');
     }
 
     if (results.length === 0) {
@@ -206,7 +203,7 @@ LIMIT ?;`;
       LIMIT 1;`;
       const feedExistsResult = await c.env.DB.prepare(feedExistsQuery).bind(feedUri).all();
       if (!feedExistsResult.success) {
-        throw new ApiException('Failed to verify feed existence');
+        throw new InternalServerError('Failed to verify feed existence');
       }
       console.log(feedExistsResult);
       if (!feedExistsResult.results[0]?.feed_id) {

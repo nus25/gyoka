@@ -1,14 +1,15 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
+import { OpenAPIRoute, contentJson } from 'chanfana';
 import { z } from 'zod';
-import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnknownFeedErrorSchema,
-  UnauthorizedErrorSchema,
-  All_LANGS,
-} from 'shared/src/constants';
+import { All_LANGS } from 'shared/src/constants';
 import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
+import {
+  UnauthorizedError,
+  UnknownFeedError,
+  BadRequestError,
+  InternalServerError,
+  createErrorResponse,
+} from 'shared/src/errors';
 
 const SQL_INSERT_POST = `
 INSERT INTO posts (feed_id, did, uri, cid, indexed_at, feed_context, reason) VALUES (?, ?, ?, ?, ?, ?, ?)`;
@@ -20,7 +21,7 @@ const PostSchema = z
     uri: postUri,
     cid: cid,
     languages: z.array(z.string()).nullable().optional(),
-    indexedAt: z.string().datetime({ offset: true }).optional(),
+    indexedAt: z.iso.datetime({ offset: true }).optional(),
     feedContext: z.string().max(2000).optional().openapi({
       description: 'Context passed through to the client and feed generator.',
       example: 'Some feed context',
@@ -109,14 +110,14 @@ export class BatchAddPosts extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...UnknownFeedError.schema(),
+      ...BadRequestError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 
-  handleValidationError(errors: z.ZodIssue[]): Response {
+  handleValidationError(errors: z.core.$ZodIssue[]): Response {
     return createErrorResponse(
       'BadRequest',
       JSON.stringify(
@@ -262,7 +263,7 @@ export class BatchAddPosts extends OpenAPIRoute {
           .all();
 
         if (!success) {
-          throw new ApiException('Failed to query the database');
+          throw new InternalServerError('Failed to query the database');
         }
 
         // Map results to feedInfoMap

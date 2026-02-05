@@ -1,13 +1,14 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
+import { OpenAPIRoute, contentJson } from 'chanfana';
 import { z } from 'zod';
 import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnknownFeedErrorSchema,
-  UnauthorizedErrorSchema,
-} from 'shared/src/constants';
+  BadRequestError,
+  InternalServerError,
+  UnknownFeedError,
+  UnauthorizedError,
+  createErrorResponse,
+} from 'shared/src/errors';
 import { feedUri } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
 
 const SQL_DELETE_FEED = 'DELETE FROM feeds WHERE feed_uri = ?';
 const SQL_DELETE_POSTS =
@@ -36,14 +37,14 @@ export class UnregisterFeed extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...BadRequestError.schema(),
+      ...UnknownFeedError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 
-  handleValidationError(errors: z.ZodIssue[]): Response {
+  handleValidationError(errors: z.core.$ZodIssue[]): Response {
     return createErrorResponse(
       'BadRequest',
       JSON.stringify(
@@ -64,7 +65,7 @@ export class UnregisterFeed extends OpenAPIRoute {
     // Check if the feed exists
     const { success: selectSuccess, results } = await db.prepare(SQL_SELECT_FEED).bind(uri).all();
     if (!selectSuccess) {
-      throw new ApiException('Failed to query the database');
+      throw new InternalServerError('Failed to query the database');
     }
     if (results.length === 0) {
       return createErrorResponse('UnknownFeed', `Feed with URI ${uri} does not exist.`, 404);
@@ -76,7 +77,7 @@ export class UnregisterFeed extends OpenAPIRoute {
     const batchResult = await db.batch([deletePostsStmt, deleteFeedStmt]);
 
     if (!batchResult.every((result) => result.success)) {
-      throw new ApiException('Failed to unregister feed and associated posts');
+      throw new InternalServerError('Failed to unregister feed and associated posts');
     }
 
     return Response.json({

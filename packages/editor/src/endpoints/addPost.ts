@@ -1,14 +1,15 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
+import { OpenAPIRoute, contentJson } from 'chanfana';
 import { z } from 'zod';
-import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnknownFeedErrorSchema,
-  UnauthorizedErrorSchema,
-  All_LANGS,
-} from 'shared/src/constants';
+import { All_LANGS } from 'shared/src/constants';
 import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
+import {
+  UnauthorizedError,
+  UnknownFeedError,
+  BadRequestError,
+  InternalServerError,
+  createErrorResponse,
+} from 'shared/src/errors';
 
 const SQL_INSERT_POST = `
 INSERT INTO posts (feed_id, did, uri, cid, indexed_at, feed_context, reason)
@@ -32,7 +33,7 @@ export class AddPost extends OpenAPIRoute {
               uri: postUri,
               cid: cid,
               languages: z.array(z.string()).nullable().optional(),
-              indexedAt: z.string().datetime({ offset: true }).optional(),
+              indexedAt: z.iso.datetime({ offset: true }).optional(),
               feedContext: z.string().max(2000).optional().openapi({
                 description: 'Context passed through to the client and feed generator.',
                 example: 'Some feed context',
@@ -69,7 +70,7 @@ export class AddPost extends OpenAPIRoute {
                 uri: postUri,
                 cid: cid,
                 languages: z.array(z.string()),
-                indexedAt: z.string().datetime(),
+                indexedAt: z.iso.datetime(),
                 feedContext: z.string().max(2000).optional().openapi({
                   description: 'Context passed through to the client and feed generator.',
                   example: 'Some feed context',
@@ -94,14 +95,14 @@ export class AddPost extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...UnknownFeedError.schema(),
+      ...BadRequestError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 
-  handleValidationError(errors: z.ZodIssue[]): Response {
+  handleValidationError(errors: z.core.$ZodIssue[]): Response {
     return createErrorResponse(
       'BadRequest',
       JSON.stringify(
@@ -193,7 +194,7 @@ export class AddPost extends OpenAPIRoute {
         )
         .all();
       if (!insertSuccess) {
-        throw new ApiException('Failed to insert post to the database');
+        throw new InternalServerError('Failed to insert post to the database');
       }
       // If no rows returned, feed doesn't exist
       if (results.length === 0) {
@@ -208,7 +209,7 @@ export class AddPost extends OpenAPIRoute {
       const batchResult = await db.batch(addPostLangStmt);
 
       if (!batchResult.every((result) => result.success)) {
-        throw new ApiException('Failed to add post languages to DB');
+        throw new InternalServerError('Failed to add post languages to DB');
       }
     } catch (error) {
       if (error.message.includes('UNIQUE constraint failed')) {

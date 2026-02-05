@@ -1,11 +1,9 @@
-import { OpenAPIRoute, NotFoundException } from 'chanfana';
+import { OpenAPIRoute } from 'chanfana';
 import { z } from 'zod';
-import {
-  InternalServerErrorSchema,
-  NotFoundErrorSchema,
-  DOCUMENT_TYPES,
-} from 'shared/src/constants';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { DOCUMENT_TYPES } from 'shared/src/constants';
+import { AppContext } from 'shared/src/types';
+import { createErrorResponse } from 'shared/src/errors';
+import { InternalServerError, NotFoundError } from 'shared/src/errors';
 
 // get service document from D1 documents table
 
@@ -32,8 +30,8 @@ export class GetDocument extends OpenAPIRoute {
           },
         },
       },
-      ...NotFoundErrorSchema,
-      ...InternalServerErrorSchema,
+      ...NotFoundError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 
@@ -55,7 +53,7 @@ export class GetDocument extends OpenAPIRoute {
     const result = await c.env.DB.prepare(SQL_SELECT_DOCUMENT).bind(type).first();
     // check if result is null or empty
     if (result === null || (result.url === null && result.content === null)) {
-      throw new NotFoundException('Document not found');
+      throw new NotFoundError('Document not found');
     }
     // url only: show url
     let text: string;

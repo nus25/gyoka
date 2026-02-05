@@ -10,9 +10,9 @@
         "coverage": "vitest run --coverage"
     },
     "dependencies": {
-        "chanfana": "^2.8.3",
+        "chanfana": "3.0.0",
         "hono": "^4.11.4",
-        "zod": "^3.24.4",
+        "zod": "^4.3.5",
         "shared": "workspace:*"
     },
     "devDependencies": {
