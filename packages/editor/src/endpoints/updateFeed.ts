@@ -1,5 +1,5 @@
 import { OpenAPIRoute, contentJson } from 'chanfana';
-import { z } from 'zod';
+import * as z from 'zod';
 import {
   UnknownFeedError,
   BadRequestError,

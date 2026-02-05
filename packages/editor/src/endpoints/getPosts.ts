@@ -1,5 +1,5 @@
 import { OpenAPIRoute } from 'chanfana';
-import { z } from 'zod';
+import * as z from 'zod';
 import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
 import {

@@ -1,5 +1,5 @@
 import { OpenAPIRoute, contentJson } from 'chanfana';
-import { z } from 'zod';
+import * as z from 'zod';
 import { All_LANGS } from 'shared/src/constants';
 import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';

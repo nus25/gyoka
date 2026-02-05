@@ -1,5 +1,5 @@
 import { OpenAPIRoute } from 'chanfana';
-import { z } from 'zod';
+import * as z from 'zod';
 import { InternalServerError, UnauthorizedError } from 'shared/src/errors';
 
 export class Ping extends OpenAPIRoute {

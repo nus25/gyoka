@@ -1,5 +1,5 @@
 import { OpenAPIRoute } from 'chanfana';
-import { z } from 'zod';
+import * as z from 'zod';
 import { AppContext } from 'shared/src/types';
 import { did } from 'shared/src/validators';
 import { InternalServerError } from 'shared/src/errors';
