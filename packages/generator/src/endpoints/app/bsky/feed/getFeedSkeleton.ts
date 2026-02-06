@@ -207,11 +207,7 @@ LIMIT ?;`;
       }
       console.log(feedExistsResult);
       if (!feedExistsResult.results[0]?.feed_id) {
-        return createErrorResponse(
-          'UnknownFeed',
-          `The feed generator with URI ${feedUri} does not exist.`,
-          404
-        );
+        throw new UnknownFeedError(`The feed generator with URI ${feedUri} does not existed.`);
       }
     }
 

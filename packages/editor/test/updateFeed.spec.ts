@@ -147,4 +147,18 @@ describe(ENDPOINT_PATH, () => {
     expect(results[0].lang_filter).toBe(1); // not change
     expect(results[0].is_active).toBe(1); // not change
   });
+  it ('handles non-existent feed', async () => {
+    const request = {
+      uri: 'at://did:plc:nonexistent/app.bsky.feed.generator/feed',
+      langFilter: true,
+      isActive: true,
+    };
+
+    const { response, json } = await updateFeed(request);
+    expect(response.status).toBe(404);
+    expect(json).toEqual({
+      error: 'UnknownFeed',
+      message: 'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist',
+    });
+  });
 });

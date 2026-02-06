@@ -3,8 +3,8 @@ import * as z from 'zod';
 import {
   BadRequestError,
   InternalServerError,
-  NotFoundError,
   UnauthorizedError,
+  UnknownFeedError,
   createErrorResponse,
 } from 'shared/src/errors';
 import { feedUri, did } from 'shared/src/validators';
@@ -46,7 +46,7 @@ export class RemovePostByAuthor extends OpenAPIRoute {
       },
       ...UnauthorizedError.schema(),
       ...BadRequestError.schema(),
-      ...NotFoundError.schema(),
+      ...UnknownFeedError.schema(),
       ...InternalServerError.schema(),
     },
   };
@@ -78,7 +78,7 @@ export class RemovePostByAuthor extends OpenAPIRoute {
       throw new InternalServerError('Failed to query the database');
     }
     if (results.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
+      throw new UnknownFeedError(`Feed with URI ${feed_uri} does not exist.`);
     }
     const feed_id = results[0].feed_id;
     const deletedCount = results[0].count as number;

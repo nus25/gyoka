@@ -16,7 +16,7 @@ export function createErrorResponse(error: string, message: string, status: numb
 }
 
 export class GyokaBaseError extends Error {
-  default_message = 'Gyoka Base Error';
+  errorCode = 'GyokaBaseError';
   status = 500;
   constructor(message = '') {
     super(message);
@@ -25,7 +25,7 @@ export class GyokaBaseError extends Error {
 }
 
 export class InternalServerError extends GyokaBaseError {
-  default_message = 'Internal Server Error';
+  errorCode = 'InternalServerError';
   status = 500;
 
   constructor(message = '') {
@@ -51,7 +51,7 @@ export class InternalServerError extends GyokaBaseError {
 }
 
 export class NotFoundError extends GyokaBaseError {
-  default_message = 'Not Found';
+  errorCode = 'NotFound';
   status = 404;
 
   constructor(message = '') {
@@ -80,7 +80,7 @@ export class NotFoundError extends GyokaBaseError {
 }
 
 export class BadRequestError extends GyokaBaseError {
-  default_message = 'Bad Request';
+  errorCode = 'BadRequest';
   status = 400;
 
   constructor(message = '') {
@@ -108,7 +108,7 @@ export class BadRequestError extends GyokaBaseError {
 }
 
 export class UnknownFeedError extends GyokaBaseError {
-  default_message = 'Unknown Feed';
+  errorCode = 'UnknownFeed';
   status = 404;
 
   constructor(message = '') {
@@ -136,7 +136,7 @@ export class UnknownFeedError extends GyokaBaseError {
 }
 
 export class UnauthorizedError extends GyokaBaseError {
-  default_message = 'Unauthorized';
+  errorCode = 'Unauthorized';
   status = 401;
 
   constructor(message = '') {

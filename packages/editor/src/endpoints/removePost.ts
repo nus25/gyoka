@@ -99,15 +99,11 @@ export class RemovePost extends OpenAPIRoute {
         throw new InternalServerError('Failed to query the database');
       }
       if (feedResults.length === 0) {
-        return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
+        throw new NotFoundError(`Feed with URI ${feed_uri} does not exist.`);
       }
-      return createErrorResponse(
-        'NotFound',
-        `Post not found feed:${feed_uri}, post:{uri:${post.uri} ${
-          post.indexedAt ? 'indexedAt:' + post.indexedAt : ''
-        }}`,
-        404
-      );
+      throw new NotFoundError(`Post not found feed:${feed_uri}, post:{uri:${post.uri} ${
+        post.indexedAt ? 'indexedAt:' + post.indexedAt : ''
+      }}`);
     }
 
     return Response.json({

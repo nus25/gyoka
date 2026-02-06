@@ -111,10 +111,8 @@ export class BatchRemovePosts extends OpenAPIRoute {
     // Validate max total posts limit per request
     const totalPosts = entries.reduce((sum, entry) => sum + entry.posts.length, 0);
     if (totalPosts > maxBatchPosts) {
-      return createErrorResponse(
-        'BadRequest',
-        `Maximum ${maxBatchPosts} posts allowed per request. Received ${totalPosts} posts.`,
-        400
+      throw new BadRequestError(
+        `Maximum ${maxBatchPosts} posts allowed per request. Received ${totalPosts} posts.`
       );
     }
 
@@ -187,7 +185,7 @@ export class BatchRemovePosts extends OpenAPIRoute {
       }
     } catch (error) {
       console.error('Error querying feeds:', error);
-      return createErrorResponse('InternalServerError', 'Failed to query feeds', 500);
+      throw new InternalServerError('Failed to query feeds');
     }
 
     const entryResultsMap = new Map<number, EntryResult[]>();

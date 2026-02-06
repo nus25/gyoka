@@ -36,13 +36,13 @@ export class GetDocument extends OpenAPIRoute {
   };
 
   handleValidationError(): Response {
-    return createErrorResponse('NotFound', 'content not found', 404);
+    throw new NotFoundError('Content not found');
   }
 
   async handle(c: AppContext): Promise<Response> {
     const { type } = (await this.getValidatedData<typeof this.schema>()).params;
     if (!type || (type !== DOCUMENT_TYPES.PRIVACY_POLICY && type !== DOCUMENT_TYPES.TOS)) {
-      return this.handleValidationError();
+      this.handleValidationError();
     }
     const SQL_SELECT_DOCUMENT = `
         SELECT url, content

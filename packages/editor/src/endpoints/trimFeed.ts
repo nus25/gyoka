@@ -91,7 +91,7 @@ export class TrimFeed extends OpenAPIRoute {
       throw new InternalServerError('Failed to query the database');
     }
     if (feedResults.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
+      throw new UnknownFeedError(`Feed with URI ${feed_uri} does not exist.`);
     }
     const feedId = feedResults[0].feed_id;
     const feedPosts = parseInt(feedResults[0].post_count as string);

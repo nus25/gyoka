@@ -71,6 +71,19 @@ export class GetPosts extends OpenAPIRoute {
     },
   };
 
+  handleValidationError(errors: z.core.$ZodIssue[]): Response {
+    return createErrorResponse(
+      'BadRequest',
+      JSON.stringify(
+        errors.map((error) => ({
+          message: error.message,
+          path: error.path,
+        }))
+      ),
+      400
+    );
+  }
+
   async handle(c: AppContext): Promise<Response> {
     const data = await this.getValidatedData<typeof this.schema>();
     const db: D1Database = c.env.DB;
@@ -99,7 +112,7 @@ export class GetPosts extends OpenAPIRoute {
       throw new InternalServerError('Failed to query the database');
     }
     if (feedResults.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${feed} does not exist.`, 404);
+      throw new UnknownFeedError(`Feed with URI ${feed} does not exist.`);
     }
     const feed_id = feedResults[0].feed_id;
 

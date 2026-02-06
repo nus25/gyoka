@@ -68,7 +68,7 @@ export class UpdateFeed extends OpenAPIRoute {
     const data = await this.getValidatedData<typeof this.schema>();
     const { uri, langFilter, isActive } = data.body;
     if (langFilter === undefined && isActive === undefined) {
-      return createErrorResponse('BadRequest', 'No value for update in request', 400);
+      throw new BadRequestError('No value for update in request');
     }
 
     // Check if the feed exists
@@ -77,7 +77,7 @@ export class UpdateFeed extends OpenAPIRoute {
       throw new InternalServerError('Failed to query the database');
     }
     if (results.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${uri} does not exist.`, 404);
+      throw new UnknownFeedError(`Feed with URI ${uri} does not exist`);
     }
     const feed = results[0];
     //update

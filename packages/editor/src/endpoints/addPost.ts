@@ -131,16 +131,9 @@ export class AddPost extends OpenAPIRoute {
           .filter((lang) => lang)
       ),
     ];
-    if (languageCodes.length === 0) {
-      //error if no valid code in request field.
-      return createErrorResponse('BadRequest', 'At least one valid language code is required', 400);
-    }
+
     if (languageCodes.some((code) => !(code === '*' || /^[a-z]{2,3}$/.test(code)))) {
-      return createErrorResponse(
-        'BadRequest',
-        'All primary language tags must be exactly two or three lowercase alphabetic characters (e.g., "en", "jp").',
-        400
-      );
+      throw new BadRequestError('All primary language tags must be exactly two or three lowercase alphabetic characters (e.g., "en", "jp").');
     }
 
     post.languages = languageCodes;
@@ -158,11 +151,7 @@ export class AddPost extends OpenAPIRoute {
       switch (post.reason.$type) {
         case 'app.bsky.feed.defs#skeletonReasonRepost':
           if (!post.reason.repost) {
-            return createErrorResponse(
-              'BadRequest',
-              'Reason type app.bsky.feed.defs#skeletonReasonRepost needs repost field',
-              400
-            );
+            throw new BadRequestError('Reason type app.bsky.feed.defs#skeletonReasonRepost needs repost field');
           }
           reason = {
             $type: post.reason.$type,
@@ -198,7 +187,7 @@ export class AddPost extends OpenAPIRoute {
       }
       // If no rows returned, feed doesn't exist
       if (results.length === 0) {
-        return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
+        throw new UnknownFeedError(`Feed with URI ${feed_uri} does not exist.`);
       }
       const post_id = results[0].post_id;
       // add post_langs to DB by batch using returned post_id
@@ -212,13 +201,6 @@ export class AddPost extends OpenAPIRoute {
         throw new InternalServerError('Failed to add post languages to DB');
       }
     } catch (error) {
-      if (error.message.includes('UNIQUE constraint failed')) {
-        return createErrorResponse(
-          'BadRequest',
-          `post already exists. uri:${post.uri} indexedAt:${post.indexedAt}`,
-          400
-        );
-      }
       console.error('Failed to add post to feed:', error);
       throw error;
     }

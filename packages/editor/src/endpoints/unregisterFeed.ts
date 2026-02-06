@@ -68,7 +68,7 @@ export class UnregisterFeed extends OpenAPIRoute {
       throw new InternalServerError('Failed to query the database');
     }
     if (results.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${uri} does not exist.`, 404);
+      throw new UnknownFeedError(`Feed with URI ${uri} does not exist.`);
     }
     // Use a batch statement to delete posts and the feed
     const deletePostsStmt = db.prepare(SQL_DELETE_POSTS).bind(uri);

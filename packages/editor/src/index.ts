@@ -93,32 +93,12 @@ app.onError((err, c) => {
     if (c.env.DEVELOPER_MODE === 'enabled') {
       console.error(err.stack);
     }
-
-    let error = '';
-    switch (err.status) {
-      case 400:
-        error = 'BadRequest';
-        break;
-      case 404:
-        error = 'NotFound';
-        break;
-      case 500:
-        error = 'InternalServerError';
-        break;
-      default:
-        console.error(err);
-        error = err.default_message;
-        err.message = 'Unexpected error occurred.';
-    }
-
-    const resp = createErrorResponse(error, err.message, err.status);
-    return resp;
+    return createErrorResponse(err.errorCode, err.message, err.status);
   }
 
   // For other errors, return a generic 500 response
   console.error(err);
-  const resp = createErrorResponse('InternalServerError', 'An unexpected error occurred.', 500);
-  return resp;
+  return createErrorResponse('InternalServerError', 'An unexpected error occurred.', 500);
 });
 
 // Export the Hono app

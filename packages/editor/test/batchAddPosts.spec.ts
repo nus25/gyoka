@@ -567,4 +567,103 @@ describe(ENDPOINT_PATH, () => {
     const { results: posts } = await db.prepare('SELECT * FROM posts').all();
     expect(posts.length).toBe(25);
   });
+
+it('handles db errors gracefully', async () => {
+  // Mock a database that will fail on feed query
+  const mockDb = {
+    prepare: (query: string) => {
+      if (query.includes('SELECT')) {
+        return {
+          bind: (...args: any[]) => ({
+            all: async () => {
+              throw new Error('Database connection failed');
+            },
+          }),
+        };
+      }
+      return {
+        bind: (...args: any[]) => ({
+          run: async () => ({ success: true, meta: { changes: 0 } }),
+          all: async () => ({ success: true, results: [] }),
+        }),
+      };
+    },
+    batch: async () => {
+      throw new Error('Batch operation failed');
+    },
+  };
+
+  const mockEnv = { ...env, DB: mockDb };
+
+  const entries = [
+    {
+      feed: dummyFeed1.uri,
+      posts: [dummyPost1],
+    },
+  ];
+
+  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ entries }),
+  });
+
+  const ctx = createExecutionContext();
+  const response = await app.fetch(request, mockEnv, ctx);
+  await waitOnExecutionContext(ctx);
+
+  expect(response.status).toBe(500);
+  const json = (await response.json()) as { error: string; message: string };
+  expect(json.error).toBe('InternalServerError');
+  expect(json.message).toBe('Failed to query feeds');
+});
+
+it('handles db batch insert errors gracefully', async () => {
+  // First query succeeds (feed lookup), batch insert fails
+  let queryCount = 0;
+  const mockDb = {
+    prepare: (query: string) => ({
+      bind: (...args: any[]) => ({
+        all: async () => {
+          if (query.includes('SELECT')) {
+            return {
+              success: true,
+              results: [{ feed_id: 1, feed_uri: dummyFeed1.uri }],
+            };
+          }
+          return { success: true, results: [] };
+        },
+        run: async () => ({ success: true, meta: { changes: 1 } }),
+      }),
+    }),
+    batch: async () => {
+      throw new Error('Batch insert failed');
+    },
+  };
+
+  const mockEnv = { ...env, DB: mockDb };
+
+  const entries = [
+    {
+      feed: dummyFeed1.uri,
+      posts: [dummyPost1],
+    },
+  ];
+
+  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ entries }),
+  });
+
+  const ctx = createExecutionContext();
+  const response = await app.fetch(request, mockEnv, ctx);
+  await waitOnExecutionContext(ctx);
+
+  expect(response.status).toBe(200);
+  const json = (await response.json()) as { results: any[] };
+  console.log(json.results[0].results[0]);
+  expect(json.results[0].results[0].status).toBe('error');
+  expect(json.results[0].results[0].error).toBe('Batch insert failed');
+});
 });
