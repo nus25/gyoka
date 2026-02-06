@@ -19,7 +19,7 @@ import { AppContext } from 'shared/src/types';
 import { GyokaBaseError, InternalServerError, createErrorResponse } from 'shared/src/errors';
 import process from 'node:process';
 
-const API_VERSION = '1.2.0';
+const API_VERSION = '1.2.1';
 
 // Start a Hono app
 const app = new Hono<{ Bindings: EnvWithSecret }>();
