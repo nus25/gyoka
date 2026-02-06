@@ -1,12 +1,13 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
-import { z } from 'zod';
+import { OpenAPIRoute, contentJson } from 'chanfana';
+import * as z from 'zod';
 import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnauthorizedErrorSchema,
-} from 'shared/src/constants';
+  BadRequestError,
+  InternalServerError,
+  UnauthorizedError,
+  createErrorResponse,
+} from 'shared/src/errors';
 import { feedUri } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
 
 const SQL_INSERT_FEED = 'INSERT INTO feeds (feed_uri, lang_filter, is_active) VALUES (?, ?, ?)';
 
@@ -39,9 +40,9 @@ export class RegisterFeed extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...BadRequestError.schema(),
+      ...InternalServerError.schema(),
       '409': {
         description: 'Conflict',
         content: {
@@ -56,7 +57,7 @@ export class RegisterFeed extends OpenAPIRoute {
     },
   };
 
-  handleValidationError(errors: z.ZodIssue[]): Response {
+  handleValidationError(errors: z.core.$ZodIssue[]): Response {
     return createErrorResponse(
       'BadRequest',
       JSON.stringify(
@@ -79,7 +80,7 @@ export class RegisterFeed extends OpenAPIRoute {
         .bind(feed_uri, langFilter, isActive)
         .run();
       if (!success) {
-        throw new ApiException('Failed to register feed');
+        throw new InternalServerError('Failed to register feed');
       }
     } catch (error) {
       if (error.message.includes('UNIQUE constraint failed')) {

@@ -1,8 +1,8 @@
-import { OpenAPIRoute, ApiException } from 'chanfana';
-import { z } from 'zod';
-import { InternalServerErrorSchema, UnauthorizedErrorSchema } from 'shared/src/constants';
+import { OpenAPIRoute } from 'chanfana';
+import * as z from 'zod';
 import { feedUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
+import { UnauthorizedError, InternalServerError } from 'shared/src/errors';
 
 const SQL_SELECT_FEED = 'SELECT * FROM feeds';
 
@@ -29,8 +29,8 @@ export class ListFeeds extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 
@@ -39,7 +39,7 @@ export class ListFeeds extends OpenAPIRoute {
     // get feed info
     const { success: feedSuccess, results: feedResults } = await db.prepare(SQL_SELECT_FEED).all();
     if (!feedSuccess) {
-      throw new ApiException('Failed to fetch feeds');
+      throw new InternalServerError('Failed to fetch feeds');
     }
     const response = {
       feeds: [

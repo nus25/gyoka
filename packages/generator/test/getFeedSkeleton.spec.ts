@@ -153,7 +153,16 @@ describe('GetFeedSkeleton Endpoint', () => {
     expect(data.feed.length).toBe(1);
     expect(Array.isArray(data.feed)).toBe(true);
   });
-
+  it('should return a 400 error for malformed cursor', async () => {
+    const response = await sendRequest(
+      'feed=at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton&cursor=malformedcursor'
+    );
+    expect(response.status).toBe(400);
+    const data: expectedErrorResponseType = await response.json();
+    expect(data).toHaveProperty('error');
+    expect(data.message).toBe('Malformed cursor');
+    expect(data.error).toContain('BadRequest');
+  });
   it('should return a 400 error for invalid query parameters', async () => {
     const response = await sendRequest('feed=invalid-feed-uri');
     expect(response.status).toBe(400);

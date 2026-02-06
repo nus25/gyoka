@@ -278,7 +278,9 @@ describe(ENDPOINT_PATH, () => {
     const { response, json } = await batchRemovePosts(entries);
     expect(response.status).toBe(400);
     expect(json.error).toBe('BadRequest');
-    expect(json.message).toContain(`Array must contain at least 1 element(s)`);
+    expect(json.message).toContain(
+      `[{"message":"Too small: expected array to have >=1 items","path":["body","entries",0,"posts"]}]`
+    );
   });
 
   it('handles partial success when some feeds do not exist', async () => {

@@ -1,14 +1,15 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
-import { z } from 'zod';
-import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnknownFeedErrorSchema,
-  UnauthorizedErrorSchema,
-  All_LANGS,
-} from 'shared/src/constants';
+import { OpenAPIRoute, contentJson } from 'chanfana';
+import * as z from 'zod';
+import { All_LANGS } from 'shared/src/constants';
 import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
+import {
+  UnauthorizedError,
+  UnknownFeedError,
+  BadRequestError,
+  InternalServerError,
+  createErrorResponse,
+} from 'shared/src/errors';
 
 const SQL_INSERT_POST = `
 INSERT INTO posts (feed_id, did, uri, cid, indexed_at, feed_context, reason) VALUES (?, ?, ?, ?, ?, ?, ?)`;
@@ -20,7 +21,7 @@ const PostSchema = z
     uri: postUri,
     cid: cid,
     languages: z.array(z.string()).nullable().optional(),
-    indexedAt: z.string().datetime({ offset: true }).optional(),
+    indexedAt: z.iso.datetime({ offset: true }).optional(),
     feedContext: z.string().max(2000).optional().openapi({
       description: 'Context passed through to the client and feed generator.',
       example: 'Some feed context',
@@ -109,14 +110,14 @@ export class BatchAddPosts extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...UnknownFeedError.schema(),
+      ...BadRequestError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 
-  handleValidationError(errors: z.ZodIssue[]): Response {
+  handleValidationError(errors: z.core.$ZodIssue[]): Response {
     return createErrorResponse(
       'BadRequest',
       JSON.stringify(
@@ -217,10 +218,8 @@ export class BatchAddPosts extends OpenAPIRoute {
     // Validate max total posts limit per request
     const totalPosts = entries.reduce((sum, entry) => sum + entry.posts.length, 0);
     if (totalPosts > maxBatchPosts) {
-      return createErrorResponse(
-        'BadRequest',
-        `Maximum ${maxBatchPosts} posts allowed per request. Received ${totalPosts} posts.`,
-        400
+      throw new BadRequestError(
+        `Maximum ${maxBatchPosts} posts allowed per request. Received ${totalPosts} posts.`
       );
     }
 
@@ -262,7 +261,8 @@ export class BatchAddPosts extends OpenAPIRoute {
           .all();
 
         if (!success) {
-          throw new ApiException('Failed to query the database');
+          console.error('Failed to query the database');
+          throw new InternalServerError('Failed to query the database');
         }
 
         // Map results to feedInfoMap
@@ -279,7 +279,7 @@ export class BatchAddPosts extends OpenAPIRoute {
       }
     } catch (error) {
       console.error('Error querying feeds:', error);
-      return createErrorResponse('InternalServerError', 'Failed to query feeds', 500);
+      throw new InternalServerError('Failed to query feeds');
     }
 
     // Process posts grouped by feed

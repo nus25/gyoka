@@ -143,11 +143,15 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('handles non-existent feed', async () => {
-    const { response } = await addPost(
+    const { response, json } = await addPost(
       'at://did:plc:nonexistent/app.bsky.feed.generator/feed',
       dummyPost
     );
     expect(response.status).toBe(404);
+    expect(json).toEqual({
+      error: 'UnknownFeed',
+      message: 'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist.',
+    });
   });
 
   it('handles invalid post URI', async () => {
@@ -189,6 +193,7 @@ describe(ENDPOINT_PATH, () => {
     expect(languages.map((l) => l.language).sort()).toEqual(['en', 'ja', 'tlh']);
   });
 
+  it
   it('handles invalid language codes', async () => {
     await insertFeed(dummyFeed);
 
@@ -197,8 +202,12 @@ describe(ENDPOINT_PATH, () => {
       languages: ['invalid', '11'],
     };
 
-    const { response } = await addPost(dummyFeed.uri, postWithInvalidLangs);
+    const { response,json } = await addPost(dummyFeed.uri, postWithInvalidLangs);
     expect(response.status).toBe(400);
+    expect(json).toEqual({
+      error: 'BadRequest',
+      message: 'All primary language tags must be exactly two or three lowercase alphabetic characters (e.g., "en", "jp").',
+    });
   });
 
   it('handles database errors gracefully', async () => {
@@ -283,6 +292,24 @@ describe(ENDPOINT_PATH, () => {
     expect(JSON.parse(posts[0].reason as string)).toEqual({
       $type: 'app.bsky.feed.defs#skeletonReasonRepost',
       repost: 'at://did:plc:testuser/app.bsky.feed.repost/repostkey',
+    });
+  });
+
+  it ('handles invalid reason structure', async () => {
+    await insertFeed(dummyFeed);
+
+    const postWithInvalidReason = {
+      ...dummyPost,
+      reason: {
+        $type: 'app.bsky.feed.defs#skeletonReasonRepost',
+        // missing repost field
+      },
+    } as any;
+    const { response,json } = await addPost(dummyFeed.uri, postWithInvalidReason);
+    expect(response.status).toBe(400);
+    expect(json).toEqual({
+      error: 'BadRequest',
+      message: 'Reason type app.bsky.feed.defs#skeletonReasonRepost needs repost field',
     });
   });
 

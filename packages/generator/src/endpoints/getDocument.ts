@@ -1,11 +1,9 @@
-import { OpenAPIRoute, NotFoundException } from 'chanfana';
-import { z } from 'zod';
-import {
-  InternalServerErrorSchema,
-  NotFoundErrorSchema,
-  DOCUMENT_TYPES,
-} from 'shared/src/constants';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { OpenAPIRoute } from 'chanfana';
+import * as z from 'zod';
+import { DOCUMENT_TYPES } from 'shared/src/constants';
+import { AppContext } from 'shared/src/types';
+import { createErrorResponse } from 'shared/src/errors';
+import { InternalServerError, NotFoundError } from 'shared/src/errors';
 
 // get service document from D1 documents table
 
@@ -32,19 +30,19 @@ export class GetDocument extends OpenAPIRoute {
           },
         },
       },
-      ...NotFoundErrorSchema,
-      ...InternalServerErrorSchema,
+      ...NotFoundError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 
   handleValidationError(): Response {
-    return createErrorResponse('NotFound', 'content not found', 404);
+    throw new NotFoundError('Content not found');
   }
 
   async handle(c: AppContext): Promise<Response> {
     const { type } = (await this.getValidatedData<typeof this.schema>()).params;
     if (!type || (type !== DOCUMENT_TYPES.PRIVACY_POLICY && type !== DOCUMENT_TYPES.TOS)) {
-      return this.handleValidationError();
+      this.handleValidationError();
     }
     const SQL_SELECT_DOCUMENT = `
         SELECT url, content
@@ -55,7 +53,7 @@ export class GetDocument extends OpenAPIRoute {
     const result = await c.env.DB.prepare(SQL_SELECT_DOCUMENT).bind(type).first();
     // check if result is null or empty
     if (result === null || (result.url === null && result.content === null)) {
-      throw new NotFoundException('Document not found');
+      throw new NotFoundError('Document not found');
     }
     // url only: show url
     let text: string;

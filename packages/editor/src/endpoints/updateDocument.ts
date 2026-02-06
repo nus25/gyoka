@@ -1,13 +1,13 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
-import { z } from 'zod';
+import { OpenAPIRoute, contentJson } from 'chanfana';
+import * as z from 'zod';
+import { DOCUMENT_TYPES } from 'shared/src/constants';
+import { AppContext } from 'shared/src/types';
 import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnauthorizedErrorSchema,
-  DOCUMENT_TYPES,
-} from 'shared/src/constants';
-import { AppContext, createErrorResponse } from 'shared/src/types';
-
+  UnauthorizedError,
+  BadRequestError,
+  InternalServerError,
+  createErrorResponse,
+} from 'shared/src/errors';
 const SQL_UPDATE_DOCUMENT =
   'INSERT OR REPLACE INTO documents (type, url, content) VALUES (?, ?, ?)';
 
@@ -19,7 +19,7 @@ export class UpdateDocument extends OpenAPIRoute {
       body: contentJson(
         z.object({
           type: z.enum([DOCUMENT_TYPES.TOS, DOCUMENT_TYPES.PRIVACY_POLICY]),
-          url: z.string().url().nullable().optional(),
+          url: z.url().nullable().optional(),
           content: z.string().nullable().optional(),
         })
       ),
@@ -31,19 +31,19 @@ export class UpdateDocument extends OpenAPIRoute {
           'application/json': {
             schema: z.object({
               type: z.enum([DOCUMENT_TYPES.TOS, DOCUMENT_TYPES.PRIVACY_POLICY]),
-              url: z.string().url().nullable(),
+              url: z.url().nullable(),
               content: z.string().nullable(),
             }),
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...BadRequestError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 
-  handleValidationError(errors: z.ZodIssue[]): Response {
+  handleValidationError(errors: z.core.$ZodIssue[]): Response {
     return createErrorResponse(
       'BadRequest',
       JSON.stringify(
@@ -65,7 +65,7 @@ export class UpdateDocument extends OpenAPIRoute {
       const result = await db.prepare(SQL_UPDATE_DOCUMENT).bind(type, url, content).run();
 
       if (!result.success) {
-        throw new ApiException('Failed to update document');
+        throw new InternalServerError('Failed to update document');
       }
 
       return Response.json({
@@ -75,7 +75,7 @@ export class UpdateDocument extends OpenAPIRoute {
       });
     } catch (error) {
       console.error('Failed to update document:', error);
-      throw error;
+      throw new InternalServerError('Failed to update document');
     }
   }
 }
