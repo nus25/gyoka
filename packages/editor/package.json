@@ -13,7 +13,7 @@
     },
     "dependencies": {
         "chanfana": "3.0.0",
-        "hono": "^4.11.4",
+        "hono": "^4.11.7",
         "zod": "^4.3.5",
         "shared": "workspace:*"
     },
