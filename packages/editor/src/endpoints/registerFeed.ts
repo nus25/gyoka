@@ -3,9 +3,9 @@ import * as z from 'zod';
 import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
   BadRequestError,
+  ConflictError,
   InternalServerError,
   UnauthorizedError,
-  createErrorResponse,
 } from 'shared/src/errors';
 import { feedUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
@@ -44,17 +44,7 @@ export class RegisterFeed extends BaseOpenAPIRoute {
       ...UnauthorizedError.schema(),
       ...BadRequestError.schema(),
       ...InternalServerError.schema(),
-      '409': {
-        description: 'Conflict',
-        content: {
-          'application/json': {
-            schema: z.object({
-              error: z.literal('Conflict'),
-              message: z.string(),
-            }),
-          },
-        },
-      },
+      ...ConflictError.schema(),
     },
   };
 
@@ -71,10 +61,10 @@ export class RegisterFeed extends BaseOpenAPIRoute {
         throw new InternalServerError('Failed to register feed');
       }
     } catch (error) {
-      if (error.message.includes('UNIQUE constraint failed')) {
-        return createErrorResponse('Conflict', `Feed with URI ${feed_uri} already exists.`, 409);
+      if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+        throw new ConflictError(`Feed with URI ${feed_uri} already exists.`);
       }
-      throw error; // rethrow the error if it's not a unique constraint violation
+      throw error;
     }
     const response = {
       message: 'Feed registered successfully',

@@ -162,3 +162,32 @@ export class UnauthorizedError extends GyokaBaseError {
     };
   }
 }
+
+export class ConflictError extends GyokaBaseError {
+  errorCode = 'Conflict';
+  status = 409;
+
+  constructor(message = '') {
+    super(message);
+    this.message = message;
+  }
+
+  static schema() {
+    return {
+      409: {
+        description: 'Conflict',
+        content: {
+          'application/json': {
+            schema: z.object({
+              error: z.literal('Conflict'),
+              message: z
+                .string()
+                .optional()
+                .openapi({ example: 'The requested resource already exists.' }),
+            }),
+          },
+        },
+      },
+    };
+  }
+}
