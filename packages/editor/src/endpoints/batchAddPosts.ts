@@ -365,28 +365,23 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
             }
           }
         } catch (error) {
-          // Handle batch insert errors
-          console.error(`Error batch inserting posts for feed ${feed_uri}:`, error);
+          // Handle batch insert errors (log raw message, sanitize response)
+          console.error('[BatchAddPosts] Error batch inserting posts', {
+            feed_uri,
+            error,
+          });
 
-          // Try to determine which posts failed
-          if (error.message && error.message.includes('UNIQUE constraint failed')) {
-            // Mark all processed posts as having duplicate error
-            for (const processedPost of processedPosts) {
-              postResults.push({
-                uri: processedPost.uri,
-                status: 'error',
-                error: `Post already exists. uri:${processedPost.uri} indexedAt:${processedPost.indexedAt}`,
-              });
-            }
-          } else {
-            // Generic error for all posts
-            for (const processedPost of processedPosts) {
-              postResults.push({
-                uri: processedPost.uri,
-                status: 'error',
-                error: error.message || 'An unexpected error occurred',
-              });
-            }
+          const isUniqueViolation =
+            error instanceof Error && error.message.includes('UNIQUE constraint failed');
+
+          for (const processedPost of processedPosts) {
+            postResults.push({
+              uri: processedPost.uri,
+              status: 'error',
+              error: isUniqueViolation
+                ? `Post already exists. uri:${processedPost.uri} indexedAt:${processedPost.indexedAt}`
+                : 'Failed to add post to DB',
+            });
           }
         }
       }

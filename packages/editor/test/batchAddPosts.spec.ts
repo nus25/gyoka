@@ -664,6 +664,6 @@ it('handles db batch insert errors gracefully', async () => {
   const json = (await response.json()) as { results: any[] };
   console.log(json.results[0].results[0]);
   expect(json.results[0].results[0].status).toBe('error');
-  expect(json.results[0].results[0].error).toBe('Batch insert failed');
+  expect(json.results[0].results[0].error).toBe('Failed to add post to DB');//D1 error message is not propagated
 });
 });

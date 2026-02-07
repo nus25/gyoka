@@ -250,12 +250,11 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
         console.error(`Error checking posts for feed ${feed_uri}:`, error);
         // Mark all posts as error
         for (const postToRemove of postsToRemove) {
-          const message = error instanceof Error ? error.message : 'Failed to check post existence';
           recordEntryResult(postToRemove.entryIndex, {
             postIndex: postToRemove.postIndex,
             uri: postToRemove.uri,
             status: 'error',
-            error: message,
+            error: 'Failed to check post existence',
           });
         }
         continue;
@@ -342,12 +341,11 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
 
           // Mark all valid posts as error
           for (const postToRemove of validPosts) {
-            const message = error instanceof Error ? error.message : 'An unexpected error occurred';
             recordEntryResult(postToRemove.entryIndex, {
               postIndex: postToRemove.postIndex,
               uri: postToRemove.uri,
               status: 'error',
-              error: message,
+              error: 'Failed to remove post from DB',
             });
           }
         }
