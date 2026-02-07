@@ -1,11 +1,11 @@
-import { OpenAPIRoute, contentJson } from 'chanfana';
+import { contentJson } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
   BadRequestError,
   InternalServerError,
   NotFoundError,
   UnauthorizedError,
-  createErrorResponse,
 } from 'shared/src/errors';
 import { feedUri, postUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
@@ -17,7 +17,7 @@ WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)
   AND (? IS NULL OR indexed_at = ?)`;
 const SQL_CHECK_FEED = 'SELECT feed_id FROM feeds WHERE feed_uri = ?';
 
-export class RemovePost extends OpenAPIRoute {
+export class RemovePost extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Remove a post from a feed',
@@ -56,19 +56,6 @@ export class RemovePost extends OpenAPIRoute {
       ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.core.$ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;

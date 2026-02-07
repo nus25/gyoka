@@ -1,5 +1,6 @@
-import { OpenAPIRoute, contentJson } from 'chanfana';
+import { contentJson } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { All_LANGS } from 'shared/src/constants';
 import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
@@ -8,7 +9,6 @@ import {
   UnknownFeedError,
   BadRequestError,
   InternalServerError,
-  createErrorResponse,
 } from 'shared/src/errors';
 
 const SQL_INSERT_POST = `
@@ -70,7 +70,7 @@ type ValidationResult = SuccessResult | ErrorResult;
 function isErrorResult(result: ValidationResult): result is ErrorResult {
   return !result.success;
 }
-export class BatchAddPosts extends OpenAPIRoute {
+export class BatchAddPosts extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Add multiple posts to multiple feeds',
@@ -116,19 +116,6 @@ export class BatchAddPosts extends OpenAPIRoute {
       ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.core.$ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   private validateAndProcessPost(
     post: any,

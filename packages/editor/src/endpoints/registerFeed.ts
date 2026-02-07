@@ -1,5 +1,6 @@
-import { OpenAPIRoute, contentJson } from 'chanfana';
+import { contentJson } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
   BadRequestError,
   InternalServerError,
@@ -11,7 +12,7 @@ import { AppContext } from 'shared/src/types';
 
 const SQL_INSERT_FEED = 'INSERT INTO feeds (feed_uri, lang_filter, is_active) VALUES (?, ?, ?)';
 
-export class RegisterFeed extends OpenAPIRoute {
+export class RegisterFeed extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Register new feed',
@@ -56,19 +57,6 @@ export class RegisterFeed extends OpenAPIRoute {
       },
     },
   };
-
-  handleValidationError(errors: z.core.$ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;

@@ -1,11 +1,11 @@
-import { OpenAPIRoute, contentJson } from 'chanfana';
+import { contentJson } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
   BadRequestError,
   InternalServerError,
   UnauthorizedError,
   UnknownFeedError,
-  createErrorResponse,
 } from 'shared/src/errors';
 import { feedUri, did } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
@@ -18,7 +18,7 @@ FROM feeds f
 WHERE f.feed_uri = ?`;
 const SQL_DELETE_POSTS_BY_AUTHOR = 'DELETE FROM posts WHERE feed_id = ? AND did = ?';
 
-export class RemovePostByAuthor extends OpenAPIRoute {
+export class RemovePostByAuthor extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Remove all posts by a specific author from a feed',
@@ -50,19 +50,6 @@ export class RemovePostByAuthor extends OpenAPIRoute {
       ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.core.$ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;

@@ -1,5 +1,6 @@
-import { OpenAPIRoute, contentJson } from 'chanfana';
+import { contentJson } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { feedUri, postUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
 import {
@@ -7,7 +8,6 @@ import {
   UnknownFeedError,
   BadRequestError,
   InternalServerError,
-  createErrorResponse,
 } from 'shared/src/errors';
 
 const SQL_DELETE_POST = `
@@ -40,7 +40,7 @@ type EntryResult = {
   error?: string;
 };
 
-export class BatchRemovePosts extends OpenAPIRoute {
+export class BatchRemovePosts extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Remove multiple posts from multiple feeds',
@@ -86,19 +86,6 @@ export class BatchRemovePosts extends OpenAPIRoute {
       ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.core.$ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;

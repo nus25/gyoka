@@ -1,13 +1,12 @@
-import { OpenAPIRoute } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { feedUri, postUri, repostUri } from 'shared/src/validators';
-import { AppContext } from 'shared/src/types'
-import { createErrorResponse } from 'shared/src/errors';
-import { InternalServerError,BadRequestError, UnknownFeedError } from 'shared/src/errors';
+import { AppContext } from 'shared/src/types';
+import { InternalServerError, BadRequestError, UnknownFeedError } from 'shared/src/errors';
 
 // https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/getFeedSkeleton.json
 
-export class GetFeedSkeleton extends OpenAPIRoute {
+export class GetFeedSkeleton extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Generator'],
     summary: 'Get a skeleton of a feed',
@@ -71,19 +70,6 @@ export class GetFeedSkeleton extends OpenAPIRoute {
       ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.core.$ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   extractLanguageCodes(acceptLanguage: string, maxCount: number = 10): string[] {
     if (!acceptLanguage) return [];

@@ -1,17 +1,17 @@
-import { OpenAPIRoute, contentJson } from 'chanfana';
+import { contentJson } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { DOCUMENT_TYPES } from 'shared/src/constants';
 import { AppContext } from 'shared/src/types';
 import {
   UnauthorizedError,
   BadRequestError,
   InternalServerError,
-  createErrorResponse,
 } from 'shared/src/errors';
 const SQL_UPDATE_DOCUMENT =
   'INSERT OR REPLACE INTO documents (type, url, content) VALUES (?, ?, ?)';
 
-export class UpdateDocument extends OpenAPIRoute {
+export class UpdateDocument extends BaseOpenAPIRoute {
   schema = {
     tags: ['Documents'],
     summary: 'Update document content and URL',
@@ -42,19 +42,6 @@ export class UpdateDocument extends OpenAPIRoute {
       ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.core.$ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;

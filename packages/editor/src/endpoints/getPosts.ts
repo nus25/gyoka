@@ -1,4 +1,4 @@
-import { OpenAPIRoute } from 'chanfana';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import * as z from 'zod';
 import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
@@ -7,7 +7,6 @@ import {
   UnknownFeedError,
   BadRequestError,
   InternalServerError,
-  createErrorResponse,
 } from 'shared/src/errors';
 
 // note: cidが一致すればlanguagesの結果は等しくなるのでパフォーマンスのためにindexed_atとfeed_idはJOINに使用しない。
@@ -27,7 +26,7 @@ GROUP BY pl.post_id
 ORDER BY p.indexed_at DESC, p.cid DESC, p.post_id DESC
 LIMIT ?`;
 
-export class GetPosts extends OpenAPIRoute {
+export class GetPosts extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Get posts from a feed',
@@ -70,19 +69,6 @@ export class GetPosts extends OpenAPIRoute {
       ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.core.$ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const data = await this.getValidatedData<typeof this.schema>();

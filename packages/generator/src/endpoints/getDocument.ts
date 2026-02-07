@@ -1,13 +1,12 @@
-import { OpenAPIRoute } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { DOCUMENT_TYPES } from 'shared/src/constants';
 import { AppContext } from 'shared/src/types';
-import { createErrorResponse } from 'shared/src/errors';
 import { InternalServerError, NotFoundError } from 'shared/src/errors';
 
 // get service document from D1 documents table
 
-export class GetDocument extends OpenAPIRoute {
+export class GetDocument extends BaseOpenAPIRoute {
   schema = {
     tags: ['Document'],
     summary: 'Get service document',
@@ -35,7 +34,7 @@ export class GetDocument extends OpenAPIRoute {
     },
   };
 
-  handleValidationError(): Response {
+  handleValidationError(errors?: z.core.$ZodIssue[]): Response {
     throw new NotFoundError('Content not found');
   }
 

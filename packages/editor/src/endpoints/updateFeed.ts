@@ -1,11 +1,11 @@
-import { OpenAPIRoute, contentJson } from 'chanfana';
+import { contentJson } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
   UnknownFeedError,
   BadRequestError,
   InternalServerError,
   UnauthorizedError,
-  createErrorResponse,
 } from 'shared/src/errors';
 import { feedUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
@@ -14,7 +14,7 @@ const SQL_SELECT_FEED = 'SELECT * FROM feeds WHERE feed_uri = ?';
 const SQL_UPDATE_LANG_FILTER = 'UPDATE feeds SET lang_filter = ? WHERE feed_uri = ?';
 const SQL_UPDATE_IS_ACTIVE = 'UPDATE feeds SET is_active = ? WHERE feed_uri = ?';
 
-export class UpdateFeed extends OpenAPIRoute {
+export class UpdateFeed extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Update feed setting',
@@ -49,19 +49,6 @@ export class UpdateFeed extends OpenAPIRoute {
       ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.core.$ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;

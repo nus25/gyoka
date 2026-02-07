@@ -1,4 +1,4 @@
-import { OpenAPIRoute } from 'chanfana';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import * as z from 'zod';
 import { feedUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
@@ -6,7 +6,7 @@ import { UnauthorizedError, InternalServerError } from 'shared/src/errors';
 
 const SQL_SELECT_FEED = 'SELECT * FROM feeds';
 
-export class ListFeeds extends OpenAPIRoute {
+export class ListFeeds extends BaseOpenAPIRoute {
   security = [{ ApiKeyAuth: [] }];
   schema = {
     tags: ['Feed Editor'],

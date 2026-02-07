@@ -1,5 +1,5 @@
-import { OpenAPIRoute } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { DOCUMENT_TYPES } from 'shared/src/constants';
 import { did, feedUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
@@ -10,7 +10,7 @@ import { InternalServerError } from 'shared/src/errors';
 const SQL_SELECT_FEED = 'SELECT feed_uri FROM feeds WHERE is_active = 1';
 const SQL_SELECT_DOCUMENT = 'SELECT type, url FROM documents';
 
-export class DescribeFeedGenerator extends OpenAPIRoute {
+export class DescribeFeedGenerator extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Generator'],
     summary: 'Get feed generator description',

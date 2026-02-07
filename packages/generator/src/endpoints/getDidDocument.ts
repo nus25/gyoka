@@ -1,12 +1,12 @@
-import { OpenAPIRoute } from 'chanfana';
 import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { AppContext } from 'shared/src/types';
 import { did } from 'shared/src/validators';
 import { InternalServerError } from 'shared/src/errors';
 
 // https://www.w3.org/TR/did-spec-registries/#did-document-properties
 
-export class GetDidDocument extends OpenAPIRoute {
+export class GetDidDocument extends BaseOpenAPIRoute {
   schema = {
     tags: ['DID'],
     summary: 'Get DID document',
