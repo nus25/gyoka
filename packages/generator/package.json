@@ -20,7 +20,7 @@
         "@cloudflare/workers-types": "4.20260124.0",
         "@types/node": "^22.15.35",
         "@types/service-worker-mock": "^2.0.4",
-        "wrangler": "4.60.0"
+        "wrangler": "4.61.0"
     },
     "packageManager": "pnpm@10.28.2",
     "author": "Nus",
