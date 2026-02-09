@@ -1,6 +1,7 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import app from '../src/index';
+import { ZodError } from 'zod';
 
 const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/xrpc/app.bsky.feed.getFeedSkeleton';
@@ -164,11 +165,31 @@ describe('GetFeedSkeleton Endpoint', () => {
     expect(data.error).toContain('BadRequest');
   });
   it('should return a 400 error for invalid query parameters', async () => {
-    const response = await sendRequest('feed=invalid-feed-uri');
+    // ZodError gives test failure with Unhandled Errors in vitest run.
+    // This is normal behavior as the error is thrown asynchronously.
+    // To avoid that, we temporarily override the unhandledRejection listener
+    // ref: https://github.com/cloudflare/workers-sdk/issues/11532#issuecomment-3690953845
+
+    // Capture original listeners
+    const originalListeners = process.listeners('unhandledRejection');
+    process.removeAllListeners('unhandledRejection');
+
+    const expectedError = new Promise<void>((resolve) => {
+      process.once('unhandledRejection', (reason: any) => {
+        if (reason instanceof ZodError) {
+          resolve(); // Expected error, suppress it
+        }
+      });
+    });
+    let response = await sendRequest('feed=invalid-feed-uri');
+    await expectedError;
     expect(response.status).toBe(400);
     const data: expectedErrorResponseType = await response.json();
     expect(data).toHaveProperty('error');
     expect(data.error).toContain('BadRequest');
+    originalListeners.forEach((listener) => {
+      process.on('unhandledRejection', listener as any);
+    });
   });
 
   it('should return a feed skeleton with language filtering:lang_filter=true', async () => {
