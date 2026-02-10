@@ -1,16 +1,12 @@
-import { OpenAPIRoute, ApiException, InputValidationException } from 'chanfana';
-import { z } from 'zod';
+import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { feedUri, postUri, repostUri } from 'shared/src/validators';
-import {
-  InternalServerErrorSchema,
-  UnknownFeedErrorSchema,
-  BadRequestErrorSchema,
-} from 'shared/src/constants';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
+import { InternalServerError, BadRequestError, UnknownFeedError } from 'shared/src/errors';
 
 // https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/getFeedSkeleton.json
 
-export class GetFeedSkeleton extends OpenAPIRoute {
+export class GetFeedSkeleton extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Generator'],
     summary: 'Get a skeleton of a feed',
@@ -69,24 +65,11 @@ export class GetFeedSkeleton extends OpenAPIRoute {
           },
         },
       },
-      ...BadRequestErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...InternalServerErrorSchema,
+      ...BadRequestError.schema(),
+      ...UnknownFeedError.schema(),
+      ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   extractLanguageCodes(acceptLanguage: string, maxCount: number = 10): string[] {
     if (!acceptLanguage) return [];
@@ -125,7 +108,7 @@ export class GetFeedSkeleton extends OpenAPIRoute {
         cursorParts.some((part) => part === '') ||
         isNaN(parseInt(cursorParts[0], 10))
       ) {
-        throw new InputValidationException('Malformed cursor');
+        throw new BadRequestError('Malformed cursor');
       }
       cursorIndexedAt = new Date(parseInt(cursorParts[0], 10)).toISOString();
       cursorCid = cursorParts[1];
@@ -193,7 +176,7 @@ LIMIT ?;`;
       .all();
 
     if (!success) {
-      throw new ApiException('Failed to fetch feed skeleton');
+      throw new InternalServerError('Failed to fetch feed skeleton');
     }
 
     if (results.length === 0) {
@@ -206,15 +189,11 @@ LIMIT ?;`;
       LIMIT 1;`;
       const feedExistsResult = await c.env.DB.prepare(feedExistsQuery).bind(feedUri).all();
       if (!feedExistsResult.success) {
-        throw new ApiException('Failed to verify feed existence');
+        throw new InternalServerError('Failed to verify feed existence');
       }
       console.log(feedExistsResult);
       if (!feedExistsResult.results[0]?.feed_id) {
-        return createErrorResponse(
-          'UnknownFeed',
-          `The feed generator with URI ${feedUri} does not exist.`,
-          404
-        );
+        throw new UnknownFeedError(`The feed generator with URI ${feedUri} does not existed.`);
       }
     }
 

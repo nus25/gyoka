@@ -140,10 +140,14 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('handles non-existent feed', async () => {
-    const { response } = await removePost('at://did:plc:nonexistent/app.bsky.feed.generator/feed', {
+    const { response, json } = await removePost('at://did:plc:nonexistent/app.bsky.feed.generator/feed', {
       uri: dummyPost.uri,
     });
     expect(response.status).toBe(404);
+    expect(json).toEqual({
+      error: 'NotFound',
+      message: 'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist.',
+    });
   });
 
   it('handles non-existent post', async () => {
@@ -154,6 +158,10 @@ describe(ENDPOINT_PATH, () => {
     });
     console.log(json);
     expect(response.status).toBe(404);
+    expect(json).toEqual({
+      error: 'NotFound',
+      message: `Post not found feed:${dummyFeed.uri}, post:{uri:at://did:plc:testuser/app.bsky.feed.post/nonexistent }`,
+    });
   });
 
   it('handles invalid feed URI', async () => {

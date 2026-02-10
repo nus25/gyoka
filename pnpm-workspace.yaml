@@ -2,8 +2,13 @@ packages:
   - packages/*
 
 minimumReleaseAge: 10080
+trustPolicy: no-downgrade
+blockExoticSubdeps: true
 
 onlyBuiltDependencies:
   - esbuild
   - sharp
   - workerd
+
+patchedDependencies:
+  '@cloudflare/vitest-pool-workers@0.12.7': patches/@cloudflare__vitest-pool-workers@0.12.7.patch

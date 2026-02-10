@@ -1,13 +1,14 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
-import { z } from 'zod';
+import { contentJson } from 'chanfana';
+import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnknownFeedErrorSchema,
-  UnauthorizedErrorSchema,
-} from 'shared/src/constants';
+  BadRequestError,
+  InternalServerError,
+  UnknownFeedError,
+  UnauthorizedError,
+} from 'shared/src/errors';
 import { feedUri } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
 
 const SQL_SELECT_FEED_AND_COUNT = `
     SELECT 
@@ -29,7 +30,7 @@ const SQL_DELETE_POST = `
         LIMIT ?2
     )
 `;
-export class TrimFeed extends OpenAPIRoute {
+export class TrimFeed extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Remove a post from a feed',
@@ -56,25 +57,12 @@ export class TrimFeed extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...BadRequestError.schema(),
+      ...UnknownFeedError.schema(),
+      ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;
@@ -87,10 +75,10 @@ export class TrimFeed extends OpenAPIRoute {
       .bind(feed_uri)
       .all();
     if (!selectFeedSuccess) {
-      throw new ApiException('Failed to query the database');
+      throw new InternalServerError('Failed to query the database');
     }
     if (feedResults.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
+      throw new UnknownFeedError(`Feed with URI ${feed_uri} does not exist.`);
     }
     const feedId = feedResults[0].feed_id;
     const feedPosts = parseInt(feedResults[0].post_count as string);
@@ -101,7 +89,7 @@ export class TrimFeed extends OpenAPIRoute {
     const deleteResult = await deletePostStmt.run();
 
     if (!deleteResult.success) {
-      throw new ApiException('Failed to remove post from the database');
+      throw new InternalServerError('Failed to remove post from the database');
     }
 
     return Response.json({

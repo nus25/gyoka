@@ -1,20 +1,21 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
-import { z } from 'zod';
+import { contentJson } from 'chanfana';
+import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnknownFeedErrorSchema,
-  UnauthorizedErrorSchema,
-} from 'shared/src/constants';
+  BadRequestError,
+  InternalServerError,
+  UnknownFeedError,
+  UnauthorizedError,
+} from 'shared/src/errors';
 import { feedUri } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
 
 const SQL_DELETE_FEED = 'DELETE FROM feeds WHERE feed_uri = ?';
 const SQL_DELETE_POSTS =
   'DELETE FROM posts WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)';
 const SQL_SELECT_FEED = 'SELECT * FROM feeds WHERE feed_uri = ?';
 
-export class UnregisterFeed extends OpenAPIRoute {
+export class UnregisterFeed extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Unregister a feed',
@@ -36,25 +37,12 @@ export class UnregisterFeed extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...BadRequestError.schema(),
+      ...UnknownFeedError.schema(),
+      ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;
@@ -64,10 +52,10 @@ export class UnregisterFeed extends OpenAPIRoute {
     // Check if the feed exists
     const { success: selectSuccess, results } = await db.prepare(SQL_SELECT_FEED).bind(uri).all();
     if (!selectSuccess) {
-      throw new ApiException('Failed to query the database');
+      throw new InternalServerError('Failed to query the database');
     }
     if (results.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${uri} does not exist.`, 404);
+      throw new UnknownFeedError(`Feed with URI ${uri} does not exist.`);
     }
     // Use a batch statement to delete posts and the feed
     const deletePostsStmt = db.prepare(SQL_DELETE_POSTS).bind(uri);
@@ -76,7 +64,7 @@ export class UnregisterFeed extends OpenAPIRoute {
     const batchResult = await db.batch([deletePostsStmt, deleteFeedStmt]);
 
     if (!batchResult.every((result) => result.success)) {
-      throw new ApiException('Failed to unregister feed and associated posts');
+      throw new InternalServerError('Failed to unregister feed and associated posts');
     }
 
     return Response.json({

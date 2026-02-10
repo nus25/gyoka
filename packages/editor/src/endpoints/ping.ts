@@ -1,8 +1,8 @@
-import { OpenAPIRoute } from 'chanfana';
-import { z } from 'zod';
-import { InternalServerErrorSchema, UnauthorizedErrorSchema } from 'shared/src/constants';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
+import * as z from 'zod';
+import { InternalServerError, UnauthorizedError } from 'shared/src/errors';
 
-export class Ping extends OpenAPIRoute {
+export class Ping extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Ping system',
@@ -18,8 +18,8 @@ export class Ping extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 

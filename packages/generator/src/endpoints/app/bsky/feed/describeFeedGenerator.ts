@@ -1,15 +1,16 @@
-import { OpenAPIRoute, ApiException } from 'chanfana';
-import { z } from 'zod';
-import { DOCUMENT_TYPES, InternalServerErrorSchema } from 'shared/src/constants';
+import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
+import { DOCUMENT_TYPES } from 'shared/src/constants';
 import { did, feedUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
+import { InternalServerError } from 'shared/src/errors';
 
 // https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/describeFeedGenerator.json
 
 const SQL_SELECT_FEED = 'SELECT feed_uri FROM feeds WHERE is_active = 1';
 const SQL_SELECT_DOCUMENT = 'SELECT type, url FROM documents';
 
-export class DescribeFeedGenerator extends OpenAPIRoute {
+export class DescribeFeedGenerator extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Generator'],
     summary: 'Get feed generator description',
@@ -31,10 +32,10 @@ export class DescribeFeedGenerator extends OpenAPIRoute {
               ),
               links: z
                 .object({
-                  privacyPolicy: z.string().url().optional().openapi({
+                  privacyPolicy: z.url().optional().openapi({
                     example: 'http://example.com/privacy-policy',
                   }),
-                  termsOfService: z.string().url().optional().openapi({
+                  termsOfService: z.url().optional().openapi({
                     example: 'http://example.com/terms-of-service',
                   }),
                 })
@@ -43,7 +44,7 @@ export class DescribeFeedGenerator extends OpenAPIRoute {
           },
         },
       },
-      ...InternalServerErrorSchema,
+      ...InternalServerError.schema(),
     },
   };
 
@@ -52,7 +53,7 @@ export class DescribeFeedGenerator extends OpenAPIRoute {
     // get feed uris
     const { success: feedSuccess, results: feedResults } = await db.prepare(SQL_SELECT_FEED).all();
     if (!feedSuccess) {
-      throw new ApiException('Failed to fetch feeds');
+      throw new InternalServerError('Failed to fetch feeds');
     }
     // get document links
     const { success: docSuccess, results: docResults } = await db
@@ -60,7 +61,7 @@ export class DescribeFeedGenerator extends OpenAPIRoute {
       .all();
 
     if (!docSuccess) {
-      throw new ApiException('Failed to fetch links');
+      throw new InternalServerError('Failed to fetch links');
     }
 
     const linkMap = docResults.reduce((acc, row) => {

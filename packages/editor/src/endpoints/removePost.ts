@@ -1,13 +1,14 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
-import { z } from 'zod';
+import { contentJson } from 'chanfana';
+import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  NotFoundErrorSchema,
-  UnauthorizedErrorSchema,
-} from 'shared/src/constants';
+  BadRequestError,
+  InternalServerError,
+  NotFoundError,
+  UnauthorizedError,
+} from 'shared/src/errors';
 import { feedUri, postUri } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
 
 const SQL_DELETE_POST = `
 DELETE FROM posts 
@@ -16,7 +17,7 @@ WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)
   AND (? IS NULL OR indexed_at = ?)`;
 const SQL_CHECK_FEED = 'SELECT feed_id FROM feeds WHERE feed_uri = ?';
 
-export class RemovePost extends OpenAPIRoute {
+export class RemovePost extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Remove a post from a feed',
@@ -27,7 +28,7 @@ export class RemovePost extends OpenAPIRoute {
           post: z
             .object({
               uri: postUri,
-              indexedAt: z.string().datetime({ offset: true }).optional(),
+              indexedAt: z.iso.datetime({ offset: true }).optional(),
             })
             .openapi('removePostPostParam'),
         })
@@ -43,31 +44,18 @@ export class RemovePost extends OpenAPIRoute {
               feed: feedUri,
               post: z.object({
                 uri: postUri,
-                indexedAt: z.string().datetime({ offset: true }),
+                indexedAt: z.iso.datetime({ offset: true }),
               }),
             }),
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...NotFoundErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...BadRequestError.schema(),
+      ...NotFoundError.schema(),
+      ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;
@@ -85,7 +73,7 @@ export class RemovePost extends OpenAPIRoute {
       .run();
 
     if (!deleteResult.success) {
-      throw new ApiException('Failed to remove post from the database');
+      throw new InternalServerError('Failed to remove post from the database');
     }
 
     // If no rows deleted, check if it's because feed doesn't exist or post doesn't exist
@@ -95,18 +83,14 @@ export class RemovePost extends OpenAPIRoute {
         .bind(feed_uri)
         .all();
       if (!checkFeedSuccess) {
-        throw new ApiException('Failed to query the database');
+        throw new InternalServerError('Failed to query the database');
       }
       if (feedResults.length === 0) {
-        return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
+        throw new NotFoundError(`Feed with URI ${feed_uri} does not exist.`);
       }
-      return createErrorResponse(
-        'NotFound',
-        `Post not found feed:${feed_uri}, post:{uri:${post.uri} ${
-          post.indexedAt ? 'indexedAt:' + post.indexedAt : ''
-        }}`,
-        404
-      );
+      throw new NotFoundError(`Post not found feed:${feed_uri}, post:{uri:${post.uri} ${
+        post.indexedAt ? 'indexedAt:' + post.indexedAt : ''
+      }}`);
     }
 
     return Response.json({

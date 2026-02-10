@@ -1,4 +1,4 @@
-import { fromHono, ApiException } from 'chanfana';
+import { fromHono } from 'chanfana';
 import { Hono } from 'hono';
 import { etag } from 'hono/etag';
 import { cors } from 'hono/cors';
@@ -15,10 +15,11 @@ import { RemovePostByAuthor } from './endpoints/removePostByAuthor';
 import { GetPosts } from './endpoints/getPosts';
 import { TrimFeed } from './endpoints/trimFeed';
 import { UpdateDocument } from './endpoints/updateDocument';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
+import { GyokaBaseError, InternalServerError, createErrorResponse } from 'shared/src/errors';
 import process from 'node:process';
 
-const API_VERSION = '1.2.0';
+const API_VERSION = '1.2.1';
 
 // Start a Hono app
 const app = new Hono<{ Bindings: EnvWithSecret }>();
@@ -53,7 +54,7 @@ app.use(
 // configuration check for each endpoint
 app.use('/api/*', async (c: AppContext, next) => {
   if (!c.env.DB) {
-    throw new ApiException('Missing database configuration');
+    throw new InternalServerError('Missing database configuration');
   }
   await next();
 });
@@ -87,37 +88,17 @@ openapi.post('/api/gyoka/updateDocument', UpdateDocument);
 
 // Global error handler
 app.onError((err, c) => {
-  if (err instanceof ApiException) {
+  if (err instanceof GyokaBaseError) {
     console.error('API Exception:', err.message, err.status);
     if (c.env.DEVELOPER_MODE === 'enabled') {
       console.error(err.stack);
     }
-
-    let error = '';
-    switch (err.status) {
-      case 400:
-        error = 'BadRequest';
-        break;
-      case 404:
-        error = 'NotFound';
-        break;
-      case 500:
-        error = 'InternalServerError';
-        break;
-      default:
-        console.error(err);
-        error = err.default_message;
-        err.message = 'Unexpected error occurred.';
-    }
-
-    const resp = createErrorResponse(error, err.message, err.status);
-    return resp;
+    return createErrorResponse(err.errorCode, err.message, err.status);
   }
 
   // For other errors, return a generic 500 response
   console.error(err);
-  const resp = createErrorResponse('InternalServerError', 'An unexpected error occurred.', 500);
-  return resp;
+  return createErrorResponse('InternalServerError', 'An unexpected error occurred.', 500);
 });
 
 // Export the Hono app

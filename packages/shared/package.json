@@ -1,16 +1,20 @@
 {
     "name": "shared",
-    "version": "0.6.0",
+    "version": "0.8.0",
     "main": "./src/index.ts",
     "scripts": {},
     "dependencies": {
-        "@hono/zod-openapi": "^0.19.10",
-        "zod": "^3.24.4"
+        "chanfana": "3.0.0",
+        "hono": "^4.11.7",
+        "@hono/zod-openapi": "^1.2.0",
+        "zod": "^4.3.5"
     },
     "devDependencies": {
-        "@types/node": "^22.15.35"
+    "@types/node": "^22.15.35",
+    "@cloudflare/vitest-pool-workers": "0.12.7",
+    "@cloudflare/workers-types": "4.20260124.0"
     },
-    "packageManager": "pnpm@10.25.0",
+    "packageManager": "pnpm@10.28.2",
     "author": "Nus",
     "license": "MIT"
 }

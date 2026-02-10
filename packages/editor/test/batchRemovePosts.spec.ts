@@ -278,7 +278,9 @@ describe(ENDPOINT_PATH, () => {
     const { response, json } = await batchRemovePosts(entries);
     expect(response.status).toBe(400);
     expect(json.error).toBe('BadRequest');
-    expect(json.message).toContain(`Array must contain at least 1 element(s)`);
+    expect(json.message).toContain(
+      `[{"message":"Too small: expected array to have >=1 items","path":["body","entries",0,"posts"]}]`
+    );
   });
 
   it('handles partial success when some feeds do not exist', async () => {
@@ -565,5 +567,58 @@ describe(ENDPOINT_PATH, () => {
     const { response, json } = await batchRemovePosts(entries);
     expect(response.status).toBe(400);
     expect(json.error).toBe('BadRequest');
+  });
+
+  it('handles db batch insert errors gracefully', async () => {
+    const mockDb = {
+      prepare: (query: string) => ({
+        bind: (...args: any[]) => ({
+          all: async () => {
+            if (query.includes('SELECT feed_id, feed_uri FROM feeds')) {
+              return {
+                success: true,
+                results: [{ feed_id: 1, feed_uri: dummyFeed1.uri }],
+              };
+            }
+            if (query.includes('SELECT uri, indexed_at FROM posts')) {
+              return {
+                success: true,
+                results: [{ uri: dummyPost1.uri, indexed_at: dummyPost1.indexedAt }],
+              };
+            }
+            return { success: true, results: [] };
+          },
+          run: async () => ({ success: true, meta: { changed_db: 1 } }),
+        }),
+      }),
+      batch: async () => {
+        throw new Error('Batch delete failed');
+      },
+    };
+
+    const mockEnv = { ...env, DB: mockDb };
+
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [{ uri: dummyPost1.uri, indexedAt: dummyPost1.indexedAt }],
+      },
+    ];
+
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as BatchRemovePostsResponse;
+    expect(json.results).toBeDefined();
+    expect(json.results![0].results[0].status).toBe('error');
+    expect(json.results![0].results[0].error).toBe('Failed to remove post from DB');// D1 error message is not propagated
   });
 });

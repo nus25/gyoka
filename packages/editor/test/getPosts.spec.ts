@@ -161,13 +161,21 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('handles invalid feed URI', async () => {
-    const { response } = await getPosts('invalid-uri');
+    const { response, json } = await getPosts('invalid-uri');
     expect(response.status).toBe(400);
+    expect(json).toEqual({
+      error: 'BadRequest',
+      message: '[{"message":"Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.generator/{record-key}","path":["query","feed"]}]',
+    });
   });
 
   it('handles non-existent feed', async () => {
-    const { response } = await getPosts('at://did:plc:nonexistent/app.bsky.feed.generator/feed');
+    const { response, json } = await getPosts('at://did:plc:nonexistent/app.bsky.feed.generator/feed');
     expect(response.status).toBe(404);
+    expect(json).toEqual({
+      error: 'UnknownFeed',
+      message: 'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist.',
+    });
   });
 
   it('handles malformed cursor', async () => {

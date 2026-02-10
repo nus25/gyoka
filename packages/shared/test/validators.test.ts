@@ -16,14 +16,14 @@ describe('validator', () => {
             const invalidUri = 'at://did:plc:1234abcd/app.bsky.feed.generator/';
             const result = feedUri.safeParse(invalidUri);
             expect(result.success).toBe(false);
-            expect(result.error.errors[0].message).toBe(`Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.generator/{record-key}`);
+            expect(result.error.issues[0].message).toBe(`Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.generator/{record-key}`);
         });
 
         it('should throw an error for a feed AT Protocol URI with an invalid collection', () => {
             const invalidUri = 'at://did:plc:1234abcd/app.bsky.feed.invalid/feedrkey';
             const result = feedUri.safeParse(invalidUri);
             expect(result.success).toBe(false);
-            expect(result.error.errors[0].message).toBe(`Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.generator/{record-key}`);
+            expect(result.error.issues[0].message).toBe(`Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.generator/{record-key}`);
         });
 
         it('should throw an error for a feed AT Protocol URI with an invalid rkey', () => {
@@ -38,7 +38,7 @@ describe('validator', () => {
             resuslst.forEach((result) => {
                 console.log(result);
                 expect(result.success).toBe(false);
-                expect(result.error.errors[0].message).toBe(`Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.generator/{record-key}`);
+                expect(result.error.issues[0].message).toBe(`Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.generator/{record-key}`);
             });
         });
     });
@@ -53,14 +53,14 @@ describe('validator', () => {
             const invalidUri = 'at://did:plc:1234abcd/app.bsky.feed.post/';
             const result = postUri.safeParse(invalidUri);
             expect(result.success).toBe(false);
-            expect(result.error.errors[0].message).toBe('Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.post/{record-key}');
+            expect(result.error.issues[0].message).toBe('Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.post/{record-key}');
         });
 
         it('should throw an error for a post AT Protocol URI with an invalid collection', () => {
             const invalidUri = 'at://did:plc:1234abcd/app.bsky.feed.invalid/xyz123';
             const result = postUri.safeParse(invalidUri);
             expect(result.success).toBe(false);
-            expect(result.error.errors[0].message).toBe('Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.post/{record-key}');
+            expect(result.error.issues[0].message).toBe('Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.post/{record-key}');
         });
     });
     describe('repostUri', () => {

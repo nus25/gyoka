@@ -1,13 +1,13 @@
-import { OpenAPIRoute, ApiException, InputValidationException } from 'chanfana';
-import { z } from 'zod';
-import {
-  UnknownFeedErrorSchema,
-  BadRequestErrorSchema,
-  UnauthorizedErrorSchema,
-  InternalServerErrorSchema,
-} from 'shared/src/constants';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
+import * as z from 'zod';
 import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
+import {
+  UnauthorizedError,
+  UnknownFeedError,
+  BadRequestError,
+  InternalServerError,
+} from 'shared/src/errors';
 
 // note: cidが一致すればlanguagesの結果は等しくなるのでパフォーマンスのためにindexed_atとfeed_idはJOINに使用しない。
 const SQL_SELECT_POSTS = `
@@ -26,7 +26,7 @@ GROUP BY pl.post_id
 ORDER BY p.indexed_at DESC, p.cid DESC, p.post_id DESC
 LIMIT ?`;
 
-export class GetPosts extends OpenAPIRoute {
+export class GetPosts extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Get posts from a feed',
@@ -49,7 +49,7 @@ export class GetPosts extends OpenAPIRoute {
                   uri: postUri,
                   cid: cid,
                   langs: z.array(z.string()),
-                  indexedAt: z.string().datetime(),
+                  indexedAt: z.iso.datetime(),
                   reason: z
                     .object({
                       repost: repostUri,
@@ -63,10 +63,10 @@ export class GetPosts extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...UnknownFeedError.schema(),
+      ...BadRequestError.schema(),
+      ...InternalServerError.schema(),
     },
   };
 
@@ -84,7 +84,7 @@ export class GetPosts extends OpenAPIRoute {
         cursorParts.some((part) => part === '') ||
         isNaN(parseInt(cursorParts[0], 10))
       ) {
-        throw new InputValidationException('Malformed cursor');
+        throw new BadRequestError('Malformed cursor');
       }
       cursorIndexedAt = new Date(parseInt(cursorParts[0], 10)).toISOString();
       cursorCid = cursorParts[1];
@@ -95,10 +95,10 @@ export class GetPosts extends OpenAPIRoute {
       .bind(feed)
       .all();
     if (!feedCheckSuccess) {
-      throw new ApiException('Failed to query the database');
+      throw new InternalServerError('Failed to query the database');
     }
     if (feedResults.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${feed} does not exist.`, 404);
+      throw new UnknownFeedError(`Feed with URI ${feed} does not exist.`);
     }
     const feed_id = feedResults[0].feed_id;
 
@@ -120,7 +120,7 @@ export class GetPosts extends OpenAPIRoute {
       .bind(feed_id, cursor || null, cursorIndexedAt, cursorIndexedAt, cursorCid, limit)
       .all();
     if (!postsSuccess) {
-      throw new ApiException('Failed to fetch posts');
+      throw new InternalServerError('Failed to fetch posts');
     }
 
     // Determine next cursor

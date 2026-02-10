@@ -1,13 +1,14 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
-import { z } from 'zod';
+import { contentJson } from 'chanfana';
+import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  NotFoundErrorSchema,
-  UnauthorizedErrorSchema,
-} from 'shared/src/constants';
+  BadRequestError,
+  InternalServerError,
+  UnauthorizedError,
+  UnknownFeedError,
+} from 'shared/src/errors';
 import { feedUri, did } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
 
 const SQL_SELECT_FEED_AND_COUNT = `
 SELECT 
@@ -17,7 +18,7 @@ FROM feeds f
 WHERE f.feed_uri = ?`;
 const SQL_DELETE_POSTS_BY_AUTHOR = 'DELETE FROM posts WHERE feed_id = ? AND did = ?';
 
-export class RemovePostByAuthor extends OpenAPIRoute {
+export class RemovePostByAuthor extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Remove all posts by a specific author from a feed',
@@ -43,25 +44,12 @@ export class RemovePostByAuthor extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...NotFoundErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...BadRequestError.schema(),
+      ...UnknownFeedError.schema(),
+      ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;
@@ -74,10 +62,10 @@ export class RemovePostByAuthor extends OpenAPIRoute {
       .bind(author, feed_uri)
       .all();
     if (!selectSuccess) {
-      throw new ApiException('Failed to query the database');
+      throw new InternalServerError('Failed to query the database');
     }
     if (results.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${feed_uri} does not exist.`, 404);
+      throw new UnknownFeedError(`Feed with URI ${feed_uri} does not exist.`);
     }
     const feed_id = results[0].feed_id;
     const deletedCount = results[0].count as number;
@@ -86,12 +74,9 @@ export class RemovePostByAuthor extends OpenAPIRoute {
     if (c.env.DEVELOPER_MODE === 'enabled') {
       console.log('feed id:', feed_id, 'author:', author, 'deletedCount:', deletedCount);
     }
-    const deleteResult = await db
-      .prepare(SQL_DELETE_POSTS_BY_AUTHOR)
-      .bind(feed_id, author)
-      .run();
+    const deleteResult = await db.prepare(SQL_DELETE_POSTS_BY_AUTHOR).bind(feed_id, author).run();
     if (!deleteResult.success) {
-      throw new ApiException('Failed to remove posts from the database');
+      throw new InternalServerError('Failed to remove posts from the database');
     }
 
     return Response.json({

@@ -1,13 +1,14 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
-import { z } from 'zod';
-import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnknownFeedErrorSchema,
-  UnauthorizedErrorSchema,
-} from 'shared/src/constants';
+import { contentJson } from 'chanfana';
+import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { feedUri, postUri } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
+import {
+  UnauthorizedError,
+  UnknownFeedError,
+  BadRequestError,
+  InternalServerError,
+} from 'shared/src/errors';
 
 const SQL_DELETE_POST = `
 DELETE FROM posts 
@@ -21,7 +22,7 @@ SELECT uri, indexed_at FROM posts WHERE feed_id = ? AND uri IN `;
 const RemovePostSchema = z
   .object({
     uri: postUri,
-    indexedAt: z.string().datetime({ offset: true }).optional(),
+    indexedAt: z.iso.datetime({ offset: true }).optional(),
   })
   .openapi('BatchRemovePostPostParam');
 
@@ -39,7 +40,7 @@ type EntryResult = {
   error?: string;
 };
 
-export class BatchRemovePosts extends OpenAPIRoute {
+export class BatchRemovePosts extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Remove multiple posts from multiple feeds',
@@ -79,25 +80,12 @@ export class BatchRemovePosts extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...UnknownFeedError.schema(),
+      ...BadRequestError.schema(),
+      ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;
@@ -110,10 +98,8 @@ export class BatchRemovePosts extends OpenAPIRoute {
     // Validate max total posts limit per request
     const totalPosts = entries.reduce((sum, entry) => sum + entry.posts.length, 0);
     if (totalPosts > maxBatchPosts) {
-      return createErrorResponse(
-        'BadRequest',
-        `Maximum ${maxBatchPosts} posts allowed per request. Received ${totalPosts} posts.`,
-        400
+      throw new BadRequestError(
+        `Maximum ${maxBatchPosts} posts allowed per request. Received ${totalPosts} posts.`
       );
     }
 
@@ -169,7 +155,7 @@ export class BatchRemovePosts extends OpenAPIRoute {
           .all();
 
         if (!success) {
-          throw new ApiException('Failed to query the database');
+          throw new InternalServerError('Failed to query the database');
         }
 
         // Map results to feedInfoMap
@@ -186,7 +172,7 @@ export class BatchRemovePosts extends OpenAPIRoute {
       }
     } catch (error) {
       console.error('Error querying feeds:', error);
-      return createErrorResponse('InternalServerError', 'Failed to query feeds', 500);
+      throw new InternalServerError('Failed to query feeds');
     }
 
     const entryResultsMap = new Map<number, EntryResult[]>();
@@ -216,12 +202,14 @@ export class BatchRemovePosts extends OpenAPIRoute {
       const feed_id = feedInfoMap.get(feed_uri)!;
 
       // Prepare posts to remove with normalized indexedAt
-      const postsToRemove: PostToRemove[] = feedData.posts.map(({ post, postIndex, entryIndex }) => ({
-        uri: post.uri,
-        indexedAt: post.indexedAt ? new Date(post.indexedAt).toISOString() : null,
-        entryIndex,
-        postIndex,
-      }));
+      const postsToRemove: PostToRemove[] = feedData.posts.map(
+        ({ post, postIndex, entryIndex }) => ({
+          uri: post.uri,
+          indexedAt: post.indexedAt ? new Date(post.indexedAt).toISOString() : null,
+          entryIndex,
+          postIndex,
+        })
+      );
 
       // Check which posts exist before attempting deletion
       const existingPostsMap = new Map<string, Set<string>>(); // uri -> Set of indexed_at values
@@ -245,7 +233,7 @@ export class BatchRemovePosts extends OpenAPIRoute {
             .all();
 
           if (!success) {
-            throw new ApiException('Failed to check existing posts');
+            throw new InternalServerError('Failed to check existing posts');
           }
 
           // Build map of existing posts
@@ -262,12 +250,11 @@ export class BatchRemovePosts extends OpenAPIRoute {
         console.error(`Error checking posts for feed ${feed_uri}:`, error);
         // Mark all posts as error
         for (const postToRemove of postsToRemove) {
-          const message = error instanceof Error ? error.message : 'Failed to check post existence';
           recordEntryResult(postToRemove.entryIndex, {
             postIndex: postToRemove.postIndex,
             uri: postToRemove.uri,
             status: 'error',
-            error: message,
+            error: 'Failed to check post existence',
           });
         }
         continue;
@@ -354,12 +341,11 @@ export class BatchRemovePosts extends OpenAPIRoute {
 
           // Mark all valid posts as error
           for (const postToRemove of validPosts) {
-            const message = error instanceof Error ? error.message : 'An unexpected error occurred';
             recordEntryResult(postToRemove.entryIndex, {
               postIndex: postToRemove.postIndex,
               uri: postToRemove.uri,
               status: 'error',
-              error: message,
+              error: 'Failed to remove post from DB',
             });
           }
         }

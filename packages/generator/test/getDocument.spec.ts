@@ -53,6 +53,9 @@ describe('GET /doc/{type}', () => {
     await waitOnExecutionContext(ctx);
 
     expect(response.status).toBe(404);
+    const responseBody = JSON.parse(await response.text());
+    expect(responseBody.error).toBe('NotFound');
+    expect(responseBody.message).toBe('Document not found');
   });
 
   it('returns 404 for invalid document type', async () => {
@@ -62,6 +65,9 @@ describe('GET /doc/{type}', () => {
     await waitOnExecutionContext(ctx);
 
     expect(response.status).toBe(404);
+    const responseBody = JSON.parse(await response.text());
+    expect(responseBody.error).toBe('NotFound');
+    expect(responseBody.message).toBe('Content not found');
   });
 
   it('returns 200 and both URL and content when both exist', async () => {

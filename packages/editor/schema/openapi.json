@@ -1,30 +1,10 @@
 {
   "openapi": "3.0.3",
-  "info": { "title": "Gyoka Editor API", "version": "1.2.0" },
+  "info": { "title": "Gyoka Editor API", "version": "1.2.1" },
   "security": [{ "ApiKeyAuth": [] }],
   "components": {
     "securitySchemes": { "ApiKeyAuth": { "type": "apiKey", "in": "header", "name": "X-API-Key" } },
     "schemas": {
-      "AddPostReasonParam": {
-        "type": "object",
-        "properties": {
-          "$type": {
-            "type": "string",
-            "enum": [
-              "app.bsky.feed.defs#skeletonReasonRepost",
-              "app.bsky.feed.defs#skeletonReasonPin"
-            ]
-          },
-          "repost": {
-            "type": "string",
-            "format": "at-uri",
-            "description": "Repost uri for repost type.",
-            "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
-          }
-        },
-        "required": ["$type"],
-        "description": "Reason for including the post in the feed skeleton. Currently only 'repost' reason is supported."
-      },
       "AddPostPostParam": {
         "type": "object",
         "properties": {
@@ -52,7 +32,7 @@
         },
         "required": ["uri", "cid"]
       },
-      "BatchAddPostReasonParam": {
+      "AddPostReasonParam": {
         "type": "object",
         "properties": {
           "$type": {
@@ -65,12 +45,31 @@
           "repost": {
             "type": "string",
             "format": "at-uri",
-            "description": "Repost uri for repost type.",
-            "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
+            "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123",
+            "description": "Repost uri for repost type."
           }
         },
         "required": ["$type"],
         "description": "Reason for including the post in the feed skeleton. Currently only 'repost' reason is supported."
+      },
+      "BatchAddPostsEntriesParam": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri",
+              "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
+            },
+            "posts": {
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/BatchAddPostPostParam" },
+              "minItems": 1
+            }
+          },
+          "required": ["feed", "posts"]
+        }
       },
       "BatchAddPostPostParam": {
         "type": "object",
@@ -99,38 +98,27 @@
         },
         "required": ["uri", "cid"]
       },
-      "BatchAddPostsEntriesParam": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "feed": {
-              "type": "string",
-              "format": "at-uri",
-              "example": "at://did:plc:1234abcd/app.bsky.feed.generator/record123"
-            },
-            "posts": {
-              "type": "array",
-              "items": { "$ref": "#/components/schemas/BatchAddPostPostParam" },
-              "minItems": 1
-            }
-          },
-          "required": ["feed", "posts"]
-        }
-      },
-      "removePostPostParam": {
+      "BatchAddPostReasonParam": {
         "type": "object",
         "properties": {
-          "uri": {
+          "$type": {
+            "type": "string",
+            "enum": [
+              "app.bsky.feed.defs#skeletonReasonRepost",
+              "app.bsky.feed.defs#skeletonReasonPin"
+            ]
+          },
+          "repost": {
             "type": "string",
             "format": "at-uri",
-            "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
-          },
-          "indexedAt": { "type": "string", "format": "date-time" }
+            "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123",
+            "description": "Repost uri for repost type."
+          }
         },
-        "required": ["uri"]
+        "required": ["$type"],
+        "description": "Reason for including the post in the feed skeleton. Currently only 'repost' reason is supported."
       },
-      "BatchRemovePostPostParam": {
+      "removePostPostParam": {
         "type": "object",
         "properties": {
           "uri": {
@@ -160,6 +148,18 @@
           },
           "required": ["feed", "posts"]
         }
+      },
+      "BatchRemovePostPostParam": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "at-uri",
+            "example": "at://did:plc:1234abcd/app.bsky.feed.post/record123"
+          },
+          "indexedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["uri"]
       }
     },
     "parameters": {}
@@ -332,9 +332,12 @@
                   "type": "object",
                   "properties": {
                     "error": { "type": "string", "enum": ["Conflict"] },
-                    "message": { "type": "string" }
+                    "message": {
+                      "type": "string",
+                      "example": "The requested resource already exists."
+                    }
                   },
-                  "required": ["error", "message"]
+                  "required": ["error"]
                 }
               }
             }
@@ -781,8 +784,8 @@
                             "repost": {
                               "type": "string",
                               "format": "at-uri",
-                              "description": "Repost uri for repost type.",
-                              "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123"
+                              "example": "at://did:plc:1234abcd/app.bsky.feed.repost/record123",
+                              "description": "Repost uri for repost type."
                             }
                           },
                           "required": ["$type"],
@@ -1346,16 +1349,16 @@
             }
           },
           "404": {
-            "description": "Not Found",
+            "description": "Unknown Feed",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": { "type": "string", "enum": ["NotFound"] },
+                    "error": { "type": "string", "enum": ["UnknownFeed"] },
                     "message": {
                       "type": "string",
-                      "example": "The requested resource was not found"
+                      "example": "Feed with URI {feedUri} does not exist."
                     }
                   },
                   "required": ["error"]

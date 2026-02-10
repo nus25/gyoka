@@ -1,16 +1,18 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
-import { z } from 'zod';
+import { contentJson } from 'chanfana';
+import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnauthorizedErrorSchema,
-} from 'shared/src/constants';
+  BadRequestError,
+  ConflictError,
+  InternalServerError,
+  UnauthorizedError,
+} from 'shared/src/errors';
 import { feedUri } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
 
 const SQL_INSERT_FEED = 'INSERT INTO feeds (feed_uri, lang_filter, is_active) VALUES (?, ?, ?)';
 
-export class RegisterFeed extends OpenAPIRoute {
+export class RegisterFeed extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Register new feed',
@@ -39,35 +41,12 @@ export class RegisterFeed extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...InternalServerErrorSchema,
-      '409': {
-        description: 'Conflict',
-        content: {
-          'application/json': {
-            schema: z.object({
-              error: z.literal('Conflict'),
-              message: z.string(),
-            }),
-          },
-        },
-      },
+      ...UnauthorizedError.schema(),
+      ...BadRequestError.schema(),
+      ...InternalServerError.schema(),
+      ...ConflictError.schema(),
     },
   };
-
-  handleValidationError(errors: z.ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;
@@ -79,13 +58,13 @@ export class RegisterFeed extends OpenAPIRoute {
         .bind(feed_uri, langFilter, isActive)
         .run();
       if (!success) {
-        throw new ApiException('Failed to register feed');
+        throw new InternalServerError('Failed to register feed');
       }
     } catch (error) {
-      if (error.message.includes('UNIQUE constraint failed')) {
-        return createErrorResponse('Conflict', `Feed with URI ${feed_uri} already exists.`, 409);
+      if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+        throw new ConflictError(`Feed with URI ${feed_uri} already exists.`);
       }
-      throw error; // rethrow the error if it's not a unique constraint violation
+      throw error;
     }
     const response = {
       message: 'Feed registered successfully',

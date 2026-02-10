@@ -1,19 +1,20 @@
-import { OpenAPIRoute, ApiException, contentJson } from 'chanfana';
-import { z } from 'zod';
+import { contentJson } from 'chanfana';
+import * as z from 'zod';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
-  UnknownFeedErrorSchema,
-  BadRequestErrorSchema,
-  InternalServerErrorSchema,
-  UnauthorizedErrorSchema,
-} from 'shared/src/constants';
+  UnknownFeedError,
+  BadRequestError,
+  InternalServerError,
+  UnauthorizedError,
+} from 'shared/src/errors';
 import { feedUri } from 'shared/src/validators';
-import { AppContext, createErrorResponse } from 'shared/src/types';
+import { AppContext } from 'shared/src/types';
 
 const SQL_SELECT_FEED = 'SELECT * FROM feeds WHERE feed_uri = ?';
 const SQL_UPDATE_LANG_FILTER = 'UPDATE feeds SET lang_filter = ? WHERE feed_uri = ?';
 const SQL_UPDATE_IS_ACTIVE = 'UPDATE feeds SET is_active = ? WHERE feed_uri = ?';
 
-export class UpdateFeed extends OpenAPIRoute {
+export class UpdateFeed extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
     summary: 'Update feed setting',
@@ -42,41 +43,28 @@ export class UpdateFeed extends OpenAPIRoute {
           },
         },
       },
-      ...UnauthorizedErrorSchema,
-      ...UnknownFeedErrorSchema,
-      ...BadRequestErrorSchema,
-      ...InternalServerErrorSchema,
+      ...UnauthorizedError.schema(),
+      ...UnknownFeedError.schema(),
+      ...BadRequestError.schema(),
+      ...InternalServerError.schema(),
     },
   };
-
-  handleValidationError(errors: z.ZodIssue[]): Response {
-    return createErrorResponse(
-      'BadRequest',
-      JSON.stringify(
-        errors.map((error) => ({
-          message: error.message,
-          path: error.path,
-        }))
-      ),
-      400
-    );
-  }
 
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;
     const data = await this.getValidatedData<typeof this.schema>();
     const { uri, langFilter, isActive } = data.body;
     if (langFilter === undefined && isActive === undefined) {
-      return createErrorResponse('BadRequest', 'No value for update in request', 400);
+      throw new BadRequestError('No value for update in request');
     }
 
     // Check if the feed exists
     const { success: selectSuccess, results } = await db.prepare(SQL_SELECT_FEED).bind(uri).all();
     if (!selectSuccess) {
-      throw new ApiException('Failed to query the database');
+      throw new InternalServerError('Failed to query the database');
     }
     if (results.length === 0) {
-      return createErrorResponse('UnknownFeed', `Feed with URI ${uri} does not exist.`, 404);
+      throw new UnknownFeedError(`Feed with URI ${uri} does not exist`);
     }
     const feed = results[0];
     //update
@@ -91,7 +79,7 @@ export class UpdateFeed extends OpenAPIRoute {
     }
     const batchResult = await db.batch(stmt);
     if (!batchResult.every((result) => result.success)) {
-      throw new ApiException('Failed to update feed');
+      throw new InternalServerError('Failed to update feed');
     }
 
     const response = {
