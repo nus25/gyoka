@@ -6,26 +6,100 @@ const BASE_URL = 'http://localhost:8787';
 // This test suite ensures that each endpoint responds to requests as expected.
 
 describe('root', () => {
-  it('returns app swagger doc', async () => {
+  it('returns app swagger doc when enabled', async () => {
     const request = new Request(`${BASE_URL}/docs`);
     const ctx = createExecutionContext();
     const response = await app.fetch(request, env, ctx);
     await waitOnExecutionContext(ctx);
     expect(response.status).toBe(200);
   });
-  it('returns app redoc', async () => {
+  it('returns app redoc when enabled', async () => {
     const request = new Request(`${BASE_URL}/redocs`);
     const ctx = createExecutionContext();
     const response = await app.fetch(request, env, ctx);
     await waitOnExecutionContext(ctx);
     expect(response.status).toBe(200);
   });
-  it('returns openapi.json', async () => {
+  it('returns openapi.json when enabled', async () => {
     const request = new Request(`${BASE_URL}/openapi.json`);
     const ctx = createExecutionContext();
     const response = await app.fetch(request, env, ctx);
     await waitOnExecutionContext(ctx);
     expect(response.status).toBe(200);
+  });
+});
+
+describe('OpenAPI UI access control', () => {
+  it('returns 404 for /docs when SWAGGER_UI is disabled', async () => {
+    const request = new Request(`${BASE_URL}/docs`);
+    const ctx = createExecutionContext();
+    const disabledEnv = {
+      ...env,
+      SWAGGER_UI: 'disabled',
+    };
+    const response = await app.fetch(request, disabledEnv, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(404);
+  });
+
+  it('returns 404 for /docs when SWAGGER_UI is not set', async () => {
+    const request = new Request(`${BASE_URL}/docs`);
+    const ctx = createExecutionContext();
+    const disabledEnv = {
+      ...env,
+      SWAGGER_UI: undefined,
+    };
+    const response = await app.fetch(request, disabledEnv, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(404);
+  });
+
+  it('returns 404 for /redocs when REDOC is disabled', async () => {
+    const request = new Request(`${BASE_URL}/redocs`);
+    const ctx = createExecutionContext();
+    const disabledEnv = {
+      ...env,
+      REDOC: 'disabled',
+    };
+    const response = await app.fetch(request, disabledEnv, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(404);
+  });
+
+  it('returns 404 for /redocs when REDOC is not set', async () => {
+    const request = new Request(`${BASE_URL}/redocs`);
+    const ctx = createExecutionContext();
+    const disabledEnv = {
+      ...env,
+      REDOC: undefined,
+    };
+    const response = await app.fetch(request, disabledEnv, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(404);
+  });
+
+  it('returns 404 for /openapi.json when OPENAPI_JSON is disabled', async () => {
+    const request = new Request(`${BASE_URL}/openapi.json`);
+    const ctx = createExecutionContext();
+    const disabledEnv = {
+      ...env,
+      OPENAPI_JSON: 'disabled',
+    };
+    const response = await app.fetch(request, disabledEnv, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(404);
+  });
+
+  it('returns 404 for /openapi.json when OPENAPI_JSON is not set', async () => {
+    const request = new Request(`${BASE_URL}/openapi.json`);
+    const ctx = createExecutionContext();
+    const disabledEnv = {
+      ...env,
+      OPENAPI_JSON: undefined,
+    };
+    const response = await app.fetch(request, disabledEnv, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(404);
   });
 });
 

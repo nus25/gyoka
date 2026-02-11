@@ -17,17 +17,31 @@ import { TrimFeed } from './endpoints/trimFeed';
 import { UpdateDocument } from './endpoints/updateDocument';
 import { AppContext } from 'shared/src/types';
 import { GyokaBaseError, InternalServerError, createErrorResponse } from 'shared/src/errors';
-import process from 'node:process';
 
 const API_VERSION = '1.2.1';
 
 // Start a Hono app
 const app = new Hono<{ Bindings: EnvWithSecret }>();
-// Setup OpenAPI registry
+
+// Guard OpenAPI UI routes by environment flags (before openapi setup)
+app.use('/docs', async (c: AppContext, next) => {
+  if (c.env.SWAGGER_UI !== 'enabled') return c.notFound();
+  await next();
+});
+app.use('/redocs', async (c: AppContext, next) => {
+  if (c.env.REDOC !== 'enabled') return c.notFound();
+  await next();
+});
+app.use('/openapi.json', async (c: AppContext, next) => {
+  if (c.env.OPENAPI_JSON !== 'enabled') return c.notFound();
+  await next();
+});
+
+// Setup OpenAPI registry - routes always registered
 const openapi = fromHono(app, {
-  docs_url: process.env.SWAGGER_UI === 'enabled' ? '/docs' : null,
-  redoc_url: process.env.REDOC === 'enabled' ? '/redocs' : null,
-  openapi_url: process.env.OPENAPI_JSON === 'enabled' ? '/openapi.json' : null,
+  docs_url: '/docs',
+  redoc_url: '/redocs',
+  openapi_url: '/openapi.json',
   openapiVersion: '3',
   schema: {
     info: {

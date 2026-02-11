@@ -8,15 +8,28 @@ import { GetDidDocument } from './endpoints/getDidDocument';
 import { GetDocument } from './endpoints/getDocument';
 import { AppContext } from 'shared/src/types';
 import { createErrorResponse } from 'shared/src/errors';
-import process from 'node:process';
 import { GyokaBaseError, InternalServerError } from 'shared/src/errors';
 const app = new Hono();
 
-// Setup OpenAPI registry
+// Guard OpenAPI UI routes by environment flags (before openapi setup)
+app.use('/docs', async (c: AppContext, next) => {
+  if (c.env.SWAGGER_UI !== 'enabled') return c.notFound();
+  await next();
+});
+app.use('/redocs', async (c: AppContext, next) => {
+  if (c.env.REDOC !== 'enabled') return c.notFound();
+  await next();
+});
+app.use('/openapi.json', async (c: AppContext, next) => {
+  if (c.env.OPENAPI_JSON !== 'enabled') return c.notFound();
+  await next();
+});
+
+// Setup OpenAPI registry - routes always registered
 const openapi = fromHono(app, {
-  docs_url: process.env.SWAGGER_UI === 'enabled'? '/docs': null,
-  redoc_url: process.env.REDOC === 'enabled'?'/redocs':null,
-  openapi_url: process.env.OPENAPI_JSON === 'enabled'?'/openapi.json':null,
+  docs_url: '/docs',
+  redoc_url: '/redocs',
+  openapi_url: '/openapi.json',
 });
 
 app.use('*', etag());
