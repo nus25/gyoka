@@ -7,7 +7,6 @@
   "name": "gyoka-editor",
   "main": "src/index.ts",
   "compatibility_date": "2025-04-05",
-  "compatibility_flags": ["nodejs_compat"],
   "minify": true,
   "env": {
     "test": {
@@ -56,7 +55,8 @@
         "SWAGGER_UI": "disabled",
         /* Flag to enable the ReDoc document at /redocs */
         "REDOC": "disabled",
-        /* Flag to enable the OpenAPI JSON document at /openapi.json */
+        /* Flag to enable the OpenAPI JSON document at /openapi.json
+           Note: /openapi.json is automatically enabled when SWAGGER_UI or REDOC is enabled */
         "OPENAPI_JSON": "disabled",
         "DEVELOPER_MODE": "disabled",
         /* Maximum number of posts allowed per batchAddPosts request (integer, >= 1). */

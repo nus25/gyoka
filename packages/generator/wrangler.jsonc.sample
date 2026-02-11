@@ -7,7 +7,6 @@
   "name": "gyoka-generator",
   "main": "src/index.ts",
   "compatibility_date": "2025-04-05",
-  "compatibility_flags": ["nodejs_compat"],
   "minify": true,
   "env": {
     "test": {
@@ -62,7 +61,8 @@
         "SWAGGER_UI": "disabled",
         /* Flag to enable the ReDoc document at /redocs */
         "REDOC": "disabled",
-        /* Flag to enable the OpenAPI JSON document at /openapi.json */
+        /* Flag to enable the OpenAPI JSON document at /openapi.json
+           Note: /openapi.json is automatically enabled when SWAGGER_UI or REDOC is enabled */
         "OPENAPI_JSON": "disabled",
         "DEVELOPER_MODE": "disabled",
         /* Version from package.json (overridden by --var during deploy) */

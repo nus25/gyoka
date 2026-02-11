@@ -21,7 +21,13 @@ app.use('/redocs', async (c: AppContext, next) => {
   await next();
 });
 app.use('/openapi.json', async (c: AppContext, next) => {
-  if (c.env.OPENAPI_JSON !== 'enabled') return c.notFound();
+  const isDocsEnabled = c.env.SWAGGER_UI === 'enabled';
+  const isRedocEnabled = c.env.REDOC === 'enabled';
+  const isOpenapiJsonEnabled = c.env.OPENAPI_JSON === 'enabled';
+
+  if (!isDocsEnabled && !isRedocEnabled && !isOpenapiJsonEnabled) {
+    return c.notFound();
+  }
   await next();
 });
 
