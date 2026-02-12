@@ -19,35 +19,16 @@ import { AppContext } from 'shared/src/types';
 import { GyokaBaseError, InternalServerError, createErrorResponse } from 'shared/src/errors';
 
 const API_VERSION = '1.2.1';
+const OPENAPI_DOCS_ENABLED = __OPENAPI_DOCS_ENABLED__;
 
 // Start a Hono app
 const app = new Hono<{ Bindings: EnvWithSecret }>();
 
-// Guard OpenAPI UI routes by environment flags (before openapi setup)
-app.use('/docs', async (c: AppContext, next) => {
-  if (c.env.SWAGGER_UI !== 'enabled') return c.notFound();
-  await next();
-});
-app.use('/redocs', async (c: AppContext, next) => {
-  if (c.env.REDOC !== 'enabled') return c.notFound();
-  await next();
-});
-app.use('/openapi.json', async (c: AppContext, next) => {
-  const isDocsEnabled = c.env.SWAGGER_UI === 'enabled';
-  const isRedocEnabled = c.env.REDOC === 'enabled';
-  const isOpenapiJsonEnabled = c.env.OPENAPI_JSON === 'enabled';
-
-  if (!isDocsEnabled && !isRedocEnabled && !isOpenapiJsonEnabled) {
-    return c.notFound();
-  }
-  await next();
-});
-
-// Setup OpenAPI registry - routes always registered
+// Setup OpenAPI registry
 const openapi = fromHono(app, {
-  docs_url: '/docs',
-  redoc_url: '/redocs',
-  openapi_url: '/openapi.json',
+  docs_url: OPENAPI_DOCS_ENABLED ? '/docs' : null,
+  redoc_url: OPENAPI_DOCS_ENABLED ? '/redocs' : null,
+  openapi_url: OPENAPI_DOCS_ENABLED ? '/openapi.json' : null,
   openapiVersion: '3',
   schema: {
     info: {

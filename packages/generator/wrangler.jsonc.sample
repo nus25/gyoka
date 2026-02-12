@@ -10,6 +10,10 @@
   "minify": true,
   "env": {
     "test": {
+      "define": {
+        /* Build-time flag: false disables /docs, /redocs, /openapi.json route registration. */
+        "__OPENAPI_DOCS_ENABLED__": "false"
+      },
       "d1_databases": [
         {
           "binding": "DB",
@@ -30,12 +34,13 @@
        * Environment Variables
        * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
        */
+      "define": {
+        /* Build-time flag: set true for local debugging of docs and schema endpoints. */
+        "__OPENAPI_DOCS_ENABLED__": "true"
+      },
       "vars": {
         "FEEDGEN_PUBLISHER_DID": "did:example:developer",
         "FEEDGEN_HOST": "dev.example.com",
-        "SWAGGER_UI": "enabled",
-        "REDOC": "enabled",
-        "OPENAPI_JSON": "enabled",
         "DEVELOPER_MODE": "enabled"
       }
     },
@@ -52,18 +57,15 @@
         "enabled": true,
         "head_sampling_rate": 1.0
       },
+      "define": {
+        /* Build-time flag: keep false in production for best runtime performance. */
+        "__OPENAPI_DOCS_ENABLED__": "false"
+      },
       "vars": {
         /* DID of your Bluesky account or alternative publisher */
         "FEEDGEN_PUBLISHER_DID": "did:example:publisher",
         /* hostname of the feed generator service endpoint */
         "FEEDGEN_HOST": "feed-generator.example.com",
-        /* Flag to enable the Swagger document at /docs */
-        "SWAGGER_UI": "disabled",
-        /* Flag to enable the ReDoc document at /redocs */
-        "REDOC": "disabled",
-        /* Flag to enable the OpenAPI JSON document at /openapi.json
-           Note: /openapi.json is automatically enabled when SWAGGER_UI or REDOC is enabled */
-        "OPENAPI_JSON": "disabled",
         "DEVELOPER_MODE": "disabled",
         /* Version from package.json (overridden by --var during deploy) */
         "VERSION": "0.0.0",
