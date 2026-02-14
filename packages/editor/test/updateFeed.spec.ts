@@ -147,7 +147,7 @@ describe(ENDPOINT_PATH, () => {
     expect(results[0].lang_filter).toBe(1); // not change
     expect(results[0].is_active).toBe(1); // not change
   });
-  it ('handles non-existent feed', async () => {
+  it('handles non-existent feed', async () => {
     const request = {
       uri: 'at://did:plc:nonexistent/app.bsky.feed.generator/feed',
       langFilter: true,

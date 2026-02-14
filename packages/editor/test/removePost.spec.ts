@@ -140,13 +140,17 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('handles non-existent feed', async () => {
-    const { response, json } = await removePost('at://did:plc:nonexistent/app.bsky.feed.generator/feed', {
-      uri: dummyPost.uri,
-    });
+    const { response, json } = await removePost(
+      'at://did:plc:nonexistent/app.bsky.feed.generator/feed',
+      {
+        uri: dummyPost.uri,
+      }
+    );
     expect(response.status).toBe(404);
     expect(json).toEqual({
       error: 'NotFound',
-      message: 'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist.',
+      message:
+        'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist.',
     });
   });
 

@@ -177,41 +177,40 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('does not remove posts if author DID matches partially', async () => {
-  const feedId = await insertFeed(dummyFeed);
-  // Insert a post with a similar but not identical DID
-  await insertPost(feedId, {
-    ...dummyPosts[0],
-    id: 4,
-    uri: `at://did:plc:author1extra/app.bsky.feed.post/post4`,
+    const feedId = await insertFeed(dummyFeed);
+    // Insert a post with a similar but not identical DID
+    await insertPost(feedId, {
+      ...dummyPosts[0],
+      id: 4,
+      uri: `at://did:plc:author1extra/app.bsky.feed.post/post4`,
+    });
+
+    const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
+    assertValidResponse(response);
+    expect((json as RemovePostByAuthorResponse).deletedCount).toBe(0);
+
+    // The post should still exist
+    const totalCount = await countTotalPosts();
+    expect(totalCount).toBe(1);
   });
 
-  const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
-  assertValidResponse(response);
-  expect((json as RemovePostByAuthorResponse).deletedCount).toBe(0);
+  it('removes posts only from the specified feed even if author has posts in other feeds', async () => {
+    const feed1Id = await insertFeed(dummyFeed);
+    const feed2Uri = 'at://did:plc:testuser/app.bsky.feed.generator/other-feed';
+    const feed2Id = await insertFeed({ uri: feed2Uri, is_active: 1 });
 
-  // The post should still exist
-  const totalCount = await countTotalPosts();
-  expect(totalCount).toBe(1);
-});
+    // Insert author1's post in both feeds
+    await insertPost(feed1Id, { ...dummyPosts[0], id: 5 });
+    await insertPost(feed2Id, { ...dummyPosts[0], id: 6 });
 
-it('removes posts only from the specified feed even if author has posts in other feeds', async () => {
-  const feed1Id = await insertFeed(dummyFeed);
-  const feed2Uri = 'at://did:plc:testuser/app.bsky.feed.generator/other-feed';
-  const feed2Id = await insertFeed({ uri: feed2Uri, is_active: 1 });
+    const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
+    assertValidResponse(response);
+    expect((json as RemovePostByAuthorResponse).deletedCount).toBe(1);
 
-  // Insert author1's post in both feeds
-  await insertPost(feed1Id, { ...dummyPosts[0], id: 5 });
-  await insertPost(feed2Id, { ...dummyPosts[0], id: 6 });
-
-  const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
-  assertValidResponse(response);
-  expect((json as RemovePostByAuthorResponse).deletedCount).toBe(1);
-
-  // Only the post in feed2 should remain
-  const author1Count = await countPostsByAuthor(author1Did);
-  expect(author1Count).toBe(1);
-});
-
+    // Only the post in feed2 should remain
+    const author1Count = await countPostsByAuthor(author1Did);
+    expect(author1Count).toBe(1);
+  });
 
   it('handles non-existent feed', async () => {
     const { response, json } = await removePostByAuthor(

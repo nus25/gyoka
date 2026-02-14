@@ -150,7 +150,8 @@ describe(ENDPOINT_PATH, () => {
     expect(response.status).toBe(404);
     expect(json).toEqual({
       error: 'UnknownFeed',
-      message: 'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist.',
+      message:
+        'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist.',
     });
   });
 
@@ -193,7 +194,7 @@ describe(ENDPOINT_PATH, () => {
     expect(languages.map((l) => l.language).sort()).toEqual(['en', 'ja', 'tlh']);
   });
 
-  it
+  it;
   it('handles invalid language codes', async () => {
     await insertFeed(dummyFeed);
 
@@ -202,11 +203,12 @@ describe(ENDPOINT_PATH, () => {
       languages: ['invalid', '11'],
     };
 
-    const { response,json } = await addPost(dummyFeed.uri, postWithInvalidLangs);
+    const { response, json } = await addPost(dummyFeed.uri, postWithInvalidLangs);
     expect(response.status).toBe(400);
     expect(json).toEqual({
       error: 'BadRequest',
-      message: 'All primary language tags must be exactly two or three lowercase alphabetic characters (e.g., "en", "jp").',
+      message:
+        'All primary language tags must be exactly two or three lowercase alphabetic characters (e.g., "en", "jp").',
     });
   });
 
@@ -295,7 +297,7 @@ describe(ENDPOINT_PATH, () => {
     });
   });
 
-  it ('handles invalid reason structure', async () => {
+  it('handles invalid reason structure', async () => {
     await insertFeed(dummyFeed);
 
     const postWithInvalidReason = {
@@ -305,7 +307,7 @@ describe(ENDPOINT_PATH, () => {
         // missing repost field
       },
     } as any;
-    const { response,json } = await addPost(dummyFeed.uri, postWithInvalidReason);
+    const { response, json } = await addPost(dummyFeed.uri, postWithInvalidReason);
     expect(response.status).toBe(400);
     expect(json).toEqual({
       error: 'BadRequest',

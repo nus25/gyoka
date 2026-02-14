@@ -299,7 +299,7 @@ describe('GetFeedSkeleton Endpoint', () => {
     // Accept-Language header not set, should return null
     const defaultResponse = await sendRequest(`feed=${feedUri}`);
     expect(defaultResponse.status).toBe(200);
-    expect(defaultResponse.headers.get('Content-Language')).toBe(null); 
+    expect(defaultResponse.headers.get('Content-Language')).toBe(null);
   });
   it('should return feedcontext', async () => {
     const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
@@ -460,8 +460,24 @@ describe('GetFeedSkeleton Endpoint', () => {
     const indexedAt = new Date();
 
     // Create posts with different languages
-    const languages = ['en', 'fr', 'de', 'es', 'it', 'pt', 'ru', 'ja', 'ko', 'zh', 'ar', 'hi', 'nl', 'sv', 'da'];
-    
+    const languages = [
+      'en',
+      'fr',
+      'de',
+      'es',
+      'it',
+      'pt',
+      'ru',
+      'ja',
+      'ko',
+      'zh',
+      'ar',
+      'hi',
+      'nl',
+      'sv',
+      'da',
+    ];
+
     for (let i = 0; i < languages.length; i++) {
       indexedAt.setSeconds(indexedAt.getSeconds() + 1);
       await insertPost(feedId, {
@@ -475,23 +491,24 @@ describe('GetFeedSkeleton Endpoint', () => {
 
     // Create Accept-Language header with 15 language tags (more than the 10 limit)
     // Using realistic language-country combinations
-    const acceptLanguageHeader = 'en-us,fr-fr,de-de,es-es,it-it,pt-br,ru-ru,ja-jp,ko-kr,zh-cn,ar-sa,hi-in,nl-nl,sv-se,da-dk';
-    
-    const response = await sendRequest(`feed=${feedUri}&limit=50`, { 
-      'Accept-Language': acceptLanguageHeader 
+    const acceptLanguageHeader =
+      'en-us,fr-fr,de-de,es-es,it-it,pt-br,ru-ru,ja-jp,ko-kr,zh-cn,ar-sa,hi-in,nl-nl,sv-se,da-dk';
+
+    const response = await sendRequest(`feed=${feedUri}&limit=50`, {
+      'Accept-Language': acceptLanguageHeader,
     });
-    
+
     expect(response.status).toBe(200);
     const data: expectedResponseType = await response.json();
-    
+
     // Should return posts, but only for the first 10 languages due to the limit
     expect(data).toHaveProperty('feed');
     expect(Array.isArray(data.feed)).toBe(true);
-    
+
     // Verify Content-Language header contains only first 10 primary language codes
     const contentLanguage = response.headers.get('Content-Language');
     expect(contentLanguage).toBe('en, fr, de, es, it, pt, ru, ja, ko, zh');
-    
+
     // Should have 10 posts (one for each of the first 10 languages)
     expect(data.feed.length).toBe(10);
   });

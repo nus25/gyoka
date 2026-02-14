@@ -123,7 +123,10 @@ async function verifyPostExists(uri: string, indexedAt?: string): Promise<boolea
     bindings.push(indexedAt);
   }
 
-  const { results } = await db.prepare(query).bind(...bindings).all();
+  const { results } = await db
+    .prepare(query)
+    .bind(...bindings)
+    .all();
   return results.length > 0;
 }
 
@@ -537,7 +540,10 @@ describe(ENDPOINT_PATH, () => {
 
     // Verify all posts removed
     const db = env.DB;
-    const { results } = await db.prepare('SELECT * FROM posts WHERE feed_id = ?').bind(feedId1).all();
+    const { results } = await db
+      .prepare('SELECT * FROM posts WHERE feed_id = ?')
+      .bind(feedId1)
+      .all();
     expect(results.length).toBe(0);
   });
 
@@ -619,6 +625,6 @@ describe(ENDPOINT_PATH, () => {
     const json = (await response.json()) as BatchRemovePostsResponse;
     expect(json.results).toBeDefined();
     expect(json.results![0].results[0].status).toBe('error');
-    expect(json.results![0].results[0].error).toBe('Failed to remove post from DB');// D1 error message is not propagated
+    expect(json.results![0].results[0].error).toBe('Failed to remove post from DB'); // D1 error message is not propagated
   });
 });

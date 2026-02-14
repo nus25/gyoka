@@ -171,20 +171,20 @@ describe(ENDPOINT_PATH, () => {
     // Create 2 entries with 12 + 13 = 25 posts (at the limit)
     const entries = [
       {
-      feed: dummyFeed1.uri,
-      posts: Array.from({ length: 12 }, (_, i) => ({
-        uri: `at://did:plc:author${i}/app.bsky.feed.post/test-post-${i}`,
-        cid: `bafyreia${i.toString().padStart(50, '0')}`,
-        indexedAt: new Date(Date.UTC(2024, 0, 15, 12 + i, 0, 0)).toISOString(),
-      })),
+        feed: dummyFeed1.uri,
+        posts: Array.from({ length: 12 }, (_, i) => ({
+          uri: `at://did:plc:author${i}/app.bsky.feed.post/test-post-${i}`,
+          cid: `bafyreia${i.toString().padStart(50, '0')}`,
+          indexedAt: new Date(Date.UTC(2024, 0, 15, 12 + i, 0, 0)).toISOString(),
+        })),
       },
       {
-      feed: dummyFeed2.uri,
-      posts: Array.from({ length: 13 }, (_, i) => ({
-        uri: `at://did:plc:author${i + 12}/app.bsky.feed.post/test-post-${i + 12}`,
-        cid: `bafyreia${(i + 12).toString().padStart(50, '0')}`,
-        indexedAt: new Date(Date.UTC(2024, 0, 15, 12 + i + 12, 0, 0)).toISOString(),
-      })),
+        feed: dummyFeed2.uri,
+        posts: Array.from({ length: 13 }, (_, i) => ({
+          uri: `at://did:plc:author${i + 12}/app.bsky.feed.post/test-post-${i + 12}`,
+          cid: `bafyreia${(i + 12).toString().padStart(50, '0')}`,
+          indexedAt: new Date(Date.UTC(2024, 0, 15, 12 + i + 12, 0, 0)).toISOString(),
+        })),
       },
     ];
 
@@ -216,7 +216,7 @@ describe(ENDPOINT_PATH, () => {
     expect(json.error).toBe('BadRequest');
     expect(json.message).toContain(
       `[{"message":"Too small: expected array to have >=1 items","path":["body","entries",0,"posts"]}]`
-);
+    );
   });
 
   it('handles partial success when some feeds do not exist', async () => {
@@ -568,102 +568,102 @@ describe(ENDPOINT_PATH, () => {
     expect(posts.length).toBe(25);
   });
 
-it('handles db errors gracefully', async () => {
-  // Mock a database that will fail on feed query
-  const mockDb = {
-    prepare: (query: string) => {
-      if (query.includes('SELECT')) {
+  it('handles db errors gracefully', async () => {
+    // Mock a database that will fail on feed query
+    const mockDb = {
+      prepare: (query: string) => {
+        if (query.includes('SELECT')) {
+          return {
+            bind: (...args: any[]) => ({
+              all: async () => {
+                throw new Error('Database connection failed');
+              },
+            }),
+          };
+        }
         return {
           bind: (...args: any[]) => ({
-            all: async () => {
-              throw new Error('Database connection failed');
-            },
+            run: async () => ({ success: true, meta: { changes: 0 } }),
+            all: async () => ({ success: true, results: [] }),
           }),
         };
-      }
-      return {
+      },
+      batch: async () => {
+        throw new Error('Batch operation failed');
+      },
+    };
+
+    const mockEnv = { ...env, DB: mockDb };
+
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [dummyPost1],
+      },
+    ];
+
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = (await response.json()) as { error: string; message: string };
+    expect(json.error).toBe('InternalServerError');
+    expect(json.message).toBe('Failed to query feeds');
+  });
+
+  it('handles db batch insert errors gracefully', async () => {
+    // First query succeeds (feed lookup), batch insert fails
+    let queryCount = 0;
+    const mockDb = {
+      prepare: (query: string) => ({
         bind: (...args: any[]) => ({
-          run: async () => ({ success: true, meta: { changes: 0 } }),
-          all: async () => ({ success: true, results: [] }),
+          all: async () => {
+            if (query.includes('SELECT')) {
+              return {
+                success: true,
+                results: [{ feed_id: 1, feed_uri: dummyFeed1.uri }],
+              };
+            }
+            return { success: true, results: [] };
+          },
+          run: async () => ({ success: true, meta: { changes: 1 } }),
         }),
-      };
-    },
-    batch: async () => {
-      throw new Error('Batch operation failed');
-    },
-  };
-
-  const mockEnv = { ...env, DB: mockDb };
-
-  const entries = [
-    {
-      feed: dummyFeed1.uri,
-      posts: [dummyPost1],
-    },
-  ];
-
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ entries }),
-  });
-
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, mockEnv, ctx);
-  await waitOnExecutionContext(ctx);
-
-  expect(response.status).toBe(500);
-  const json = (await response.json()) as { error: string; message: string };
-  expect(json.error).toBe('InternalServerError');
-  expect(json.message).toBe('Failed to query feeds');
-});
-
-it('handles db batch insert errors gracefully', async () => {
-  // First query succeeds (feed lookup), batch insert fails
-  let queryCount = 0;
-  const mockDb = {
-    prepare: (query: string) => ({
-      bind: (...args: any[]) => ({
-        all: async () => {
-          if (query.includes('SELECT')) {
-            return {
-              success: true,
-              results: [{ feed_id: 1, feed_uri: dummyFeed1.uri }],
-            };
-          }
-          return { success: true, results: [] };
-        },
-        run: async () => ({ success: true, meta: { changes: 1 } }),
       }),
-    }),
-    batch: async () => {
-      throw new Error('Batch insert failed');
-    },
-  };
+      batch: async () => {
+        throw new Error('Batch insert failed');
+      },
+    };
 
-  const mockEnv = { ...env, DB: mockDb };
+    const mockEnv = { ...env, DB: mockDb };
 
-  const entries = [
-    {
-      feed: dummyFeed1.uri,
-      posts: [dummyPost1],
-    },
-  ];
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [dummyPost1],
+      },
+    ];
 
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ entries }),
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as { results: any[] };
+    console.log(json.results[0].results[0]);
+    expect(json.results[0].results[0].status).toBe('error');
+    expect(json.results[0].results[0].error).toBe('Failed to add post to DB'); //D1 error message is not propagated
   });
-
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, mockEnv, ctx);
-  await waitOnExecutionContext(ctx);
-
-  expect(response.status).toBe(200);
-  const json = (await response.json()) as { results: any[] };
-  console.log(json.results[0].results[0]);
-  expect(json.results[0].results[0].status).toBe('error');
-  expect(json.results[0].results[0].error).toBe('Failed to add post to DB');//D1 error message is not propagated
-});
 });

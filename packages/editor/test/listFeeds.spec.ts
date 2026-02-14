@@ -2,7 +2,6 @@ import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:
 import { describe, it, expect, beforeEach } from 'vitest';
 import app from '../src/index';
 
-
 const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/listFeeds';
 
