@@ -6,6 +6,7 @@ import { InternalServerError, BadRequestError, UnknownFeedError } from 'shared/s
 
 // https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/getFeedSkeleton.json
 
+const MAX_ACCEPT_LANGUAGE_CODES = 10;
 export class GetFeedSkeleton extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Generator'],
@@ -71,9 +72,10 @@ export class GetFeedSkeleton extends BaseOpenAPIRoute {
     },
   };
 
-  extractLanguageCodes(acceptLanguage: string, maxCount: number = 10): string[] {
+  extractLanguageCodes(acceptLanguage: string): string[] {
     if (!acceptLanguage) return [];
 
+    const maxCount = MAX_ACCEPT_LANGUAGE_CODES;
     const seen = new Set<string>();
     const parts = acceptLanguage.split(',');
 
@@ -117,7 +119,7 @@ export class GetFeedSkeleton extends BaseOpenAPIRoute {
     // get posts
     // language codes for filter
     const acceptLanguage = c.req.header('Accept-Language') || '';
-    const languageCodes = this.extractLanguageCodes(acceptLanguage, 10);
+    const languageCodes = this.extractLanguageCodes(acceptLanguage);
     const SQL_TEMPLATE_SELECT_POST = `
 SELECT p.uri, p.cid, p.indexed_at, p.reason, p.feed_context
 FROM feeds f
