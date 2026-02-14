@@ -120,7 +120,9 @@ export class AddPost extends BaseOpenAPIRoute {
     ];
 
     if (languageCodes.some((code) => !(code === '*' || /^[a-z]{2,3}$/.test(code)))) {
-      throw new BadRequestError('All primary language tags must be exactly two or three lowercase alphabetic characters (e.g., "en", "jp").');
+      throw new BadRequestError(
+        'All primary language tags must be exactly two or three lowercase alphabetic characters (e.g., "en", "jp").'
+      );
     }
 
     post.languages = languageCodes;
@@ -138,7 +140,9 @@ export class AddPost extends BaseOpenAPIRoute {
       switch (post.reason.$type) {
         case 'app.bsky.feed.defs#skeletonReasonRepost':
           if (!post.reason.repost) {
-            throw new BadRequestError('Reason type app.bsky.feed.defs#skeletonReasonRepost needs repost field');
+            throw new BadRequestError(
+              'Reason type app.bsky.feed.defs#skeletonReasonRepost needs repost field'
+            );
           }
           reason = {
             $type: post.reason.$type,

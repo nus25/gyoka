@@ -1,28 +1,28 @@
 {
-    "name": "gyoka-generator",
-    "version": "0.8.0",
-    "scripts": {
-        "postinstall": "node ../shared/scripts/copy-config.js",
-        "deploy": "echo VERSION=$(node -p \"require('./package.json').version\") GIT_SHA=$(git rev-parse --short HEAD) && wrangler deploy --env production --var VERSION:$(node -p \"require('./package.json').version\") --var GIT_SHA:$(git rev-parse --short HEAD)",
-        "dev": "wrangler dev --persist-to=../../data --env dev",
-        "cf-typegen": "wrangler types --strict-vars=false --env production",
-        "test": "vitest",
-        "coverage": "vitest run --coverage"
-    },
-    "dependencies": {
-        "chanfana": "3.0.0",
-        "hono": "^4.11.7",
-        "zod": "^4.3.5",
-        "shared": "workspace:*"
-    },
-    "devDependencies": {
-        "@cloudflare/vitest-pool-workers": "0.12.7",
-        "@cloudflare/workers-types": "4.20260124.0",
-        "@types/node": "^22.15.35",
-        "@types/service-worker-mock": "^2.0.4",
-        "wrangler": "4.61.0"
-    },
-    "packageManager": "pnpm@10.28.2",
-    "author": "Nus",
-    "license": "MIT"
+  "name": "gyoka-generator",
+  "version": "0.8.0",
+  "scripts": {
+    "postinstall": "node ../shared/scripts/copy-config.js",
+    "deploy": "echo VERSION=$(node -p \"require('./package.json').version\") GIT_SHA=$(git rev-parse --short HEAD) && wrangler deploy --env production --var VERSION:$(node -p \"require('./package.json').version\") --var GIT_SHA:$(git rev-parse --short HEAD)",
+    "dev": "wrangler dev --persist-to=../../data --env dev",
+    "cf-typegen": "wrangler types --strict-vars=false --env production",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "chanfana": "3.0.0",
+    "hono": "^4.11.7",
+    "zod": "^4.3.5",
+    "shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.12.7",
+    "@cloudflare/workers-types": "4.20260124.0",
+    "@types/node": "^22.15.35",
+    "@types/service-worker-mock": "^2.0.4",
+    "wrangler": "4.61.0"
+  },
+  "packageManager": "pnpm@10.28.2",
+  "author": "Nus",
+  "license": "MIT"
 }

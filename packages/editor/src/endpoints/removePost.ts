@@ -88,9 +88,11 @@ export class RemovePost extends BaseOpenAPIRoute {
       if (feedResults.length === 0) {
         throw new NotFoundError(`Feed with URI ${feed_uri} does not exist.`);
       }
-      throw new NotFoundError(`Post not found feed:${feed_uri}, post:{uri:${post.uri} ${
-        post.indexedAt ? 'indexedAt:' + post.indexedAt : ''
-      }}`);
+      throw new NotFoundError(
+        `Post not found feed:${feed_uri}, post:{uri:${post.uri} ${
+          post.indexedAt ? 'indexedAt:' + post.indexedAt : ''
+        }}`
+      );
     }
 
     return Response.json({

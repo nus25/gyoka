@@ -4,8 +4,8 @@
   "description": "simple feed generator for bluesky which works on cloudflare workers",
   "private": "true",
   "scripts": {
-    "editor":"pnpm -F gyoka-editor",
-    "generator":"pnpm -F gyoka-generator",
+    "editor": "pnpm -F gyoka-editor",
+    "generator": "pnpm -F gyoka-generator",
     "d1-create": "pnpx wrangler d1 create gyoka-db",
     "d1-init-local": "pnpm editor d1-init-local",
     "d1-add-dummy-local": "pnpm editor d1-add-dummy-local"
