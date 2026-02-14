@@ -179,4 +179,68 @@ describe('app.bsky.feed.describeFeedGenerator', async () => {
       },
     });
   });
+
+  it('ignores unknown document type and does not include links', async () => {
+    await insertDocuments([{ type: 'unknown_type', url: 'http://example.com/unknown' }]);
+
+    const { response, json } = await getServerDescription();
+    assertValidResponse(response);
+    expect(json).toEqual({
+      did: env.FEEDGEN_PUBLISHER_DID,
+      feeds: [],
+    });
+  });
+
+  it('returns 500 when feed query fails', async () => {
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`);
+    const ctx = createExecutionContext();
+    const failingFeedQueryEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          all: async () => ({ success: false, results: [] }),
+        }),
+      },
+    };
+
+    const response = await app.fetch(request, failingFeedQueryEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to fetch feeds',
+    });
+  });
+
+  it('returns 500 when documents query fails', async () => {
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`);
+    const ctx = createExecutionContext();
+    let callCount = 0;
+    const failingDocumentQueryEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          all: async () => {
+            callCount += 1;
+            if (callCount === 1) {
+              return { success: true, results: [] };
+            }
+            return { success: false, results: [] };
+          },
+        }),
+      },
+    };
+
+    const response = await app.fetch(request, failingDocumentQueryEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to fetch links',
+    });
+  });
 });

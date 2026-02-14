@@ -93,4 +93,28 @@ describe('configuration error test', () => {
       message: 'Missing database configuration',
     });
   });
+
+  it('returns generic 500 for unexpected non-Gyoka errors', async () => {
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`);
+    const ctx = createExecutionContext();
+    const throwingDbEnv = {
+      FEEDGEN_PUBLISHER_DID: env.FEEDGEN_PUBLISHER_DID,
+      FEEDGEN_HOST: env.FEEDGEN_HOST,
+      DB: {
+        prepare: () => {
+          throw new Error('unexpected db error');
+        },
+      },
+    };
+
+    const response = await app.fetch(request, throwingDbEnv, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(500);
+    expect(response.headers.get('Content-Type')).toBe('application/json');
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'An unexpected error occurred.',
+    });
+  });
 });

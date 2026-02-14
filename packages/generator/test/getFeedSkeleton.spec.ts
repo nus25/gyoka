@@ -511,4 +511,63 @@ describe('GetFeedSkeleton Endpoint', () => {
     // Should have 10 posts (one for each of the first 10 languages)
     expect(data.feed.length).toBe(10);
   });
+
+  it('should return 500 when main feed skeleton query fails', async () => {
+    const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}?feed=${feedUri}`);
+    const ctx = createExecutionContext();
+    const failingQueryEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          bind: () => ({
+            all: async () => ({ success: false, results: [] }),
+          }),
+        }),
+      },
+    };
+
+    const response = await app.fetch(request, failingQueryEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const data: expectedErrorResponseType = await response.json();
+    expect(data).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to fetch feed skeleton',
+    });
+  });
+
+  it('should return 500 when feed existence verification query fails', async () => {
+    const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}?feed=${feedUri}`);
+    const ctx = createExecutionContext();
+    let callCount = 0;
+    const failingFeedExistsEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          bind: () => ({
+            all: async () => {
+              callCount += 1;
+              if (callCount === 1) {
+                return { success: true, results: [] };
+              }
+              return { success: false, results: [] };
+            },
+          }),
+        }),
+      },
+    };
+
+    const response = await app.fetch(request, failingFeedExistsEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const data: expectedErrorResponseType = await response.json();
+    expect(data).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to verify feed existence',
+    });
+  });
 });
