@@ -76,6 +76,17 @@ Gyoka does **not** support:
     If local-dev port is 8787, you can see documents below.
     - Redocs: localhost:8787/redocs
     - Swagger UI: localhost:8787/docs
+    
+7. (Optional) Configure build-time flags in `wrangler.jsonc`:
+
+    ```json
+    "define": {
+        "__OPENAPI_DOCS_ENABLED__": "true"
+    }
+    ```
+    
+    - `__OPENAPI_DOCS_ENABLED__`: Set to `true` to enable OpenAPI docs (`/docs`, `/redocs`, `/openapi.json` routes) for local development. Set to `false` in production.
+
 
 # Deploy
 Deploy editor and generator workers to Cloudflare workers.
