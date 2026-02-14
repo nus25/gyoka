@@ -26,6 +26,8 @@ const RemovePostSchema = z
   })
   .openapi('BatchRemovePostPostParam');
 
+type RemovePostInput = z.infer<typeof RemovePostSchema>;
+
 interface PostToRemove {
   uri: string;
   indexedAt: string | null;
@@ -115,7 +117,7 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
       string,
       {
         entryIndices: number[];
-        posts: Array<{ post: any; entryIndex: number; postIndex: number }>;
+        posts: Array<{ post: RemovePostInput; entryIndex: number; postIndex: number }>;
       }
     >();
 

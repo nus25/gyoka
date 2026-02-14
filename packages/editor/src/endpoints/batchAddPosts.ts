@@ -44,6 +44,17 @@ const PostSchema = z
   })
   .openapi('BatchAddPostPostParam');
 
+type PostInput = z.infer<typeof PostSchema>;
+
+type PostReason =
+  | {
+      $type: 'app.bsky.feed.defs#skeletonReasonRepost';
+      repost: string;
+    }
+  | {
+      $type: 'app.bsky.feed.defs#skeletonReasonPin';
+    };
+
 interface ProcessedPost {
   uri: string;
   cid: string;
@@ -51,7 +62,7 @@ interface ProcessedPost {
   languages: string[];
   indexedAt: string;
   feedContext?: string;
-  reason: any;
+  reason: PostReason | null;
   originalIndex: number;
 }
 
@@ -118,7 +129,7 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
   };
 
   private validateAndProcessPost(
-    post: any,
+    post: PostInput,
     entryIndex: number,
     postIndex: number
   ): ValidationResult {
@@ -153,7 +164,7 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
       : new Date().toISOString();
 
     // Process reason object
-    let reason = null;
+    let reason: PostReason | null = null;
     if (post.reason) {
       switch (post.reason.$type) {
         case 'app.bsky.feed.defs#skeletonReasonRepost':
@@ -215,7 +226,7 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
       string,
       {
         entryIndices: number[];
-        posts: Array<{ post: any; entryIndex: number; postIndex: number }>;
+        posts: Array<{ post: PostInput; entryIndex: number; postIndex: number }>;
       }
     >();
 
@@ -299,7 +310,7 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
       const postValidationErrors = new Map<number, string>();
 
       for (let i = 0; i < feedData.posts.length; i++) {
-        const { post, postIndex } = feedData.posts[i];
+        const { post } = feedData.posts[i];
         const result = this.validateAndProcessPost(post, feedData.posts[i].entryIndex, i);
 
         if (isErrorResult(result)) {
