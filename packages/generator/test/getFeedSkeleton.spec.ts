@@ -1,7 +1,6 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import app from '../src/index';
-import { ZodError } from 'zod';
 
 const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/xrpc/app.bsky.feed.getFeedSkeleton';

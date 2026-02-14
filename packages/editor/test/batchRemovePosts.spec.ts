@@ -1,7 +1,6 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import app from '../src/index';
-import { All_LANGS } from 'shared/src/constants';
 
 const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/batchRemovePosts';
@@ -241,8 +240,8 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('handles exceeding max batch posts limit', async () => {
-    const feedId1 = await insertFeed(dummyFeed1);
-    const feedId2 = await insertFeed(dummyFeed2);
+    await insertFeed(dummyFeed1);
+    await insertFeed(dummyFeed2);
 
     // Create 26 posts to exceed the limit (default is 25)
     const entries = [

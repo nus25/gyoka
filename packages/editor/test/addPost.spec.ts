@@ -194,7 +194,6 @@ describe(ENDPOINT_PATH, () => {
     expect(languages.map((l) => l.language).sort()).toEqual(['en', 'ja', 'tlh']);
   });
 
-  it;
   it('handles invalid language codes', async () => {
     await insertFeed(dummyFeed);
 

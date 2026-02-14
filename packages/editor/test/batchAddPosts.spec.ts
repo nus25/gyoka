@@ -620,7 +620,6 @@ describe(ENDPOINT_PATH, () => {
 
   it('handles db batch insert errors gracefully', async () => {
     // First query succeeds (feed lookup), batch insert fails
-    let queryCount = 0;
     const mockDb = {
       prepare: (query: string) => ({
         bind: (...args: any[]) => ({
