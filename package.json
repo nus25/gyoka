@@ -8,13 +8,19 @@
     "generator": "pnpm -F gyoka-generator",
     "d1-create": "pnpx wrangler d1 create gyoka-db",
     "d1-init-local": "pnpm editor d1-init-local",
-    "d1-add-dummy-local": "pnpm editor d1-add-dummy-local"
+    "d1-add-dummy-local": "pnpm editor d1-add-dummy-local",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "author": "Nus",
   "license": "MIT",
   "devDependencies": {
     "@vitest/coverage-istanbul": "^3.2.x",
-    "vitest": "^3.2.x"
+    "vitest": "^3.2.x",
+    "eslint": "^9.27.0",
+    "@eslint/js": "^9.0.0",
+    "typescript-eslint": "^8.0.0",
+    "globals": "^15.0.0"
   },
   "packageManager": "pnpm@10.28.2"
 }
