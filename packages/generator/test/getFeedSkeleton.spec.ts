@@ -1,5 +1,5 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi} from 'vitest';
 import app from '../src/index';
 
 const BASE_URL = 'http://localhost:8787';
@@ -300,6 +300,18 @@ describe('GetFeedSkeleton Endpoint', () => {
     expect(defaultResponse.status).toBe(200);
     expect(defaultResponse.headers.get('Content-Language')).toBe(null);
   });
+
+  it('should parse q-values and ignore empty language tokens', async () => {
+    const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
+
+    const response = await sendRequest(`feed=${feedUri}`, {
+      'Accept-Language': 'en-US;q=0.9,   , fr-FR',
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Language')).toBe('en, fr');
+  });
+
   it('should return feedcontext', async () => {
     const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
     const db = env.DB;
@@ -372,21 +384,42 @@ describe('GetFeedSkeleton Endpoint', () => {
     expect(JSON.stringify(data.feed[0].reason)).toBe(JSON.stringify(testReason));
   });
   it('should handle developer mode logging', async () => {
-    // Create a request with developer mode enabled
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/getfeedskeleton';
-    const devModeEnv = {
-      ...env,
-      DEVELOPER_MODE: 'enabled',
-    };
-
     const request = new Request(`${BASE_URL}${ENDPOINT_PATH}?feed=${feedUri}`);
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, devModeEnv, ctx);
-    await waitOnExecutionContext(ctx);
 
-    expect(response.status).toBe(200);
-    const data: expectedResponseType = await response.json();
-    expect(data).toHaveProperty('feed');
+    const enabledCtx = createExecutionContext();
+    const enabledResponse = await app.fetch(
+      request,
+      {
+        ...env,
+        DEVELOPER_MODE: 'enabled',
+      },
+      enabledCtx
+    );
+    await waitOnExecutionContext(enabledCtx);
+    expect(enabledResponse.status).toBe(200);
+    const enabledData: expectedResponseType = await enabledResponse.json();
+    expect(enabledData).toHaveProperty('feed');
+    expect(logSpy).toHaveBeenCalledWith('Generated query:', expect.any(String));
+    expect(logSpy).toHaveBeenCalledWith('Bindings:', expect.any(Array));
+    logSpy.mockClear();
+
+    const disabledCtx = createExecutionContext();
+    const disabledResponse = await app.fetch(
+      request,
+      {
+        ...env,
+        DEVELOPER_MODE: undefined,
+      },
+      disabledCtx
+    );
+    await waitOnExecutionContext(disabledCtx);
+    expect(disabledResponse.status).toBe(200);
+    const disabledData: expectedResponseType = await disabledResponse.json();
+    expect(disabledData).toHaveProperty('feed');
+    expect(logSpy).not.toHaveBeenCalledWith('Generated query:', expect.any(String));
+    logSpy.mockRestore();
   });
 
   it('should set nextCursor when results length equals limit', async () => {
@@ -570,4 +603,7 @@ describe('GetFeedSkeleton Endpoint', () => {
       message: 'Failed to verify feed existence',
     });
   });
+
+  it('')
+
 });

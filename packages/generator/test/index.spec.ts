@@ -6,7 +6,7 @@ const BASE_URL = 'http://localhost:8787';
 // This test suite ensures that each endpoint responds to requests as expected.
 
 describe('root', () => {
-  it('returns 404 for /docs', async () => {
+  it('returns 404 for /docs when __OPENAPI_DOCS_ENABLED__ is false', async () => {
     const request = new Request(`${BASE_URL}/docs`);
     const ctx = createExecutionContext();
     const response = await app.fetch(request, env, ctx);
