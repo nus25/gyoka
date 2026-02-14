@@ -213,4 +213,64 @@ describe(ENDPOINT_PATH, () => {
     const { response } = await getPosts(dummyFeed.uri);
     expect(response.status).toBe(500);
   });
+
+  it('returns InternalServerError when feed existence query fails', async () => {
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}?feed=${encodeURIComponent(dummyFeed.uri)}`);
+    const ctx = createExecutionContext();
+    const failingFeedCheckEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          bind: () => ({
+            all: async () => ({ success: false, results: [] }),
+          }),
+        }),
+      },
+    };
+
+    const response = await app.fetch(request, failingFeedCheckEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to query the database',
+    });
+  });
+
+  it('returns InternalServerError when posts query fails', async () => {
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}?feed=${encodeURIComponent(dummyFeed.uri)}`);
+    const ctx = createExecutionContext();
+    let queryCount = 0;
+    const failingPostsQueryEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          bind: () => ({
+            all: async () => {
+              queryCount += 1;
+              if (queryCount === 1) {
+                return {
+                  success: true,
+                  results: [{ feed_id: 1 }],
+                };
+              }
+              return { success: false, results: [] };
+            },
+          }),
+        }),
+      },
+    };
+
+    const response = await app.fetch(request, failingPostsQueryEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to fetch posts',
+    });
+  });
 });

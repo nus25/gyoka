@@ -161,4 +161,90 @@ describe(ENDPOINT_PATH, () => {
       message: 'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist',
     });
   });
+
+  it('returns InternalServerError when feed select query fails', async () => {
+    const req = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed1rkey',
+        langFilter: false,
+      }),
+    });
+    const ctx = createExecutionContext();
+    const failingEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          bind: () => ({
+            all: async () => ({ success: false, results: [] }),
+          }),
+        }),
+      },
+    };
+
+    const response = await app.fetch(req, failingEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to query the database',
+    });
+  });
+
+  it('returns InternalServerError when feed update batch fails', async () => {
+    const req = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed1rkey',
+        langFilter: false,
+      }),
+    });
+    const ctx = createExecutionContext();
+    const failingBatchEnv = {
+      ...env,
+      DB: {
+        prepare: (sql: string) => {
+          if (sql === 'SELECT * FROM feeds WHERE feed_uri = ?') {
+            return {
+              bind: () => ({
+                all: async () => ({
+                  success: true,
+                  results: [
+                    {
+                      feed_uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed1rkey',
+                      lang_filter: 1,
+                      is_active: 1,
+                    },
+                  ],
+                }),
+              }),
+            };
+          }
+
+          return {
+            bind: () => ({}),
+          };
+        },
+        batch: async () => [{ success: false }],
+      },
+    };
+
+    const response = await app.fetch(req, failingBatchEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to update feed',
+    });
+  });
 });

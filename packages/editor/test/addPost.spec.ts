@@ -26,7 +26,14 @@ async function addPost(
     cid: string;
     languages?: string[];
     indexedAt?: string | Date;
-    reason?: { repost: string };
+    reason?:
+      | {
+          $type: 'app.bsky.feed.defs#skeletonReasonRepost';
+          repost: string;
+        }
+      | {
+          $type: 'app.bsky.feed.defs#skeletonReasonPin';
+        };
     feedContext?: string;
   }
 ) {
@@ -220,6 +227,82 @@ describe(ENDPOINT_PATH, () => {
     expect(response.status).toBe(500);
   });
 
+  it('returns InternalServerError when post insert reports failure', async () => {
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ feed: dummyFeed.uri, post: dummyPost }),
+    });
+
+    const mockEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          bind: (...bindArgs: unknown[]) => {
+            if (bindArgs.length === 7) {
+              return {
+                all: async () => ({ success: false, results: [] }),
+              };
+            }
+            return {};
+          },
+        }),
+        batch: async () => [{ success: true }],
+      },
+    };
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to insert post to the database',
+    });
+  });
+
+  it('returns InternalServerError when adding post languages batch fails', async () => {
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ feed: dummyFeed.uri, post: dummyPost }),
+    });
+
+    const mockEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          bind: (...bindArgs: unknown[]) => {
+            if (bindArgs.length === 7) {
+              return {
+                all: async () => ({ success: true, results: [{ post_id: 1 }] }),
+              };
+            }
+            return {};
+          },
+        }),
+        batch: async () => [{ success: false }],
+      },
+    };
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to add post languages to DB',
+    });
+  });
+
   //todo: reason feedContext same uri and indexed at
   it('adds a post with feedContext', async () => {
     await insertFeed(dummyFeed);
@@ -256,16 +339,17 @@ describe(ENDPOINT_PATH, () => {
   it('adds a post with reason', async () => {
     await insertFeed(dummyFeed);
 
-    const postWithReason = {
+    // respot reason
+    const postWithReasonRepost = {
       ...dummyPost,
       reason: {
-        $type: 'app.bsky.feed.defs#skeletonReasonRepost',
+        $type: 'app.bsky.feed.defs#skeletonReasonRepost' as const,
         repost: 'at://did:plc:testuser/app.bsky.feed.repost/repostkey',
         invalid: 'extra invalid value should be removed',
       },
     };
 
-    const { response, json } = await addPost(dummyFeed.uri, postWithReason);
+    const { response, json } = await addPost(dummyFeed.uri, postWithReasonRepost);
     console.log(json);
     assertValidResponse(response);
     expect(json).toEqual({
@@ -282,6 +366,33 @@ describe(ENDPOINT_PATH, () => {
         },
       },
     });
+    // pin reason
+    const postWithReasonPin = {
+      ...dummyPost,
+      reason: {
+        $type: 'app.bsky.feed.defs#skeletonReasonPin' as const,
+      },
+    };
+
+    const { response: pinResponse, json: pinJson } = await addPost(
+      dummyFeed.uri,
+      postWithReasonPin
+    );
+    console.log(pinJson);
+    assertValidResponse(pinResponse);
+    expect(pinJson).toEqual({
+      message: 'Post added successfully',
+      feed: dummyFeed.uri,
+      post: {
+        uri: dummyPost.uri,
+        cid: dummyPost.cid,
+        languages: dummyPost.languages,
+        indexedAt: expect.any(String),
+        reason: {
+          $type: 'app.bsky.feed.defs#skeletonReasonPin',
+        },
+      },
+    });
 
     // Verify database state
     const db = env.DB;
@@ -289,10 +400,14 @@ describe(ENDPOINT_PATH, () => {
       .prepare('SELECT * FROM posts WHERE uri = ?')
       .bind(dummyPost.uri)
       .all();
-    expect(posts.length).toBe(1);
-    expect(JSON.parse(posts[0].reason as string)).toEqual({
+    expect(posts.length).toBe(2);
+    const parsedReasons = posts.map((p) => JSON.parse(p.reason as string));
+    expect(parsedReasons).toContainEqual({
       $type: 'app.bsky.feed.defs#skeletonReasonRepost',
       repost: 'at://did:plc:testuser/app.bsky.feed.repost/repostkey',
+    });
+    expect(parsedReasons).toContainEqual({
+      $type: 'app.bsky.feed.defs#skeletonReasonPin',
     });
   });
 
@@ -302,7 +417,7 @@ describe(ENDPOINT_PATH, () => {
     const postWithInvalidReason = {
       ...dummyPost,
       reason: {
-        $type: 'app.bsky.feed.defs#skeletonReasonRepost',
+        $type: 'app.bsky.feed.defs#skeletonReasonRepost' as const,
         // missing repost field
       },
     } as any;

@@ -112,4 +112,37 @@ describe(ENDPOINT_PATH, () => {
     const { response } = await updateDocument(request);
     expect(response.status).toBe(500);
   });
+
+  it('returns InternalServerError when document update run reports failure', async () => {
+    const req = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: DOCUMENT_TYPES.TOS,
+      }),
+    });
+    const ctx = createExecutionContext();
+    const failingEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          bind: () => ({
+            run: async () => ({ success: false }),
+          }),
+        }),
+      },
+    };
+
+    const response = await app.fetch(req, failingEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to update document',
+    });
+  });
 });

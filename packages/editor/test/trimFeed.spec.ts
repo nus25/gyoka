@@ -269,6 +269,44 @@ describe(ENDPOINT_PATH, () => {
     expect(json.deletedCount).toBe(2);
   });
 
+  it('returns InternalServerError when delete run reports failure', async () => {
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feed: dummyFeed.uri, remain: 3 }),
+    });
+
+    const mockEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          bind: (...bindArgs: unknown[]) => {
+            if (bindArgs.length === 1) {
+              return {
+                all: async () => ({
+                  success: true,
+                  results: [{ feed_id: 1, post_count: '5' }],
+                }),
+              };
+            }
+            return {
+              run: async () => ({ success: false }),
+            };
+          },
+        }),
+      },
+    };
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = (await response.json()) as ErrorResponse;
+    expect(json.error).toBe('InternalServerError');
+    expect(json.message).toBe('Failed to remove post from the database');
+  });
+
   it('keeps most recent posts when trimming', async () => {
     const feedId = await insertFeed(dummyFeed);
     const now = new Date();

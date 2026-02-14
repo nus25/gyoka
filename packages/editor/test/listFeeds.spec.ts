@@ -75,4 +75,27 @@ describe(ENDPOINT_PATH, async () => {
     const { response } = await getFeedList();
     expect(response.status).toBe(500);
   });
+
+  it('returns InternalServerError when feed query reports failure', async () => {
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`);
+    const ctx = createExecutionContext();
+    const failingEnv = {
+      ...env,
+      DB: {
+        prepare: () => ({
+          all: async () => ({ success: false, results: [] }),
+        }),
+      },
+    };
+
+    const response = await app.fetch(request, failingEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json).toEqual({
+      error: 'InternalServerError',
+      message: 'Failed to fetch feeds',
+    });
+  });
 });
