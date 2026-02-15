@@ -496,6 +496,61 @@ describe(ENDPOINT_PATH, () => {
     expect(json.results[0].results[0].error).toContain('needs repost field');
   });
 
+  it('adds posts with pin reason', async () => {
+    await insertFeed(dummyFeed1);
+
+    const postWithPinReason = {
+      ...dummyPost1,
+      reason: {
+        $type: 'app.bsky.feed.defs#skeletonReasonPin',
+      },
+    };
+
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [postWithPinReason],
+      },
+    ];
+
+    const { response, json } = await batchAddPosts(entries);
+    assertValidResponse(response);
+
+    expect(json.results[0].results[0].status).toBe('added');
+
+    const db = env.DB;
+    const { results: posts } = await db
+      .prepare('SELECT * FROM posts WHERE uri = ?')
+      .bind(dummyPost1.uri)
+      .all();
+    expect(posts.length).toBe(1);
+    expect(JSON.parse(posts[0].reason as string)).toEqual({
+      $type: 'app.bsky.feed.defs#skeletonReasonPin',
+    });
+  });
+
+  it('returns validation error when language list becomes empty after normalization', async () => {
+    await insertFeed(dummyFeed1);
+
+    const postWithEmptyLanguage = {
+      ...dummyPost1,
+      languages: [''],
+    };
+
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [postWithEmptyLanguage],
+      },
+    ];
+
+    const { response, json } = await batchAddPosts(entries);
+    assertValidResponse(response);
+
+    expect(json.results[0].results[0].status).toBe('error');
+    expect(json.results[0].results[0].error).toBe('At least one valid language code is required');
+  });
+
   it('handles empty posts array', async () => {
     await insertFeed(dummyFeed1);
 
@@ -618,6 +673,92 @@ describe(ENDPOINT_PATH, () => {
     expect(json.message).toBe('Failed to query feeds');
   });
 
+  it('returns internal error when feed query result is unsuccessful', async () => {
+    const mockDb = {
+      prepare: (_query: string) => ({
+        bind: (..._args: any[]) => ({
+          all: async () => ({
+            success: false,
+            results: [],
+          }),
+          run: async () => ({ success: true, meta: { changes: 0 } }),
+        }),
+      }),
+      batch: async () => [],
+    };
+
+    const mockEnv = { ...env, DB: mockDb };
+
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [dummyPost1],
+      },
+    ];
+
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = (await response.json()) as { error: string; message: string };
+    expect(json.error).toBe('InternalServerError');
+    expect(json.message).toBe('Failed to query feeds');
+  });
+
+  it('marks post as error when batch result contains unsuccessful statements', async () => {
+    const mockDb = {
+      prepare: (query: string) => ({
+        bind: (..._args: any[]) => ({
+          all: async () => {
+            if (query.includes('SELECT feed_id, feed_uri FROM feeds')) {
+              return {
+                success: true,
+                results: [{ feed_id: 1, feed_uri: dummyFeed1.uri }],
+              };
+            }
+            return { success: true, results: [] };
+          },
+          run: async () => ({ success: true, meta: { changes: 1 } }),
+        }),
+      }),
+      batch: async () => [
+        { success: true },
+        { success: false },
+      ],
+    };
+
+    const mockEnv = { ...env, DB: mockDb };
+
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [dummyPost1],
+      },
+    ];
+
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as { results: any[] };
+    expect(json.results[0].results[0].status).toBe('error');
+    expect(json.results[0].results[0].error).toBe('Failed to add post to DB');
+  });
+
   it('handles db batch insert errors gracefully', async () => {
     // First query succeeds (feed lookup), batch insert fails
     const mockDb = {
@@ -664,5 +805,53 @@ describe(ENDPOINT_PATH, () => {
     console.log(json.results[0].results[0]);
     expect(json.results[0].results[0].status).toBe('error');
     expect(json.results[0].results[0].error).toBe('Failed to add post to DB'); //D1 error message is not propagated
+  });
+
+  it('returns duplicate-specific error when batch insert hits unique constraint', async () => {
+    const mockDb = {
+      prepare: (query: string) => ({
+        bind: (..._args: any[]) => ({
+          all: async () => {
+            if (query.includes('SELECT')) {
+              return {
+                success: true,
+                results: [{ feed_id: 1, feed_uri: dummyFeed1.uri }],
+              };
+            }
+            return { success: true, results: [] };
+          },
+          run: async () => ({ success: true, meta: { changes: 1 } }),
+        }),
+      }),
+      batch: async () => {
+        throw new Error('UNIQUE constraint failed: posts.feed_id, posts.cid, posts.indexed_at');
+      },
+    };
+
+    const mockEnv = { ...env, DB: mockDb };
+
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [dummyPost1],
+      },
+    ];
+
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as { results: any[] };
+    expect(json.results[0].results[0].status).toBe('error');
+    expect(json.results[0].results[0].error).toContain('Post already exists. uri:');
+    expect(json.results[0].results[0].error).toContain(`uri:${dummyPost1.uri}`);
+    expect(json.results[0].results[0].error).toContain(`indexedAt:${dummyPost1.indexedAt}`);
   });
 });

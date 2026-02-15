@@ -627,6 +627,153 @@ describe(ENDPOINT_PATH, () => {
     expect(json.results![0].results[0].error).toBe('Failed to remove post from DB'); // D1 error message is not propagated
   });
 
+  it('returns internal server error when feed query result is unsuccessful', async () => {
+    const mockDb = {
+      prepare: (_query: string) => ({
+        bind: (..._args: any[]) => ({
+          all: async () => ({
+            success: false,
+            results: [],
+          }),
+          run: async () => ({ success: true, meta: { changed_db: 0 } }),
+        }),
+      }),
+      batch: async () => [],
+    };
+
+    const mockEnv = { ...env, DB: mockDb };
+
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [{ uri: dummyPost1.uri, indexedAt: dummyPost1.indexedAt }],
+      },
+    ];
+
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(500);
+    const json = (await response.json()) as BatchRemovePostsResponse;
+    expect(json.error).toBe('InternalServerError');
+    expect(json.message).toBe('Failed to query feeds');
+  });
+
+  it('marks all target posts as error when existing-post check is unsuccessful', async () => {
+    const mockDb = {
+      prepare: (query: string) => ({
+        bind: (..._args: any[]) => ({
+          all: async () => {
+            if (query.includes('SELECT feed_id, feed_uri FROM feeds')) {
+              return {
+                success: true,
+                results: [{ feed_id: 1, feed_uri: dummyFeed1.uri }],
+              };
+            }
+            if (query.includes('SELECT uri, indexed_at FROM posts')) {
+              return {
+                success: false,
+                results: [],
+              };
+            }
+            return { success: true, results: [] };
+          },
+          run: async () => ({ success: true, meta: { changed_db: 0 } }),
+        }),
+      }),
+      batch: async () => [],
+    };
+
+    const mockEnv = { ...env, DB: mockDb };
+
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [
+          { uri: dummyPost1.uri, indexedAt: dummyPost1.indexedAt },
+          { uri: dummyPost2.uri, indexedAt: dummyPost2.indexedAt },
+        ],
+      },
+    ];
+
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as BatchRemovePostsResponse;
+    expect(json.results).toBeDefined();
+    expect(json.results![0].results).toHaveLength(2);
+    expect(json.results![0].results[0].status).toBe('error');
+    expect(json.results![0].results[0].error).toBe('Failed to check post existence');
+    expect(json.results![0].results[1].status).toBe('error');
+    expect(json.results![0].results[1].error).toBe('Failed to check post existence');
+  });
+
+  it('marks post as error when delete batch result contains unsuccessful item', async () => {
+    const mockDb = {
+      prepare: (query: string) => ({
+        bind: (..._args: any[]) => ({
+          all: async () => {
+            if (query.includes('SELECT feed_id, feed_uri FROM feeds')) {
+              return {
+                success: true,
+                results: [{ feed_id: 1, feed_uri: dummyFeed1.uri }],
+              };
+            }
+            if (query.includes('SELECT uri, indexed_at FROM posts')) {
+              return {
+                success: true,
+                results: [{ uri: dummyPost1.uri, indexed_at: dummyPost1.indexedAt }],
+              };
+            }
+            return { success: true, results: [] };
+          },
+          run: async () => ({ success: true, meta: { changed_db: 0 } }),
+        }),
+      }),
+      batch: async () => [{ success: false }],
+    };
+
+    const mockEnv = { ...env, DB: mockDb };
+
+    const entries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [{ uri: dummyPost1.uri, indexedAt: dummyPost1.indexedAt }],
+      },
+    ];
+
+    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+
+    const ctx = createExecutionContext();
+    const response = await app.fetch(request, mockEnv, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as BatchRemovePostsResponse;
+    expect(json.results).toBeDefined();
+    expect(json.results![0].results[0].status).toBe('error');
+    expect(json.results![0].results[0].error).toBe('Failed to remove post from DB');
+  });
+
   it('handles developer mode logging', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const feedId1 = await insertFeed(dummyFeed1);
