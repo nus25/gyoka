@@ -1,13 +1,12 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ErrorResponse } from 'shared/src/types';
-import { clearTables, expectJsonResponse, requestJson } from './testUtils';
+import { assertErrorResponse, clearTables, expectJsonResponse, requestJson } from './testUtils';
 
 const ENDPOINT_PATH = '/api/feed/unregisterFeed';
 
 // request helper
 async function unregisterFeed(feedUri: string, envOverrides?: Partial<Env>) {
-  return requestJson<{ message?: string; error?: string; messageDetail?: string }>(
+  return requestJson<{ message?: string } | { error: string; message?: string }>(
     {
       path: ENDPOINT_PATH,
       init: {
@@ -50,20 +49,20 @@ describe(ENDPOINT_PATH, async () => {
   it('returns a not found error when trying to unregister a non-existent feed', async () => {
     const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/nonexistent';
     const { response, json } = await unregisterFeed(feedUri);
-    const resp = json as ErrorResponse;
     expect(response.status).toBe(404);
-    expect(resp.error).toBe('UnknownFeed');
-    expect(resp.message).toContain('does not exist');
-    expect(resp.message).toContain(feedUri);
+    assertErrorResponse(json);
+    expect(json.error).toBe('UnknownFeed');
+    expect(json.message).toContain('does not exist');
+    expect(json.message).toContain(feedUri);
   });
 
   it('returns a bad request error for invalid feed URI', async () => {
     const feedUri = 'invalid-uri';
     const { response, json } = await unregisterFeed(feedUri);
-    const resp = json as ErrorResponse;
     expect(response.status).toBe(400);
-    expect(resp.error).toBe('BadRequest');
-    expect(resp.message).toBeDefined();
+    assertErrorResponse(json);
+    expect(json.error).toBe('BadRequest');
+    expect(json.message).toBeDefined();
   });
 
   it('handles database errors gracefully', async () => {
@@ -71,10 +70,10 @@ describe(ENDPOINT_PATH, async () => {
     await db.prepare('DROP TABLE feeds').run(); // Simulate a database error
     const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/feed1';
     const { response, json } = await unregisterFeed(feedUri);
-    const resp = json as ErrorResponse;
     expect(response.status).toBe(500);
-    expect(resp.error).toBe('InternalServerError');
-    expect(resp.message).toBeDefined();
+    assertErrorResponse(json);
+    expect(json.error).toBe('InternalServerError');
+    expect(json.message).toBeDefined();
   });
 
   it('handles database query failure when checking if feed exists', async () => {
@@ -92,10 +91,10 @@ describe(ENDPOINT_PATH, async () => {
     const { response, json } = await unregisterFeed(feedUri, {
       DB: mockDb as unknown as D1Database,
     });
-    const resp = json as ErrorResponse;
     expect(response.status).toBe(500);
-    expect(resp.error).toBe('InternalServerError');
-    expect(resp.message).toContain('Failed to query the database');
+    assertErrorResponse(json);
+    expect(json.error).toBe('InternalServerError');
+    expect(json.message).toContain('Failed to query the database');
   });
 
   it('handles batch operation failure', async () => {
@@ -131,10 +130,10 @@ describe(ENDPOINT_PATH, async () => {
     const { response, json } = await unregisterFeed(feedUri, {
       DB: mockDb as unknown as D1Database,
     });
-    const resp = json as ErrorResponse;
     expect(response.status).toBe(500);
-    expect(resp.error).toBe('InternalServerError');
-    expect(resp.message).toContain('Failed to unregister feed and associated posts');
+    assertErrorResponse(json);
+    expect(json.error).toBe('InternalServerError');
+    expect(json.message).toContain('Failed to unregister feed and associated posts');
   });
 
   it('deletes posts associated with the unregistered feed', async () => {

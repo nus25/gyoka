@@ -1,7 +1,6 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ErrorResponse } from 'shared/src/types';
-import { clearTables, expectJsonResponse, requestJson } from './testUtils';
+import { assertErrorResponse, clearTables, expectJsonResponse, requestJson } from './testUtils';
 
 const ENDPOINT_PATH = '/api/feed/registerFeed';
 
@@ -10,7 +9,9 @@ async function registerFeed(
   feed: { uri: string; langFilter?: boolean; isActive?: boolean },
   envOverrides?: Partial<Env>
 ) {
-  return requestJson<{ message?: string; feed?: { uri: string; langFilter: boolean; isActive: boolean } }>(
+  return requestJson<
+    { message?: string; feed?: { uri: string; langFilter: boolean; isActive: boolean } } | { error: string; message?: string }
+  >(
     {
       path: ENDPOINT_PATH,
       init: {
@@ -74,10 +75,10 @@ describe(ENDPOINT_PATH, async () => {
   it('returns a bad request error for invalid feed URI', async () => {
     const feed = { uri: 'invalid-uri', isActive: true };
     const { response, json } = await registerFeed(feed);
-    const resp = json as ErrorResponse;
     expect(response.status).toBe(400);
-    expect(resp.error).toBe('BadRequest');
-    expect(resp.message).toBeDefined();
+    assertErrorResponse(json);
+    expect(json.error).toBe('BadRequest');
+    expect(json.message).toBeDefined();
   });
 
   it('handles database errors gracefully', async () => {

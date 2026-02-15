@@ -214,13 +214,15 @@ describe(ENDPOINT_PATH, () => {
       author1Did
     );
     expect(response.status).toBe(404);
-    expect((json as ErrorResponse).error).toBe('UnknownFeed');
+    assertErrorResponse(json);
+    expect(json.error).toBe('UnknownFeed');
   });
 
   it('handles invalid feed URI', async () => {
     const { response, json } = await removePostByAuthor('invalid-uri', author1Did);
     expect(response.status).toBe(400);
-    expect((json as ErrorResponse).error).toBe('BadRequest');
+    assertErrorResponse(json);
+    expect(json.error).toBe('BadRequest');
   });
 
   it('handles invalid author DID', async () => {
@@ -228,7 +230,8 @@ describe(ENDPOINT_PATH, () => {
 
     const { response, json } = await removePostByAuthor(dummyFeed.uri, 'invalid-did');
     expect(response.status).toBe(400);
-    expect((json as ErrorResponse).error).toBe('BadRequest');
+    assertErrorResponse(json);
+    expect(json.error).toBe('BadRequest');
   });
 
   it('only removes posts from the specified feed', async () => {
