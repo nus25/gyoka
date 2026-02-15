@@ -81,10 +81,8 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('adds a post with all fields specified', async () => {
-    console.log(dummyPost);
     await insertFeed(dummyFeed);
     const { response, json } = await addPost(dummyFeed.uri, dummyPost);
-    console.log(json);
     assertValidResponse(response);
     expect(json).toEqual({
       message: 'Post added successfully',
@@ -104,7 +102,6 @@ describe(ENDPOINT_PATH, () => {
       .bind(dummyPost.uri)
       .all();
     expect(posts.length).toBe(1);
-    console.log(posts[0].post_id);
     const { results: languages } = await db
       .prepare('SELECT * FROM post_languages WHERE post_id = ?')
       .bind(posts[0].post_id)
@@ -139,7 +136,6 @@ describe(ENDPOINT_PATH, () => {
       .bind(dummyPost.uri)
       .all();
     expect(posts.length).toBe(1);
-    console.log(posts[0].post_id);
     const { results: languages } = await db
       .prepare('SELECT * FROM post_languages WHERE post_id = ?')
       .bind(posts[0].post_id)
@@ -196,7 +192,6 @@ describe(ENDPOINT_PATH, () => {
       .bind(dummyPost.uri)
       .all();
     expect(posts.length).toBe(1);
-    console.log(posts[0].post_id);
     const { results: languages } = await db
       .prepare('SELECT DISTINCT language FROM post_languages WHERE post_id = ?')
       .bind(posts[0].post_id)
@@ -328,7 +323,6 @@ describe(ENDPOINT_PATH, () => {
     };
 
     const { response, json } = await addPost(dummyFeed.uri, postWithReasonRepost);
-    console.log(json);
     assertValidResponse(response);
     expect(json).toEqual({
       message: 'Post added successfully',
@@ -356,7 +350,6 @@ describe(ENDPOINT_PATH, () => {
       dummyFeed.uri,
       postWithReasonPin
     );
-    console.log(pinJson);
     assertValidResponse(pinResponse);
     expect(pinJson).toEqual({
       message: 'Post added successfully',
@@ -421,7 +414,6 @@ describe(ENDPOINT_PATH, () => {
       .prepare('SELECT * FROM posts WHERE uri = ?')
       .bind(dummyPost.uri)
       .all();
-    console.log(posts);
 
     expect(response.status).toBe(200);
   });

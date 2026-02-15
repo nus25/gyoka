@@ -760,7 +760,6 @@ describe(ENDPOINT_PATH, () => {
     const { response, json } = await batchAddPosts(entries, mockEnv);
 
     expect(response.status).toBe(200);
-    console.log(json.results[0].results[0]);
     expect(json.results[0].results[0].status).toBe('error');
     expect(json.results[0].results[0].error).toBe('Failed to add post to DB'); //D1 error message is not propagated
   });

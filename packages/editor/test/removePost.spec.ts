@@ -127,7 +127,6 @@ describe(ENDPOINT_PATH, () => {
       uri: dummyPost.uri,
       indexedAt: new Date(dummyPost.indexedAt).toISOString(),
     });
-    console.log(json);
     assertValidResponse(response);
 
     // Verify post was removed
@@ -156,7 +155,6 @@ describe(ENDPOINT_PATH, () => {
     const { response, json } = await removePost(dummyFeed.uri, {
       uri: 'at://did:plc:testuser/app.bsky.feed.post/nonexistent',
     });
-    console.log(json);
     expect(response.status).toBe(404);
     expect(json).toEqual({
       error: 'NotFound',
