@@ -2,7 +2,10 @@
   "name": "shared",
   "version": "0.8.0",
   "main": "./src/index.ts",
-  "scripts": {},
+  "scripts": {
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
+  },
   "dependencies": {
     "chanfana": "3.0.0",
     "hono": "^4.11.7",

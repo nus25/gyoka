@@ -6,6 +6,7 @@
   "scripts": {
     "editor": "pnpm -F gyoka-editor",
     "generator": "pnpm -F gyoka-generator",
+    "shared": "pnpm -F shared",
     "d1-create": "pnpx wrangler d1 create gyoka-db",
     "d1-init-local": "pnpm editor d1-init-local",
     "d1-add-dummy-local": "pnpm editor d1-add-dummy-local",
