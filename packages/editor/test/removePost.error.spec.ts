@@ -6,8 +6,10 @@ import {
   dummyFeed,
   dummyPost,
   insertFeed,
+  insertPost,
   removePost,
   resetRemovePostTables,
+  verifyPostLanguagesExist,
 } from './removePost.shared';
 
 describe(ENDPOINT_PATH, () => {
@@ -49,10 +51,13 @@ describe(ENDPOINT_PATH, () => {
     });
 
     it('Given post URI is invalid When remove is called Then it returns bad request', async () => {
-      await insertFeed(dummyFeed);
+      const feedId = await insertFeed(dummyFeed);
+      await insertPost(feedId, dummyPost);
+      expect(await verifyPostLanguagesExist(dummyPost.id)).toBe(true);
 
       const { response } = await removePost(dummyFeed.uri, { uri: 'invalid-uri' });
       expect(response.status).toBe(400);
+      expect(await verifyPostLanguagesExist(dummyPost.id)).toBe(true);
     });
 
     it('Given database schema is broken When remove is called Then it returns internal server error', async () => {

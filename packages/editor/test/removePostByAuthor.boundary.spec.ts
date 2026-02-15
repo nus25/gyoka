@@ -4,6 +4,7 @@ import {
   assertRemovePostByAuthorResponse,
   assertValidResponse,
   author1Did,
+  countPostLanguagesByPostId,
   countPostsByAuthor,
   countTotalPosts,
   dummyFeed,
@@ -23,6 +24,7 @@ describe(ENDPOINT_PATH, () => {
     it('Given author has no posts in feed When remove by author is called Then deletedCount is zero', async () => {
       const feedId = await insertFeed(dummyFeed);
       await insertPost(feedId, dummyPosts[2]);
+      expect(await countPostLanguagesByPostId(dummyPosts[2].id)).toBeGreaterThan(0);
 
       const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
       assertValidResponse(response);
@@ -35,6 +37,7 @@ describe(ENDPOINT_PATH, () => {
 
       const totalCount = await countTotalPosts();
       expect(totalCount).toBe(1);
+      expect(await countPostLanguagesByPostId(dummyPosts[2].id)).toBeGreaterThan(0);
     });
 
     it('Given author DID partially matches other DID When remove by author is called Then no post is removed', async () => {
@@ -44,6 +47,7 @@ describe(ENDPOINT_PATH, () => {
         id: 4,
         uri: 'at://did:plc:author1extra/app.bsky.feed.post/post4',
       });
+      expect(await countPostLanguagesByPostId(4)).toBeGreaterThan(0);
 
       const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
       assertValidResponse(response);
@@ -52,6 +56,7 @@ describe(ENDPOINT_PATH, () => {
 
       const totalCount = await countTotalPosts();
       expect(totalCount).toBe(1);
+      expect(await countPostLanguagesByPostId(4)).toBeGreaterThan(0);
     });
 
     it('Given same author has posts in two feeds When remove by author is called for one feed Then posts in other feed remain', async () => {
@@ -65,6 +70,9 @@ describe(ENDPOINT_PATH, () => {
         id: 10,
       });
 
+      expect(await countPostLanguagesByPostId(dummyPosts[0].id)).toBeGreaterThan(0);
+      expect(await countPostLanguagesByPostId(10)).toBeGreaterThan(0);
+
       const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
       assertValidResponse(response);
       assertRemovePostByAuthorResponse(json);
@@ -72,6 +80,8 @@ describe(ENDPOINT_PATH, () => {
 
       const author1Count = await countPostsByAuthor(author1Did);
       expect(author1Count).toBe(1);
+      expect(await countPostLanguagesByPostId(dummyPosts[0].id)).toBe(0);
+      expect(await countPostLanguagesByPostId(10)).toBeGreaterThan(0);
     });
   });
 });

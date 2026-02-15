@@ -9,6 +9,7 @@ import {
   removePost,
   resetRemovePostTables,
   verifyPostExists,
+  verifyPostLanguagesExist,
 } from './removePost.shared';
 
 describe(ENDPOINT_PATH, () => {
@@ -20,6 +21,7 @@ describe(ENDPOINT_PATH, () => {
     it('Given a post exists When remove is called with URI only Then the post is removed', async () => {
       const feedId = await insertFeed(dummyFeed);
       await insertPost(feedId, dummyPost);
+      expect(await verifyPostLanguagesExist(dummyPost.id)).toBe(true);
 
       const { response, json } = await removePost(dummyFeed.uri, { uri: dummyPost.uri });
       assertValidResponse(response);
@@ -33,11 +35,13 @@ describe(ENDPOINT_PATH, () => {
 
       const exists = await verifyPostExists(dummyPost.uri);
       expect(exists).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost.id)).toBe(false);
     });
 
     it('Given a post exists When remove is called with specific indexedAt Then the post is removed', async () => {
       const feedId = await insertFeed(dummyFeed);
       await insertPost(feedId, dummyPost);
+      expect(await verifyPostLanguagesExist(dummyPost.id)).toBe(true);
 
       const { response } = await removePost(dummyFeed.uri, {
         uri: dummyPost.uri,
@@ -47,6 +51,7 @@ describe(ENDPOINT_PATH, () => {
 
       const exists = await verifyPostExists(dummyPost.uri);
       expect(exists).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost.id)).toBe(false);
     });
 
     it('Given developer mode is toggled on and off When remove is called Then logging behavior is toggled', async () => {

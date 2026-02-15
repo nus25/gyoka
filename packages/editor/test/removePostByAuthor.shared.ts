@@ -113,6 +113,15 @@ export async function countTotalPosts(): Promise<number> {
   return (results[0] as { count: number }).count;
 }
 
+export async function countPostLanguagesByPostId(postId: number): Promise<number> {
+  const db = env.DB;
+  const { results } = await db
+    .prepare('SELECT COUNT(*) as count FROM post_languages WHERE post_id = ?')
+    .bind(postId)
+    .all();
+  return (results[0] as { count: number }).count;
+}
+
 export async function resetRemovePostByAuthorTables() {
   await clearTables(['posts', 'post_languages', 'feeds']);
 }

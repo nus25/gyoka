@@ -28,6 +28,10 @@ describe(ENDPOINT_PATH, () => {
       await insertPost(feedId1, dummyPost2);
       await insertPost(feedId2, dummyPost3);
 
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(true);
+      expect(await verifyPostLanguagesExist(dummyPost2.id)).toBe(true);
+      expect(await verifyPostLanguagesExist(dummyPost3.id)).toBe(true);
+
       const entries = [
         {
           feed: dummyFeed1.uri,
@@ -61,6 +65,9 @@ describe(ENDPOINT_PATH, () => {
       expect(await verifyPostExists(dummyPost1.uri)).toBe(false);
       expect(await verifyPostExists(dummyPost2.uri)).toBe(false);
       expect(await verifyPostExists(dummyPost3.uri)).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost2.id)).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost3.id)).toBe(false);
     });
 
     it('Given multiple entries for the same feed When batch remove is called Then entries are processed in input order', async () => {
@@ -68,6 +75,10 @@ describe(ENDPOINT_PATH, () => {
       await insertPost(feedId1, dummyPost1);
       await insertPost(feedId1, dummyPost2);
       await insertPost(feedId1, dummyPost3);
+
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(true);
+      expect(await verifyPostLanguagesExist(dummyPost2.id)).toBe(true);
+      expect(await verifyPostLanguagesExist(dummyPost3.id)).toBe(true);
 
       const entries = [
         {
@@ -107,11 +118,16 @@ describe(ENDPOINT_PATH, () => {
       expect(await verifyPostExists(dummyPost1.uri)).toBe(false);
       expect(await verifyPostExists(dummyPost2.uri)).toBe(false);
       expect(await verifyPostExists(dummyPost3.uri)).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost2.id)).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost3.id)).toBe(false);
     });
 
     it('Given post has no indexedAt When batch remove is called Then wildcard deletion is applied', async () => {
       const feedId1 = await insertFeed(dummyFeed1);
       await insertPost(feedId1, dummyPost1);
+
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(true);
 
       const entries = [
         {
@@ -125,11 +141,14 @@ describe(ENDPOINT_PATH, () => {
 
       expect(json.results![0].results[0].status).toBe('removed');
       expect(await verifyPostExists(dummyPost1.uri)).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(false);
     });
 
     it('Given post has indexedAt When batch remove is called Then deletion uses the specified indexedAt', async () => {
       const feedId1 = await insertFeed(dummyFeed1);
       await insertPost(feedId1, dummyPost1);
+
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(true);
 
       const entries = [
         {
@@ -143,11 +162,14 @@ describe(ENDPOINT_PATH, () => {
 
       expect(json.results![0].results[0].status).toBe('removed');
       expect(await verifyPostExists(dummyPost1.uri, dummyPost1.indexedAt)).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(false);
     });
 
     it('Given duplicate removal requests for the same post When batch remove is called Then each request returns a result', async () => {
       const feedId1 = await insertFeed(dummyFeed1);
       await insertPost(feedId1, dummyPost1);
+
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(true);
 
       const entries = [
         {
@@ -165,6 +187,7 @@ describe(ENDPOINT_PATH, () => {
       expect(json.results![0].results).toHaveLength(2);
       expect(json.results![0].results[0].status).toBe('removed');
       expect(json.results![0].results[1].status).toBe('removed');
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(false);
     });
 
     it('Given post has related post_languages When batch remove is called Then cascade deletion removes them', async () => {
@@ -192,6 +215,9 @@ describe(ENDPOINT_PATH, () => {
       await insertPost(feedId1, dummyPost1);
       await insertPost(feedId1, dummyPost3);
 
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(true);
+      expect(await verifyPostLanguagesExist(dummyPost3.id)).toBe(true);
+
       const entries = [
         {
           feed: dummyFeed1.uri,
@@ -213,6 +239,9 @@ describe(ENDPOINT_PATH, () => {
       expect(json.results![0].results[1].status).toBe('error');
       expect(json.results![0].results[2].uri).toBe(dummyPost1.uri);
       expect(json.results![0].results[2].status).toBe('removed');
+
+      expect(await verifyPostLanguagesExist(dummyPost3.id)).toBe(false);
+      expect(await verifyPostLanguagesExist(dummyPost1.id)).toBe(false);
     });
 
     it('Given developer mode is toggled on and off When batch remove is called Then logging behavior is toggled', async () => {

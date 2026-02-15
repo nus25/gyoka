@@ -87,6 +87,15 @@ export async function verifyPostExists(uri: string): Promise<boolean> {
   return results.length > 0;
 }
 
+export async function verifyPostLanguagesExist(postId: number): Promise<boolean> {
+  const db = env.DB;
+  const { results } = await db
+    .prepare('SELECT 1 FROM post_languages WHERE post_id = ?')
+    .bind(postId)
+    .all();
+  return results.length > 0;
+}
+
 export async function resetRemovePostTables() {
   await clearTables(['posts', 'post_languages', 'feeds']);
 }

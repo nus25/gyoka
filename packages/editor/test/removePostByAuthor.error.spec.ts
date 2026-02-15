@@ -4,8 +4,11 @@ import { assertErrorResponse } from './testUtils';
 import {
   ENDPOINT_PATH,
   author1Did,
+  countPostLanguagesByPostId,
   dummyFeed,
+  dummyPosts,
   insertFeed,
+  insertPost,
   removePostByAuthor,
   resetRemovePostByAuthorTables,
 } from './removePostByAuthor.shared';
@@ -34,12 +37,15 @@ describe(ENDPOINT_PATH, () => {
     });
 
     it('Given author DID is invalid When remove by author is called Then it returns bad request', async () => {
-      await insertFeed(dummyFeed);
+      const feedId = await insertFeed(dummyFeed);
+      await insertPost(feedId, dummyPosts[0]);
+      expect(await countPostLanguagesByPostId(dummyPosts[0].id)).toBeGreaterThan(0);
 
       const { response, json } = await removePostByAuthor(dummyFeed.uri, 'invalid-did');
       expect(response.status).toBe(400);
       assertErrorResponse(json);
       expect(json.error).toBe('BadRequest');
+      expect(await countPostLanguagesByPostId(dummyPosts[0].id)).toBeGreaterThan(0);
     });
 
     it('Given database schema is broken When remove by author is called Then it returns internal server error', async () => {

@@ -6,6 +6,7 @@ import {
   author1Did,
   author2Did,
   countPostsByAuthor,
+  countPostLanguagesByPostId,
   countTotalPosts,
   dummyFeed,
   dummyPosts,
@@ -27,6 +28,10 @@ describe(ENDPOINT_PATH, () => {
       await insertPost(feedId, dummyPosts[1]);
       await insertPost(feedId, dummyPosts[2]);
 
+      expect(await countPostLanguagesByPostId(dummyPosts[0].id)).toBeGreaterThan(0);
+      expect(await countPostLanguagesByPostId(dummyPosts[1].id)).toBeGreaterThan(0);
+      expect(await countPostLanguagesByPostId(dummyPosts[2].id)).toBeGreaterThan(0);
+
       const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
       assertValidResponse(response);
       expect(json).toEqual({
@@ -44,6 +49,10 @@ describe(ENDPOINT_PATH, () => {
 
       const totalCount = await countTotalPosts();
       expect(totalCount).toBe(1);
+
+      expect(await countPostLanguagesByPostId(dummyPosts[0].id)).toBe(0);
+      expect(await countPostLanguagesByPostId(dummyPosts[1].id)).toBe(0);
+      expect(await countPostLanguagesByPostId(dummyPosts[2].id)).toBeGreaterThan(0);
     });
 
     it('Given author posts exist in multiple feeds When remove by author is called for one feed Then only posts in that feed are removed', async () => {
@@ -83,6 +92,10 @@ describe(ENDPOINT_PATH, () => {
       await insertPost(feedId, post2);
       await insertPost(feedId, post3);
 
+  expect(await countPostLanguagesByPostId(post1.id)).toBeGreaterThan(0);
+  expect(await countPostLanguagesByPostId(post2.id)).toBeGreaterThan(0);
+  expect(await countPostLanguagesByPostId(post3.id)).toBeGreaterThan(0);
+
       const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
       assertValidResponse(response);
       assertRemovePostByAuthorResponse(json);
@@ -90,6 +103,10 @@ describe(ENDPOINT_PATH, () => {
 
       const author1Count = await countPostsByAuthor(author1Did);
       expect(author1Count).toBe(0);
+
+      expect(await countPostLanguagesByPostId(post1.id)).toBe(0);
+      expect(await countPostLanguagesByPostId(post2.id)).toBe(0);
+      expect(await countPostLanguagesByPostId(post3.id)).toBe(0);
     });
 
     it('Given developer mode is toggled on and off When remove by author is called Then logging behavior is toggled', async () => {
