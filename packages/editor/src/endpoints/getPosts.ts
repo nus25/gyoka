@@ -78,7 +78,7 @@ export class GetPosts extends BaseOpenAPIRoute {
     let cursorIndexedAt: string | null = null;
     let cursorCid: string | null = null;
     if (cursor) {
-      const cursorParts = cursor ? cursor.split('::') : [];
+      const cursorParts = cursor.split('::');
       if (
         cursorParts.length !== 2 ||
         cursorParts.some((part) => part === '') ||
