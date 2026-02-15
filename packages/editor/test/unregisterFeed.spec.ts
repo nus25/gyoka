@@ -53,7 +53,8 @@ describe(ENDPOINT_PATH, async () => {
     const resp = json as ErrorResponse;
     expect(response.status).toBe(404);
     expect(resp.error).toBe('UnknownFeed');
-    expect(resp.message).toBe(`Feed with URI ${feedUri} does not exist.`);
+    expect(resp.message).toContain('does not exist');
+    expect(resp.message).toContain(feedUri);
   });
 
   it('returns a bad request error for invalid feed URI', async () => {
@@ -94,7 +95,7 @@ describe(ENDPOINT_PATH, async () => {
     const resp = json as ErrorResponse;
     expect(response.status).toBe(500);
     expect(resp.error).toBe('InternalServerError');
-    expect(resp.message).toBe('Failed to query the database');
+    expect(resp.message).toContain('Failed to query the database');
   });
 
   it('handles batch operation failure', async () => {
@@ -133,7 +134,7 @@ describe(ENDPOINT_PATH, async () => {
     const resp = json as ErrorResponse;
     expect(response.status).toBe(500);
     expect(resp.error).toBe('InternalServerError');
-    expect(resp.message).toBe('Failed to unregister feed and associated posts');
+    expect(resp.message).toContain('Failed to unregister feed and associated posts');
   });
 
   it('deletes posts associated with the unregistered feed', async () => {

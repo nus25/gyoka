@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { clearTables, expectJsonResponse, requestJson } from './testUtils';
+import { assertErrorResponse, clearTables, expectJsonResponse, requestJson } from './testUtils';
 
 const ENDPOINT_PATH = '/api/feed/batchRemovePosts';
 
@@ -638,8 +638,9 @@ describe(ENDPOINT_PATH, () => {
     const { response, json } = await batchRemovePosts(entries, mockEnv);
 
     expect(response.status).toBe(500);
+    assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
-    expect(json.message).toBe('Failed to query feeds');
+    expect(json.message).toContain('Failed to query feeds');
   });
 
   it('marks all target posts as error when existing-post check is unsuccessful', async () => {

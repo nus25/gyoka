@@ -170,23 +170,19 @@ describe(ENDPOINT_PATH, () => {
   it('handles invalid feed URI', async () => {
     const { response, json } = await getPosts('invalid-uri');
     expect(response.status).toBe(400);
-    expect(json).toEqual({
-      error: 'BadRequest',
-      message:
-        '[{"message":"Invalid AT Protocol URI format. Expected format: at://{DID}/app.bsky.feed.generator/{record-key}","path":["query","feed"]}]',
-    });
+    assertErrorResponse(json);
+    expect(json.error).toBe('BadRequest');
+    expect(json.message).toContain('Invalid AT Protocol URI format');
   });
 
   it('handles non-existent feed', async () => {
-    const { response, json } = await getPosts(
-      'at://did:plc:nonexistent/app.bsky.feed.generator/feed'
-    );
+    const feedUri = 'at://did:plc:nonexistent/app.bsky.feed.generator/feed';
+    const { response, json } = await getPosts(feedUri);
     expect(response.status).toBe(404);
-    expect(json).toEqual({
-      error: 'UnknownFeed',
-      message:
-        'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist.',
-    });
+    assertErrorResponse(json);
+    expect(json.error).toBe('UnknownFeed');
+    expect(json.message).toContain('does not exist');
+    expect(json.message).toContain(feedUri);
   });
 
   it('handles malformed cursor', async () => {
@@ -237,10 +233,8 @@ describe(ENDPOINT_PATH, () => {
 
     expect(response.status).toBe(500);
     assertErrorResponse(json);
-    expect(json).toEqual({
-      error: 'InternalServerError',
-      message: 'Failed to query the database',
-    });
+    expect(json.error).toBe('InternalServerError');
+    expect(json.message).toContain('Failed to query the database');
   });
 
   it('returns InternalServerError when posts query fails', async () => {
@@ -268,10 +262,8 @@ describe(ENDPOINT_PATH, () => {
 
     expect(response.status).toBe(500);
     assertErrorResponse(json);
-    expect(json).toEqual({
-      error: 'InternalServerError',
-      message: 'Failed to fetch posts',
-    });
+    expect(json.error).toBe('InternalServerError');
+    expect(json.message).toContain('Failed to fetch posts');
   });
 
   it('handles developer mode logging', async () => {

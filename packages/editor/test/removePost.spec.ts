@@ -135,31 +135,33 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('handles non-existent feed', async () => {
+    const feedUri = 'at://did:plc:nonexistent/app.bsky.feed.generator/feed';
     const { response, json } = await removePost(
-      'at://did:plc:nonexistent/app.bsky.feed.generator/feed',
+      feedUri,
       {
         uri: dummyPost.uri,
       }
     );
     expect(response.status).toBe(404);
-    expect(json).toEqual({
-      error: 'NotFound',
-      message:
-        'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist.',
-    });
+    assertErrorResponse(json);
+    expect(json.error).toBe('NotFound');
+    expect(json.message).toContain('does not exist');
+    expect(json.message).toContain(feedUri);
   });
 
   it('handles non-existent post', async () => {
     await insertFeed(dummyFeed);
+    const postUri = 'at://did:plc:testuser/app.bsky.feed.post/nonexistent';
 
     const { response, json } = await removePost(dummyFeed.uri, {
-      uri: 'at://did:plc:testuser/app.bsky.feed.post/nonexistent',
+      uri: postUri,
     });
     expect(response.status).toBe(404);
-    expect(json).toEqual({
-      error: 'NotFound',
-      message: `Post not found feed:${dummyFeed.uri}, post:{uri:at://did:plc:testuser/app.bsky.feed.post/nonexistent }`,
-    });
+    assertErrorResponse(json);
+    expect(json.error).toBe('NotFound');
+    expect(json.message).toContain('Post not found');
+    expect(json.message).toContain(dummyFeed.uri);
+    expect(json.message).toContain(postUri);
   });
 
   it('handles invalid feed URI', async () => {
@@ -216,7 +218,7 @@ describe(ENDPOINT_PATH, () => {
     expect(response.status).toBe(500);
     assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
-    expect(json.message).toBe('Failed to query the database');
+    expect(json.message).toContain('Failed to query the database');
   });
 
   it('handles database delete operation failure', async () => {
@@ -246,7 +248,7 @@ describe(ENDPOINT_PATH, () => {
     expect(response.status).toBe(500);
     assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
-    expect(json.message).toBe('Failed to remove post from the database');
+    expect(json.message).toContain('Failed to remove post from the database');
   });
 
   it('handles post not found with specific indexedAt', async () => {

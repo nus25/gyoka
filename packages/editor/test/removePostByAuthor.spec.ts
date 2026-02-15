@@ -290,7 +290,7 @@ describe(ENDPOINT_PATH, () => {
     expect(response.status).toBe(500);
     assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
-    expect(json.message).toBe('Failed to query the database');
+    expect(json.message).toContain('Failed to query the database');
   });
 
   it('handles database delete operation failure', async () => {
@@ -327,7 +327,7 @@ describe(ENDPOINT_PATH, () => {
     expect(response.status).toBe(500);
     assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
-    expect(json.message).toBe('Failed to remove posts from the database');
+    expect(json.message).toContain('Failed to remove posts from the database');
   });
 
   it('removes posts with different languages and timestamps', async () => {

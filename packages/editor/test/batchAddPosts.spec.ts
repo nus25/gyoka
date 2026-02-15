@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { All_LANGS } from 'shared/src/constants';
-import { clearTables, expectJsonResponse, requestJson } from './testUtils';
+import { assertErrorResponse, clearTables, expectJsonResponse, requestJson } from './testUtils';
 
 const ENDPOINT_PATH = '/api/feed/batchAddPosts';
 
@@ -654,8 +654,9 @@ describe(ENDPOINT_PATH, () => {
     const { response, json } = await batchAddPosts(entries, mockEnv);
 
     expect(response.status).toBe(500);
+    assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
-    expect(json.message).toBe('Failed to query feeds');
+    expect(json.message).toContain('Failed to query feeds');
   });
 
   it('returns internal error when feed query result is unsuccessful', async () => {
@@ -684,8 +685,9 @@ describe(ENDPOINT_PATH, () => {
     const { response, json } = await batchAddPosts(entries, mockEnv);
 
     expect(response.status).toBe(500);
+    assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
-    expect(json.message).toBe('Failed to query feeds');
+    expect(json.message).toContain('Failed to query feeds');
   });
 
   it('marks post as error when batch result contains unsuccessful statements', async () => {

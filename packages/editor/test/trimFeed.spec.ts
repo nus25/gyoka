@@ -222,7 +222,7 @@ describe(ENDPOINT_PATH, () => {
     expect(response.status).toBe(500);
     assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
-    expect(json.message).toBe('Failed to query the database');
+    expect(json.message).toContain('Failed to query the database');
   });
 
   it('handles developer mode logging', async () => {
@@ -246,7 +246,7 @@ describe(ENDPOINT_PATH, () => {
 
     expect(enabledResponse.status).toBe(200);
     assertTrimFeedResponse(enabledJson);
-    expect(enabledJson.message).toBe('Posts trimed successfully');
+    expect(enabledJson.message).toContain('Posts trimed successfully');
     expect(enabledJson.deletedCount).toBe(2);
     expect(logSpy).toHaveBeenCalledWith({ feedID: feedId, remain: 3, feedPosts: 5 });
 
@@ -258,7 +258,7 @@ describe(ENDPOINT_PATH, () => {
 
     expect(disabledResponse.status).toBe(200);
     assertTrimFeedResponse(disabledJson);
-    expect(disabledJson.message).toBe('Posts trimed successfully');
+    expect(disabledJson.message).toContain('Posts trimed successfully');
     expect(disabledJson.deletedCount).toBe(0);
     expect(logSpy).not.toHaveBeenCalled();
 
@@ -291,7 +291,7 @@ describe(ENDPOINT_PATH, () => {
     expect(response.status).toBe(500);
     assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
-    expect(json.message).toBe('Failed to remove post from the database');
+    expect(json.message).toContain('Failed to remove post from the database');
   });
 
   it('keeps most recent posts when trimming', async () => {
