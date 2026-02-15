@@ -28,6 +28,7 @@ export default defineWorkersProject(async () => {
       coverage: {
         provider: 'istanbul', // or 'v8'
       },
+      silent: true,
     },
   };
 });

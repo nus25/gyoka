@@ -7,27 +7,28 @@ export default defineWorkersProject(async () => {
 	const migrations = await readD1Migrations(migrationsPath);
 
 	return {
-		test: {
-			name: 'generator',
-			include: ["**/*.spec.ts"],
-			setupFiles: ['../shared/migrations/apply-migrations.ts'],
-			poolOptions: {
-				workers: {
-					singleWorker: true,
-					wrangler: {
-						configPath: './wrangler.jsonc',
-						environment: 'test'
-					},
-					miniflare: {
-						// Add a test-only binding for migrations, so we can apply them in a
-						// setup file
-						bindings: { TEST_MIGRATIONS: migrations },
-					},
-				},
-			},
-			coverage: {
-				provider: 'istanbul' // or 'v8'
-			},
-		},
-	};
+    test: {
+      name: 'generator',
+      include: ['**/*.spec.ts'],
+      setupFiles: ['../shared/migrations/apply-migrations.ts'],
+      poolOptions: {
+        workers: {
+          singleWorker: true,
+          wrangler: {
+            configPath: './wrangler.jsonc',
+            environment: 'test',
+          },
+          miniflare: {
+            // Add a test-only binding for migrations, so we can apply them in a
+            // setup file
+            bindings: { TEST_MIGRATIONS: migrations },
+          },
+        },
+      },
+      coverage: {
+        provider: 'istanbul', // or 'v8'
+      },
+      silent: true,
+    },
+  };
 });
