@@ -68,6 +68,37 @@ describe(ENDPOINT_PATH, () => {
     expect(results[0].lang_filter).toBe(request.langFilter ? 1 : 0);
     expect(results[0].is_active).toBe(request.isActive ? 1 : 0);
   });
+  it('updates feed from false values to true', async () => {
+    const uri = 'at://did:plc:testuser/app.bsky.feed.generator/feed1rkey';
+
+    // Prepare feed state as false/false
+    const db = env.DB;
+    await db.prepare('UPDATE feeds SET lang_filter = ?, is_active = ? WHERE feed_uri = ?').bind(0, 0, uri).run();
+
+    const request = {
+      uri,
+      langFilter: true,
+      isActive: true,
+    };
+
+    const { response, json } = await updateFeed(request);
+    assertValidResponse(response);
+    expect(json).toEqual({
+      message: 'Feed updated successfully',
+      feed: {
+        uri,
+        langFilter: true,
+        isActive: true,
+      },
+    });
+
+    // Verify database state
+    const { results } = await db.prepare('SELECT * FROM feeds WHERE feed_uri = ?').bind(uri).all();
+    expect(results.length).toBe(1);
+    expect(results[0].feed_uri).toBe(uri);
+    expect(results[0].lang_filter).toBe(1);
+    expect(results[0].is_active).toBe(1);
+  });
   it('updates feed with langFilter fields specified', async () => {
     const request = {
       uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed1rkey',

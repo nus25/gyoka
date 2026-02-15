@@ -1,5 +1,5 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import app from '../src/index';
 
 const BASE_URL = 'http://localhost:8787';
@@ -625,5 +625,68 @@ describe(ENDPOINT_PATH, () => {
     expect(json.results).toBeDefined();
     expect(json.results![0].results[0].status).toBe('error');
     expect(json.results![0].results[0].error).toBe('Failed to remove post from DB'); // D1 error message is not propagated
+  });
+
+  it('handles developer mode logging', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const feedId1 = await insertFeed(dummyFeed1);
+    const feedId2 = await insertFeed(dummyFeed2);
+    const post1 = { ...dummyPost1, id: 3001, uri: 'at://did:plc:author1/app.bsky.feed.post/dev-post-1' };
+    const post2 = { ...dummyPost2, id: 3002, uri: 'at://did:plc:author2/app.bsky.feed.post/dev-post-2' };
+    await insertPost(feedId1, post1);
+    await insertPost(feedId2, post2);
+
+    const createRequest = (entries: Array<{ feed: string; posts: Array<{ uri: string; indexedAt?: string }> }>) =>
+      new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entries }),
+      });
+
+    const disabledEntries = [
+      {
+        feed: dummyFeed1.uri,
+        posts: [{ uri: post1.uri, indexedAt: post1.indexedAt }],
+      },
+    ];
+    const enabledEntries = [
+      {
+        feed: dummyFeed2.uri,
+        posts: [{ uri: post2.uri, indexedAt: post2.indexedAt }],
+      },
+    ];
+
+    const disabledCtx = createExecutionContext();
+    const disabledResponse = await app.fetch(
+      createRequest(disabledEntries),
+      {
+        ...env,
+        DEVELOPER_MODE: undefined,
+      },
+      disabledCtx
+    );
+    await waitOnExecutionContext(disabledCtx);
+    expect(disabledResponse.status).toBe(200);
+    expect(logSpy).not.toHaveBeenCalled();
+
+    logSpy.mockClear();
+
+    const enabledCtx = createExecutionContext();
+    const enabledResponse = await app.fetch(
+      createRequest(enabledEntries),
+      {
+        ...env,
+        DEVELOPER_MODE: 'enabled',
+      },
+      enabledCtx
+    );
+    await waitOnExecutionContext(enabledCtx);
+    expect(enabledResponse.status).toBe(200);
+    expect(logSpy).toHaveBeenCalledWith('Batch removing posts:', expect.any(Object));
+    expect(logSpy).toHaveBeenCalledWith('Generated query:', expect.any(String));
+    expect(logSpy).toHaveBeenCalledWith('Bindings:', expect.any(Array));
+    expect(logSpy).toHaveBeenCalledWith('Feed deletion result:', expect.any(Object));
+
+    logSpy.mockRestore();
   });
 });

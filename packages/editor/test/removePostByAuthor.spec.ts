@@ -1,5 +1,5 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import app from '../src/index';
 
 const BASE_URL = 'http://localhost:8787';
@@ -377,5 +377,49 @@ describe(ENDPOINT_PATH, () => {
     // Verify all author1's posts were removed
     const author1Count = await countPostsByAuthor(author1Did);
     expect(author1Count).toBe(0);
+  });
+
+  it('handles developer mode logging', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const feedId = await insertFeed(dummyFeed);
+    await insertPost(feedId, { ...dummyPosts[0], id: 2001, uri: `at://${author1Did}/app.bsky.feed.post/dev-post-1` });
+    await insertPost(feedId, { ...dummyPosts[2], id: 2002, uri: `at://${author2Did}/app.bsky.feed.post/dev-post-2` });
+
+    const createRequest = (author: string) =>
+      new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feed: dummyFeed.uri, author }),
+      });
+
+    const disabledCtx = createExecutionContext();
+    const disabledResponse = await app.fetch(
+      createRequest(author1Did),
+      {
+        ...env,
+        DEVELOPER_MODE: undefined,
+      },
+      disabledCtx
+    );
+    await waitOnExecutionContext(disabledCtx);
+    expect(disabledResponse.status).toBe(200);
+    expect(logSpy).not.toHaveBeenCalled();
+
+    logSpy.mockClear();
+
+    const enabledCtx = createExecutionContext();
+    const enabledResponse = await app.fetch(
+      createRequest(author2Did),
+      {
+        ...env,
+        DEVELOPER_MODE: 'enabled',
+      },
+      enabledCtx
+    );
+    await waitOnExecutionContext(enabledCtx);
+    expect(enabledResponse.status).toBe(200);
+    expect(logSpy).toHaveBeenCalledWith('feed id:', feedId, 'author:', author2Did, 'deletedCount:', 1);
+
+    logSpy.mockRestore();
   });
 });

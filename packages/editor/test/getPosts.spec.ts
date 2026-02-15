@@ -1,5 +1,5 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import app from '../src/index';
 
 const BASE_URL = 'http://localhost:8787';
@@ -272,5 +272,44 @@ describe(ENDPOINT_PATH, () => {
       error: 'InternalServerError',
       message: 'Failed to fetch posts',
     });
+  });
+
+  it('handles developer mode logging', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    await insertFeed(dummyFeed);
+
+    const createRequest = () =>
+      new Request(`${BASE_URL}${ENDPOINT_PATH}?feed=${encodeURIComponent(dummyFeed.uri)}&limit=10`);
+
+    const disabledCtx = createExecutionContext();
+    const disabledResponse = await app.fetch(
+      createRequest(),
+      {
+        ...env,
+        DEVELOPER_MODE: undefined,
+      },
+      disabledCtx
+    );
+    await waitOnExecutionContext(disabledCtx);
+    expect(disabledResponse.status).toBe(200);
+    expect(logSpy).not.toHaveBeenCalled();
+
+    logSpy.mockClear();
+
+    const enabledCtx = createExecutionContext();
+    const enabledResponse = await app.fetch(
+      createRequest(),
+      {
+        ...env,
+        DEVELOPER_MODE: 'enabled',
+      },
+      enabledCtx
+    );
+    await waitOnExecutionContext(enabledCtx);
+    expect(enabledResponse.status).toBe(200);
+    expect(logSpy).toHaveBeenCalledWith('Generated query:', expect.any(String));
+    expect(logSpy).toHaveBeenCalledWith('Bindings:', expect.any(Array));
+
+    logSpy.mockRestore();
   });
 });

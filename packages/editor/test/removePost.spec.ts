@@ -1,5 +1,5 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import app from '../src/index';
 
 const BASE_URL = 'http://localhost:8787';
@@ -283,5 +283,59 @@ describe(ENDPOINT_PATH, () => {
     // Verify post still exists
     const exists = await verifyPostExists(dummyPost.uri);
     expect(exists).toBe(true);
+  });
+
+  it('handles developer mode logging', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const feedId = await insertFeed(dummyFeed);
+    const post1 = {
+      ...dummyPost,
+      id: 1001,
+      uri: 'at://did:plc:testuser/app.bsky.feed.post/test-post-dev-1',
+    };
+    const post2 = {
+      ...dummyPost,
+      id: 1002,
+      uri: 'at://did:plc:testuser/app.bsky.feed.post/test-post-dev-2',
+    };
+    await insertPost(feedId, post1);
+    await insertPost(feedId, post2);
+
+    const createRequest = (postUri: string) =>
+      new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feed: dummyFeed.uri, post: { uri: postUri } }),
+      });
+
+    const disabledCtx = createExecutionContext();
+    const disabledResponse = await app.fetch(
+      createRequest(post1.uri),
+      {
+        ...env,
+        DEVELOPER_MODE: undefined,
+      },
+      disabledCtx
+    );
+    await waitOnExecutionContext(disabledCtx);
+    expect(disabledResponse.status).toBe(200);
+    expect(logSpy).not.toHaveBeenCalled();
+
+    logSpy.mockClear();
+
+    const enabledCtx = createExecutionContext();
+    const enabledResponse = await app.fetch(
+      createRequest(post2.uri),
+      {
+        ...env,
+        DEVELOPER_MODE: 'enabled',
+      },
+      enabledCtx
+    );
+    await waitOnExecutionContext(enabledCtx);
+    expect(enabledResponse.status).toBe(200);
+    expect(logSpy).toHaveBeenCalledWith('feed uri:', dummyFeed.uri, 'post:', { uri: post2.uri });
+
+    logSpy.mockRestore();
   });
 });

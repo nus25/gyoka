@@ -1,5 +1,5 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import app from '../src/index';
 
 const BASE_URL = 'http://localhost:8787';
@@ -234,6 +234,7 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('handles developer mode logging', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const feedId = await insertFeed(dummyFeed);
     const posts = Array.from({ length: 5 }, (_, i) => ({
       id: i,
@@ -247,26 +248,50 @@ describe(ENDPOINT_PATH, () => {
       await insertPost(feedId, post);
     }
 
-    // Create a request with developer mode enabled
-    const devModeEnv = {
-      ...env,
-      DEVELOPER_MODE: 'enabled',
-    };
+    const createTrimRequest = () =>
+      new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feed: dummyFeed.uri, remain: 3 }),
+      });
 
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feed: dummyFeed.uri, remain: 3 }),
-    });
+    const enabledCtx = createExecutionContext();
+    const enabledResponse = await app.fetch(
+      createTrimRequest(),
+      {
+        ...env,
+        DEVELOPER_MODE: 'enabled',
+      },
+      enabledCtx
+    );
+    await waitOnExecutionContext(enabledCtx);
 
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, devModeEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    expect(enabledResponse.status).toBe(200);
+    const enabledJson = (await enabledResponse.json()) as TrimFeedResponse;
+    expect(enabledJson.message).toBe('Posts trimed successfully');
+    expect(enabledJson.deletedCount).toBe(2);
+    expect(logSpy).toHaveBeenCalledWith({ feedID: feedId, remain: 3, feedPosts: 5 });
 
-    expect(response.status).toBe(200);
-    const json = (await response.json()) as TrimFeedResponse;
-    expect(json.message).toBe('Posts trimed successfully');
-    expect(json.deletedCount).toBe(2);
+    logSpy.mockClear();
+
+    const disabledCtx = createExecutionContext();
+    const disabledResponse = await app.fetch(
+      createTrimRequest(),
+      {
+        ...env,
+        DEVELOPER_MODE: undefined,
+      },
+      disabledCtx
+    );
+    await waitOnExecutionContext(disabledCtx);
+
+    expect(disabledResponse.status).toBe(200);
+    const disabledJson = (await disabledResponse.json()) as TrimFeedResponse;
+    expect(disabledJson.message).toBe('Posts trimed successfully');
+    expect(disabledJson.deletedCount).toBe(0);
+    expect(logSpy).not.toHaveBeenCalled();
+
+    logSpy.mockRestore();
   });
 
   it('returns InternalServerError when delete run reports failure', async () => {
