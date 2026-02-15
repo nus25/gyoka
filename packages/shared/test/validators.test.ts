@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { feedUri, postUri, repostUri, did } from '../src/validators';
+import { feedUri, postUri, repostUri, did, cid } from '../src/validators';
 
 describe('Success cases', () => {
   it('Given valid feedUri inputs When parsing Then it succeeds', () => {
@@ -25,6 +25,11 @@ describe('Success cases', () => {
   it('Given valid DID When parsing Then it succeeds', () => {
     const validDid = 'did:plc:user.example.com';
     expect(() => did.parse(validDid)).not.toThrow();
+  });
+
+  it('Given valid CIDv1 When parsing Then it succeeds', () => {
+    const validCid = 'abcdef12';
+    expect(() => cid.parse(validCid)).not.toThrow();
   });
 });
 
@@ -84,6 +89,11 @@ describe('Error cases', () => {
     expect(() => did.parse(invalidDid)).toThrow(
       'Invalid DID format. Expected format: did:{method}:{identifier}'
     );
+  });
+
+  it('Given CIDv1 with invalid characters When parse is called Then it throws expected error', () => {
+    const invalidCid = 'abc$ef12';
+    expect(() => cid.parse(invalidCid)).toThrow('Invalid CIDv1 format.');
   });
 });
 
