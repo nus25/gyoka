@@ -1,9 +1,8 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DOCUMENT_TYPES } from 'shared/src/constants';
-import app from '../src/index';
+import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/gyoka/updateDocument';
 
 // request helper
@@ -11,33 +10,25 @@ async function updateDocument(request: {
   type: string; // type に変更
   url?: string; // url を追加
   content?: string; // content を追加
-}) {
-  const req = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  });
-  const ctx = createExecutionContext();
-  const response = await app.fetch(req, env, ctx);
-  await waitOnExecutionContext(ctx);
-  return {
-    response,
-    json: await response.json(),
-  };
-}
-
-// response validation helper
-function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+}, envOverrides?: Partial<Env>) {
+  return requestJson<{ type?: string; url?: string | null; content?: string | null; error?: string }>(
+    {
+      path: ENDPOINT_PATH,
+      init: {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      },
+      envOverrides,
+    }
+  );
 }
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
-    const db = env.DB;
-    await db.prepare('DELETE FROM documents').run();
+    await clearTables(['documents']);
   });
 
   it('updates document with all fields specified', async () => {
@@ -49,7 +40,7 @@ describe(ENDPOINT_PATH, () => {
 
     const { response, json } = await updateDocument(request);
 
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       type: request.type,
       url: request.url,
@@ -74,7 +65,7 @@ describe(ENDPOINT_PATH, () => {
 
     const { response, json } = await updateDocument(request);
 
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       type: request.type,
       url: null,
@@ -114,32 +105,24 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('returns InternalServerError when document update run reports failure', async () => {
-    const req = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        type: DOCUMENT_TYPES.TOS,
-      }),
-    });
-    const ctx = createExecutionContext();
-    const failingEnv = {
-      ...env,
+    const failingEnv: Partial<Env> = {
       DB: {
         prepare: () => ({
           bind: () => ({
             run: async () => ({ success: false }),
           }),
         }),
-      },
+      } as unknown as D1Database,
     };
 
-    const response = await app.fetch(req, failingEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await updateDocument(
+      {
+        type: DOCUMENT_TYPES.TOS,
+      },
+      failingEnv
+    );
 
     expect(response.status).toBe(500);
-    const json = await response.json();
     expect(json).toEqual({
       error: 'InternalServerError',
       message: 'Failed to update document',

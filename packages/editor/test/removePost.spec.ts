@@ -1,8 +1,7 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import app from '../src/index';
+import { assertErrorResponse, clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/removePost';
 
 const dummyFeed = {
@@ -33,27 +32,27 @@ interface ErrorResponse {
 }
 
 // request helper
-async function removePost(feed: string, post: { uri: string; indexedAt?: string }) {
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+async function removePost(
+  feed: string,
+  post: { uri: string; indexedAt?: string },
+  envOverrides?: Partial<Env>
+) {
+  return requestJson<RemovePostResponse | ErrorResponse>({
+    path: ENDPOINT_PATH,
+    init: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ feed, post }),
     },
-    body: JSON.stringify({ feed, post }),
+    envOverrides,
   });
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-  return {
-    response,
-    json: (await response.json()) as RemovePostResponse,
-  };
 }
 
 // response validation helper
 function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+  expectJsonResponse(response);
 }
 
 // database helpers
@@ -98,10 +97,7 @@ async function verifyPostExists(uri: string): Promise<boolean> {
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
-    const db = env.DB;
-    await db.prepare('DELETE FROM posts').run();
-    await db.prepare('DELETE FROM post_languages').run();
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['posts', 'post_languages', 'feeds']);
   });
 
   it('removes a post with URI only', async () => {
@@ -213,20 +209,14 @@ describe(ENDPOINT_PATH, () => {
     };
 
     // Create a custom environment with the mock database
-    const mockEnv = { ...env, DB: mockDb };
-
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feed: dummyFeed.uri, post: { uri: dummyPost.uri } }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await removePost(
+      dummyFeed.uri,
+      { uri: dummyPost.uri },
+      { DB: mockDb as unknown as D1Database }
+    );
 
     expect(response.status).toBe(500);
-    const json = (await response.json()) as ErrorResponse;
+    assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
     expect(json.message).toBe('Failed to query the database');
   });
@@ -249,20 +239,14 @@ describe(ENDPOINT_PATH, () => {
     };
 
     // Create a custom environment with the mock database
-    const mockEnv = { ...env, DB: mockDb };
-
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feed: dummyFeed.uri, post: { uri: dummyPost.uri } }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await removePost(
+      dummyFeed.uri,
+      { uri: dummyPost.uri },
+      { DB: mockDb as unknown as D1Database }
+    );
 
     expect(response.status).toBe(500);
-    const json = (await response.json()) as ErrorResponse;
+    assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
     expect(json.message).toBe('Failed to remove post from the database');
   });
@@ -301,38 +285,21 @@ describe(ENDPOINT_PATH, () => {
     await insertPost(feedId, post1);
     await insertPost(feedId, post2);
 
-    const createRequest = (postUri: string) =>
-      new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ feed: dummyFeed.uri, post: { uri: postUri } }),
-      });
-
-    const disabledCtx = createExecutionContext();
-    const disabledResponse = await app.fetch(
-      createRequest(post1.uri),
-      {
-        ...env,
-        DEVELOPER_MODE: undefined,
-      },
-      disabledCtx
+    const { response: disabledResponse } = await removePost(
+      dummyFeed.uri,
+      { uri: post1.uri },
+      { DEVELOPER_MODE: undefined }
     );
-    await waitOnExecutionContext(disabledCtx);
     expect(disabledResponse.status).toBe(200);
     expect(logSpy).not.toHaveBeenCalled();
 
     logSpy.mockClear();
 
-    const enabledCtx = createExecutionContext();
-    const enabledResponse = await app.fetch(
-      createRequest(post2.uri),
-      {
-        ...env,
-        DEVELOPER_MODE: 'enabled',
-      },
-      enabledCtx
+    const { response: enabledResponse } = await removePost(
+      dummyFeed.uri,
+      { uri: post2.uri },
+      { DEVELOPER_MODE: 'enabled' }
     );
-    await waitOnExecutionContext(enabledCtx);
     expect(enabledResponse.status).toBe(200);
     expect(logSpy).toHaveBeenCalledWith('feed uri:', dummyFeed.uri, 'post:', { uri: post2.uri });
 

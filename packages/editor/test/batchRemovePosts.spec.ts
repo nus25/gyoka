@@ -1,8 +1,7 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import app from '../src/index';
+import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/batchRemovePosts';
 
 const dummyFeed1 = {
@@ -57,25 +56,23 @@ interface BatchRemovePostsResponse {
 }
 
 // request helper
-async function batchRemovePosts(entries: any[]) {
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+async function batchRemovePosts(entries: any[], envOverrides?: Partial<Env>) {
+  return requestJson<BatchRemovePostsResponse>({
+    path: ENDPOINT_PATH,
+    init: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ entries }),
     },
-    body: JSON.stringify({ entries }),
+    envOverrides,
   });
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-  const json = (await response.json()) as BatchRemovePostsResponse;
-  return { response, json };
 }
 
 // response validation helper
 function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+  expectJsonResponse(response);
 }
 
 // database helpers
@@ -140,10 +137,7 @@ async function verifyPostLanguagesExist(postId: number): Promise<boolean> {
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
-    const db = env.DB;
-    await db.prepare('DELETE FROM posts').run();
-    await db.prepare('DELETE FROM post_languages').run();
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['posts', 'post_languages', 'feeds']);
   });
 
   it('removes multiple posts from multiple feeds successfully', async () => {
@@ -601,7 +595,7 @@ describe(ENDPOINT_PATH, () => {
       },
     };
 
-    const mockEnv = { ...env, DB: mockDb };
+    const mockEnv: Partial<Env> = { DB: mockDb as unknown as D1Database };
 
     const entries = [
       {
@@ -610,18 +604,9 @@ describe(ENDPOINT_PATH, () => {
       },
     ];
 
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await batchRemovePosts(entries, mockEnv);
 
     expect(response.status).toBe(200);
-    const json = (await response.json()) as BatchRemovePostsResponse;
     expect(json.results).toBeDefined();
     expect(json.results![0].results[0].status).toBe('error');
     expect(json.results![0].results[0].error).toBe('Failed to remove post from DB'); // D1 error message is not propagated
@@ -641,7 +626,7 @@ describe(ENDPOINT_PATH, () => {
       batch: async () => [],
     };
 
-    const mockEnv = { ...env, DB: mockDb };
+    const mockEnv: Partial<Env> = { DB: mockDb as unknown as D1Database };
 
     const entries = [
       {
@@ -650,18 +635,9 @@ describe(ENDPOINT_PATH, () => {
       },
     ];
 
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await batchRemovePosts(entries, mockEnv);
 
     expect(response.status).toBe(500);
-    const json = (await response.json()) as BatchRemovePostsResponse;
     expect(json.error).toBe('InternalServerError');
     expect(json.message).toBe('Failed to query feeds');
   });
@@ -691,7 +667,7 @@ describe(ENDPOINT_PATH, () => {
       batch: async () => [],
     };
 
-    const mockEnv = { ...env, DB: mockDb };
+    const mockEnv: Partial<Env> = { DB: mockDb as unknown as D1Database };
 
     const entries = [
       {
@@ -703,18 +679,9 @@ describe(ENDPOINT_PATH, () => {
       },
     ];
 
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await batchRemovePosts(entries, mockEnv);
 
     expect(response.status).toBe(200);
-    const json = (await response.json()) as BatchRemovePostsResponse;
     expect(json.results).toBeDefined();
     expect(json.results![0].results).toHaveLength(2);
     expect(json.results![0].results[0].status).toBe('error');
@@ -748,7 +715,7 @@ describe(ENDPOINT_PATH, () => {
       batch: async () => [{ success: false }],
     };
 
-    const mockEnv = { ...env, DB: mockDb };
+    const mockEnv: Partial<Env> = { DB: mockDb as unknown as D1Database };
 
     const entries = [
       {
@@ -757,18 +724,9 @@ describe(ENDPOINT_PATH, () => {
       },
     ];
 
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await batchRemovePosts(entries, mockEnv);
 
     expect(response.status).toBe(200);
-    const json = (await response.json()) as BatchRemovePostsResponse;
     expect(json.results).toBeDefined();
     expect(json.results![0].results[0].status).toBe('error');
     expect(json.results![0].results[0].error).toBe('Failed to remove post from DB');
@@ -783,13 +741,6 @@ describe(ENDPOINT_PATH, () => {
     await insertPost(feedId1, post1);
     await insertPost(feedId2, post2);
 
-    const createRequest = (entries: Array<{ feed: string; posts: Array<{ uri: string; indexedAt?: string }> }>) =>
-      new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entries }),
-      });
-
     const disabledEntries = [
       {
         feed: dummyFeed1.uri,
@@ -803,31 +754,17 @@ describe(ENDPOINT_PATH, () => {
       },
     ];
 
-    const disabledCtx = createExecutionContext();
-    const disabledResponse = await app.fetch(
-      createRequest(disabledEntries),
-      {
-        ...env,
-        DEVELOPER_MODE: undefined,
-      },
-      disabledCtx
-    );
-    await waitOnExecutionContext(disabledCtx);
+    const { response: disabledResponse } = await batchRemovePosts(disabledEntries, {
+      DEVELOPER_MODE: undefined,
+    });
     expect(disabledResponse.status).toBe(200);
     expect(logSpy).not.toHaveBeenCalled();
 
     logSpy.mockClear();
 
-    const enabledCtx = createExecutionContext();
-    const enabledResponse = await app.fetch(
-      createRequest(enabledEntries),
-      {
-        ...env,
-        DEVELOPER_MODE: 'enabled',
-      },
-      enabledCtx
-    );
-    await waitOnExecutionContext(enabledCtx);
+    const { response: enabledResponse } = await batchRemovePosts(enabledEntries, {
+      DEVELOPER_MODE: 'enabled',
+    });
     expect(enabledResponse.status).toBe(200);
     expect(logSpy).toHaveBeenCalledWith('Batch removing posts:', expect.any(Object));
     expect(logSpy).toHaveBeenCalledWith('Generated query:', expect.any(String));

@@ -1,9 +1,8 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { All_LANGS } from 'shared/src/constants';
-import app from '../src/index';
+import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/addPost';
 
 const dummyFeed = {
@@ -35,28 +34,36 @@ async function addPost(
           $type: 'app.bsky.feed.defs#skeletonReasonPin';
         };
     feedContext?: string;
-  }
+  },
+  envOverrides?: Partial<Env>
 ) {
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  return requestJson<{
+    message?: string;
+    feed?: string;
+    post?: {
+      uri: string;
+      cid: string;
+      languages?: string[];
+      indexedAt: string;
+      feedContext?: string;
+    };
+    error?: string;
+  }>({
+    path: ENDPOINT_PATH,
+    init: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ feed, post }),
     },
-    body: JSON.stringify({ feed, post }),
+    envOverrides,
   });
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-  return {
-    response,
-    json: await response.json(),
-  };
 }
 
 // response validation helper
 function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+  expectJsonResponse(response);
 }
 
 // database helper
@@ -70,10 +77,7 @@ async function insertFeed(feed: { uri: string; is_active: number }) {
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
-    const db = env.DB;
-    await db.prepare('DELETE FROM posts').run();
-    await db.prepare('DELETE FROM post_languages').run();
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['posts', 'post_languages', 'feeds']);
   });
 
   it('adds a post with all fields specified', async () => {
@@ -228,16 +232,7 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('returns InternalServerError when post insert reports failure', async () => {
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ feed: dummyFeed.uri, post: dummyPost }),
-    });
-
-    const mockEnv = {
-      ...env,
+    const mockEnv: Partial<Env> = {
       DB: {
         prepare: () => ({
           bind: (...bindArgs: unknown[]) => {
@@ -250,15 +245,11 @@ describe(ENDPOINT_PATH, () => {
           },
         }),
         batch: async () => [{ success: true }],
-      },
+      } as unknown as D1Database,
     };
 
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
-
+    const { response, json } = await addPost(dummyFeed.uri, dummyPost, mockEnv);
     expect(response.status).toBe(500);
-    const json = await response.json();
     expect(json).toEqual({
       error: 'InternalServerError',
       message: 'Failed to insert post to the database',
@@ -266,16 +257,7 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('returns InternalServerError when adding post languages batch fails', async () => {
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ feed: dummyFeed.uri, post: dummyPost }),
-    });
-
-    const mockEnv = {
-      ...env,
+    const mockEnv: Partial<Env> = {
       DB: {
         prepare: () => ({
           bind: (...bindArgs: unknown[]) => {
@@ -288,15 +270,11 @@ describe(ENDPOINT_PATH, () => {
           },
         }),
         batch: async () => [{ success: false }],
-      },
+      } as unknown as D1Database,
     };
 
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
-
+    const { response, json } = await addPost(dummyFeed.uri, dummyPost, mockEnv);
     expect(response.status).toBe(500);
-    const json = await response.json();
     expect(json).toEqual({
       error: 'InternalServerError',
       message: 'Failed to add post languages to DB',

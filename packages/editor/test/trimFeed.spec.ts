@@ -1,8 +1,7 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import app from '../src/index';
+import { assertErrorResponse, clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/trimPosts';
 
 const dummyFeed = {
@@ -21,28 +20,30 @@ interface ErrorResponse {
   message: string;
 }
 
+function assertTrimFeedResponse(
+  response: TrimFeedResponse | ErrorResponse
+): asserts response is TrimFeedResponse {
+  expect(response).toHaveProperty('deletedCount');
+}
+
 // request helper
-async function trimFeed(feed: string, remain: number) {
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+async function trimFeed(feed: string, remain: number, envOverrides?: Partial<Env>) {
+  return requestJson<TrimFeedResponse | ErrorResponse>({
+    path: ENDPOINT_PATH,
+    init: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ feed, remain }),
     },
-    body: JSON.stringify({ feed, remain }),
+    envOverrides,
   });
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-  return {
-    response,
-    json: (await response.json()) as TrimFeedResponse,
-  };
 }
 
 // response validation helper
 function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+  expectJsonResponse(response);
 }
 
 // database helpers
@@ -90,10 +91,7 @@ async function countPosts(feedId: number): Promise<number> {
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
-    const db = env.DB;
-    await db.prepare('DELETE FROM posts').run();
-    await db.prepare('DELETE FROM post_languages').run();
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['posts', 'post_languages', 'feeds']);
   });
 
   it('trims posts keeping specified number of recent posts', async () => {
@@ -153,6 +151,7 @@ describe(ENDPOINT_PATH, () => {
 
     const { response, json } = await trimFeed(dummyFeed.uri, 5);
     assertValidResponse(response);
+    assertTrimFeedResponse(json);
     expect(json.deletedCount).toBe(0);
   });
 
@@ -172,6 +171,7 @@ describe(ENDPOINT_PATH, () => {
 
     const { response, json } = await trimFeed(dummyFeed.uri, 5);
     assertValidResponse(response);
+    assertTrimFeedResponse(json);
     expect(json.deletedCount).toBe(0); // remain all posts
 
     // Verify all posts remain
@@ -215,20 +215,12 @@ describe(ENDPOINT_PATH, () => {
     };
 
     // Create a custom environment with the mock database
-    const mockEnv = { ...env, DB: mockDb };
-
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feed: dummyFeed.uri, remain: 5 }),
+    const { response, json } = await trimFeed(dummyFeed.uri, 5, {
+      DB: mockDb as unknown as D1Database,
     });
 
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
-
     expect(response.status).toBe(500);
-    const json = (await response.json()) as ErrorResponse;
+    assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
     expect(json.message).toBe('Failed to query the database');
   });
@@ -248,45 +240,24 @@ describe(ENDPOINT_PATH, () => {
       await insertPost(feedId, post);
     }
 
-    const createTrimRequest = () =>
-      new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ feed: dummyFeed.uri, remain: 3 }),
-      });
-
-    const enabledCtx = createExecutionContext();
-    const enabledResponse = await app.fetch(
-      createTrimRequest(),
-      {
-        ...env,
-        DEVELOPER_MODE: 'enabled',
-      },
-      enabledCtx
-    );
-    await waitOnExecutionContext(enabledCtx);
+    const { response: enabledResponse, json: enabledJson } = await trimFeed(dummyFeed.uri, 3, {
+      DEVELOPER_MODE: 'enabled',
+    });
 
     expect(enabledResponse.status).toBe(200);
-    const enabledJson = (await enabledResponse.json()) as TrimFeedResponse;
+    assertTrimFeedResponse(enabledJson);
     expect(enabledJson.message).toBe('Posts trimed successfully');
     expect(enabledJson.deletedCount).toBe(2);
     expect(logSpy).toHaveBeenCalledWith({ feedID: feedId, remain: 3, feedPosts: 5 });
 
     logSpy.mockClear();
 
-    const disabledCtx = createExecutionContext();
-    const disabledResponse = await app.fetch(
-      createTrimRequest(),
-      {
-        ...env,
-        DEVELOPER_MODE: undefined,
-      },
-      disabledCtx
-    );
-    await waitOnExecutionContext(disabledCtx);
+    const { response: disabledResponse, json: disabledJson } = await trimFeed(dummyFeed.uri, 3, {
+      DEVELOPER_MODE: undefined,
+    });
 
     expect(disabledResponse.status).toBe(200);
-    const disabledJson = (await disabledResponse.json()) as TrimFeedResponse;
+    assertTrimFeedResponse(disabledJson);
     expect(disabledJson.message).toBe('Posts trimed successfully');
     expect(disabledJson.deletedCount).toBe(0);
     expect(logSpy).not.toHaveBeenCalled();
@@ -295,14 +266,7 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('returns InternalServerError when delete run reports failure', async () => {
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feed: dummyFeed.uri, remain: 3 }),
-    });
-
-    const mockEnv = {
-      ...env,
+    const mockEnv: Partial<Env> = {
       DB: {
         prepare: () => ({
           bind: (...bindArgs: unknown[]) => {
@@ -319,15 +283,13 @@ describe(ENDPOINT_PATH, () => {
             };
           },
         }),
-      },
+      } as unknown as D1Database,
     };
 
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await trimFeed(dummyFeed.uri, 3, mockEnv);
 
     expect(response.status).toBe(500);
-    const json = (await response.json()) as ErrorResponse;
+    assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
     expect(json.message).toBe('Failed to remove post from the database');
   });

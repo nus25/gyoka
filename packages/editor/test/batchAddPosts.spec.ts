@@ -1,9 +1,8 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { All_LANGS } from 'shared/src/constants';
-import app from '../src/index';
+import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/batchAddPosts';
 
 const dummyFeed1 = {
@@ -37,43 +36,41 @@ const dummyPost3 = {
   indexedAt: new Date('2024-01-15T14:00:00Z').toISOString(),
 };
 
+type BatchAddPostsResultItem = {
+  status: 'added' | 'error';
+  uri?: string;
+  error?: string;
+};
+
+type BatchAddPostsResult = {
+  feed: string;
+  results: BatchAddPostsResultItem[];
+};
+
+type BatchAddPostsResponse = {
+  results?: BatchAddPostsResult[];
+  error?: string;
+  message?: string;
+};
+
 // request helper
-async function batchAddPosts(entries: any[]) {
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+async function batchAddPosts(entries: any[], envOverrides?: Partial<Env>) {
+  return requestJson<BatchAddPostsResponse>({
+    path: ENDPOINT_PATH,
+    init: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ entries }),
     },
-    body: JSON.stringify({ entries }),
+    envOverrides,
   });
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-  type BatchAddPostsResultItem = {
-    status: 'added' | 'error';
-    uri?: string;
-    error?: string;
-  };
-
-  type BatchAddPostsResult = {
-    feed: string;
-    results: BatchAddPostsResultItem[];
-  };
-
-  type BatchAddPostsResponse = {
-    results?: BatchAddPostsResult[];
-    error?: string;
-    message?: string;
-  };
-
-  const json = (await response.json()) as BatchAddPostsResponse;
-  return { response, json };
 }
 
 // response validation helper
 function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+  expectJsonResponse(response);
 }
 
 // database helper
@@ -87,10 +84,7 @@ async function insertFeed(feed: { uri: string; is_active: number }) {
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
-    const db = env.DB;
-    await db.prepare('DELETE FROM posts').run();
-    await db.prepare('DELETE FROM post_languages').run();
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['posts', 'post_languages', 'feeds']);
   });
 
   it('adds multiple posts to multiple feeds successfully', async () => {
@@ -648,7 +642,7 @@ describe(ENDPOINT_PATH, () => {
       },
     };
 
-    const mockEnv = { ...env, DB: mockDb };
+    const mockEnv: Partial<Env> = { DB: mockDb as unknown as D1Database };
 
     const entries = [
       {
@@ -657,18 +651,9 @@ describe(ENDPOINT_PATH, () => {
       },
     ];
 
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await batchAddPosts(entries, mockEnv);
 
     expect(response.status).toBe(500);
-    const json = (await response.json()) as { error: string; message: string };
     expect(json.error).toBe('InternalServerError');
     expect(json.message).toBe('Failed to query feeds');
   });
@@ -687,7 +672,7 @@ describe(ENDPOINT_PATH, () => {
       batch: async () => [],
     };
 
-    const mockEnv = { ...env, DB: mockDb };
+    const mockEnv: Partial<Env> = { DB: mockDb as unknown as D1Database };
 
     const entries = [
       {
@@ -696,18 +681,9 @@ describe(ENDPOINT_PATH, () => {
       },
     ];
 
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await batchAddPosts(entries, mockEnv);
 
     expect(response.status).toBe(500);
-    const json = (await response.json()) as { error: string; message: string };
     expect(json.error).toBe('InternalServerError');
     expect(json.message).toBe('Failed to query feeds');
   });
@@ -734,7 +710,7 @@ describe(ENDPOINT_PATH, () => {
       ],
     };
 
-    const mockEnv = { ...env, DB: mockDb };
+    const mockEnv: Partial<Env> = { DB: mockDb as unknown as D1Database };
 
     const entries = [
       {
@@ -743,18 +719,9 @@ describe(ENDPOINT_PATH, () => {
       },
     ];
 
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await batchAddPosts(entries, mockEnv);
 
     expect(response.status).toBe(200);
-    const json = (await response.json()) as { results: any[] };
     expect(json.results[0].results[0].status).toBe('error');
     expect(json.results[0].results[0].error).toBe('Failed to add post to DB');
   });
@@ -781,7 +748,7 @@ describe(ENDPOINT_PATH, () => {
       },
     };
 
-    const mockEnv = { ...env, DB: mockDb };
+    const mockEnv: Partial<Env> = { DB: mockDb as unknown as D1Database };
 
     const entries = [
       {
@@ -790,18 +757,9 @@ describe(ENDPOINT_PATH, () => {
       },
     ];
 
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await batchAddPosts(entries, mockEnv);
 
     expect(response.status).toBe(200);
-    const json = (await response.json()) as { results: any[] };
     console.log(json.results[0].results[0]);
     expect(json.results[0].results[0].status).toBe('error');
     expect(json.results[0].results[0].error).toBe('Failed to add post to DB'); //D1 error message is not propagated
@@ -828,7 +786,7 @@ describe(ENDPOINT_PATH, () => {
       },
     };
 
-    const mockEnv = { ...env, DB: mockDb };
+    const mockEnv: Partial<Env> = { DB: mockDb as unknown as D1Database };
 
     const entries = [
       {
@@ -837,18 +795,9 @@ describe(ENDPOINT_PATH, () => {
       },
     ];
 
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries }),
-    });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await batchAddPosts(entries, mockEnv);
 
     expect(response.status).toBe(200);
-    const json = (await response.json()) as { results: any[] };
     expect(json.results[0].results[0].status).toBe('error');
     expect(json.results[0].results[0].error).toContain('Post already exists. uri:');
     expect(json.results[0].results[0].error).toContain(`uri:${dummyPost1.uri}`);

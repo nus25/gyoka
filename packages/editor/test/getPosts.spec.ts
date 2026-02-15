@@ -1,8 +1,7 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import app from '../src/index';
+import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/getPosts';
 
 const dummyFeed = {
@@ -21,26 +20,25 @@ interface GetPostsResponse {
   cursor?: string;
 }
 
-async function getPosts(feed: string, limit?: number, cursor?: string) {
+async function getPosts(
+  feed: string,
+  limit?: number,
+  cursor?: string,
+  envOverrides?: Partial<Env>
+) {
   const params = new URLSearchParams({ feed });
   if (limit) params.set('limit', limit.toString());
   if (cursor) params.set('cursor', cursor);
 
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}?${params.toString()}`);
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-
-  return {
-    response,
-    json: (await response.json()) as GetPostsResponse,
-  };
+  return requestJson<GetPostsResponse>({
+    path: `${ENDPOINT_PATH}?${params.toString()}`,
+    envOverrides,
+  });
 }
 
 // response validation helper
 function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+  expectJsonResponse(response);
 }
 
 // database helpers
@@ -79,10 +77,7 @@ async function insertPost(
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
-    const db = env.DB;
-    await db.prepare('DELETE FROM posts').run();
-    await db.prepare('DELETE FROM post_languages').run();
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['posts', 'post_languages', 'feeds']);
   });
 
   it('returns posts with default limit', async () => {
@@ -215,24 +210,19 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('returns InternalServerError when feed existence query fails', async () => {
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}?feed=${encodeURIComponent(dummyFeed.uri)}`);
-    const ctx = createExecutionContext();
-    const failingFeedCheckEnv = {
-      ...env,
+    const failingFeedCheckEnv: Partial<Env> = {
       DB: {
         prepare: () => ({
           bind: () => ({
             all: async () => ({ success: false, results: [] }),
           }),
         }),
-      },
+      } as unknown as D1Database,
     };
 
-    const response = await app.fetch(request, failingFeedCheckEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await getPosts(dummyFeed.uri, undefined, undefined, failingFeedCheckEnv);
 
     expect(response.status).toBe(500);
-    const json = await response.json();
     expect(json).toEqual({
       error: 'InternalServerError',
       message: 'Failed to query the database',
@@ -240,11 +230,8 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('returns InternalServerError when posts query fails', async () => {
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}?feed=${encodeURIComponent(dummyFeed.uri)}`);
-    const ctx = createExecutionContext();
     let queryCount = 0;
-    const failingPostsQueryEnv = {
-      ...env,
+    const failingPostsQueryEnv: Partial<Env> = {
       DB: {
         prepare: () => ({
           bind: () => ({
@@ -260,14 +247,12 @@ describe(ENDPOINT_PATH, () => {
             },
           }),
         }),
-      },
+      } as unknown as D1Database,
     };
 
-    const response = await app.fetch(request, failingPostsQueryEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await getPosts(dummyFeed.uri, undefined, undefined, failingPostsQueryEnv);
 
     expect(response.status).toBe(500);
-    const json = await response.json();
     expect(json).toEqual({
       error: 'InternalServerError',
       message: 'Failed to fetch posts',
@@ -278,34 +263,17 @@ describe(ENDPOINT_PATH, () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     await insertFeed(dummyFeed);
 
-    const createRequest = () =>
-      new Request(`${BASE_URL}${ENDPOINT_PATH}?feed=${encodeURIComponent(dummyFeed.uri)}&limit=10`);
-
-    const disabledCtx = createExecutionContext();
-    const disabledResponse = await app.fetch(
-      createRequest(),
-      {
-        ...env,
-        DEVELOPER_MODE: undefined,
-      },
-      disabledCtx
-    );
-    await waitOnExecutionContext(disabledCtx);
+    const { response: disabledResponse } = await getPosts(dummyFeed.uri, 10, undefined, {
+      DEVELOPER_MODE: undefined,
+    });
     expect(disabledResponse.status).toBe(200);
     expect(logSpy).not.toHaveBeenCalled();
 
     logSpy.mockClear();
 
-    const enabledCtx = createExecutionContext();
-    const enabledResponse = await app.fetch(
-      createRequest(),
-      {
-        ...env,
-        DEVELOPER_MODE: 'enabled',
-      },
-      enabledCtx
-    );
-    await waitOnExecutionContext(enabledCtx);
+    const { response: enabledResponse } = await getPosts(dummyFeed.uri, 10, undefined, {
+      DEVELOPER_MODE: 'enabled',
+    });
     expect(enabledResponse.status).toBe(200);
     expect(logSpy).toHaveBeenCalledWith('Generated query:', expect.any(String));
     expect(logSpy).toHaveBeenCalledWith('Bindings:', expect.any(Array));

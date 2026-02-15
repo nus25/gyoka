@@ -1,8 +1,7 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
-import app from '../src/index';
+import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/listFeeds';
 
 const dummyFeeds = [
@@ -12,21 +11,13 @@ const dummyFeeds = [
 ];
 
 // request helper
-async function getFeedList() {
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`);
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-  return {
-    response,
-    json: await response.json(),
-  };
-}
-
-// response validation helper
-function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+async function getFeedList(envOverrides?: Partial<Env>) {
+  return requestJson<{ feeds?: Array<{ uri: string; langFilter: boolean; isActive: boolean }> }>(
+    {
+      path: ENDPOINT_PATH,
+      envOverrides,
+    }
+  );
 }
 
 // database helper
@@ -42,15 +33,14 @@ async function insertFeeds(feeds: Array<{ uri: string; lang_filter: number; is_a
 
 describe(ENDPOINT_PATH, async () => {
   beforeEach(async () => {
-    const db = env.DB;
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['feeds']);
   });
 
   it('returns a list of all feeds', async () => {
     await insertFeeds(dummyFeeds);
 
     const { response, json } = await getFeedList();
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       feeds: expect.arrayContaining([
         { uri: dummyFeeds[0].uri, langFilter: true, isActive: true },
@@ -62,7 +52,7 @@ describe(ENDPOINT_PATH, async () => {
 
   it('returns an empty list when no feeds exist', async () => {
     const { response, json } = await getFeedList();
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       feeds: [],
     });
@@ -77,22 +67,19 @@ describe(ENDPOINT_PATH, async () => {
   });
 
   it('returns InternalServerError when feed query reports failure', async () => {
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`);
-    const ctx = createExecutionContext();
-    const failingEnv = {
-      ...env,
-      DB: {
-        prepare: () => ({
-          all: async () => ({ success: false, results: [] }),
-        }),
-      },
+    const failingDb = {
+      prepare: () => ({
+        all: async () => ({ success: false, meta: {}, error: 'Database error' }),
+      }),
+    } as unknown as D1Database;
+
+    const failingEnv: Partial<Env> = {
+      DB: failingDb,
     };
 
-    const response = await app.fetch(request, failingEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await getFeedList(failingEnv);
 
     expect(response.status).toBe(500);
-    const json = await response.json();
     expect(json).toEqual({
       error: 'InternalServerError',
       message: 'Failed to fetch feeds',

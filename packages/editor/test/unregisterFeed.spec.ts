@@ -1,37 +1,29 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ErrorResponse } from 'shared/src/types';
-import app from '../src/index';
+import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/unregisterFeed';
 
 // request helper
-async function unregisterFeed(feedUri: string) {
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ uri: feedUri }),
-  });
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-  return {
-    response,
-    json: await response.json(),
-  };
-}
-
-// response validation helper
-function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+async function unregisterFeed(feedUri: string, envOverrides?: Partial<Env>) {
+  return requestJson<{ message?: string; error?: string; messageDetail?: string }>(
+    {
+      path: ENDPOINT_PATH,
+      init: {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uri: feedUri }),
+      },
+      envOverrides,
+    }
+  );
 }
 
 describe(ENDPOINT_PATH, async () => {
   beforeEach(async () => {
     const db = env.DB;
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['feeds']);
     await db
       .prepare('INSERT INTO feeds (feed_uri, is_active) VALUES (?, ?)')
       .bind('at://did:plc:testuser/app.bsky.feed.generator/feed1', 1)
@@ -41,7 +33,7 @@ describe(ENDPOINT_PATH, async () => {
   it('unregisters an existing feed successfully', async () => {
     const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/feed1';
     const { response, json } = await unregisterFeed(feedUri);
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       message: 'Feed unregistered successfully',
     });
@@ -95,20 +87,10 @@ describe(ENDPOINT_PATH, async () => {
     };
 
     // Create a custom environment with the mock database
-    const mockEnv = { ...env, DB: mockDb };
-
     const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/feed1';
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uri: feedUri }),
+    const { response, json } = await unregisterFeed(feedUri, {
+      DB: mockDb as unknown as D1Database,
     });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
-
-    const json = await response.json();
     const resp = json as ErrorResponse;
     expect(response.status).toBe(500);
     expect(resp.error).toBe('InternalServerError');
@@ -144,20 +126,10 @@ describe(ENDPOINT_PATH, async () => {
     };
 
     // Create a custom environment with the mock database
-    const mockEnv = { ...env, DB: mockDb };
-
     const feedUri = 'at://did:plc:testuser/app.bsky.feed.generator/feed1';
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uri: feedUri }),
+    const { response, json } = await unregisterFeed(feedUri, {
+      DB: mockDb as unknown as D1Database,
     });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
-
-    const json = await response.json();
     const resp = json as ErrorResponse;
     expect(response.status).toBe(500);
     expect(resp.error).toBe('InternalServerError');
@@ -184,7 +156,7 @@ describe(ENDPOINT_PATH, async () => {
 
     // Unregister the feed
     const { response, json } = await unregisterFeed(feedUri);
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       message: 'Feed unregistered successfully',
     });

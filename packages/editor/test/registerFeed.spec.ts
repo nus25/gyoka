@@ -1,37 +1,31 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ErrorResponse } from 'shared/src/types';
-import app from '../src/index';
+import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/registerFeed';
 
 // request helper
-async function registerFeed(feed: { uri: string; langFilter?: boolean; isActive?: boolean }) {
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(feed),
-  });
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-  return {
-    response,
-    json: await response.json(),
-  };
-}
-
-// response validation helper
-function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+async function registerFeed(
+  feed: { uri: string; langFilter?: boolean; isActive?: boolean },
+  envOverrides?: Partial<Env>
+) {
+  return requestJson<{ message?: string; feed?: { uri: string; langFilter: boolean; isActive: boolean } }>(
+    {
+      path: ENDPOINT_PATH,
+      init: {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(feed),
+      },
+      envOverrides,
+    }
+  );
 }
 
 describe(ENDPOINT_PATH, async () => {
   beforeEach(async () => {
-    const db = env.DB;
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['feeds']);
   });
 
   it('registers a new feed successfully', async () => {
@@ -41,7 +35,7 @@ describe(ENDPOINT_PATH, async () => {
       isActive: true,
     };
     const { response, json } = await registerFeed(feed);
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       message: 'Feed registered successfully',
       feed: {
@@ -55,7 +49,7 @@ describe(ENDPOINT_PATH, async () => {
   it('registers a feed with default is_active value', async () => {
     const feed = { uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed2' };
     const { response, json } = await registerFeed(feed);
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       message: 'Feed registered successfully',
       feed: {
@@ -109,20 +103,10 @@ describe(ENDPOINT_PATH, async () => {
     };
 
     // Create a custom environment with the mock database
-    const mockEnv = { ...env, DB: mockDb };
-
     const feed = { uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed5', isActive: true };
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(feed),
+    const { response, json } = await registerFeed(feed, {
+      DB: mockDb as unknown as D1Database,
     });
-
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
-
-    const json = await response.json();
     expect(response.status).toBe(500);
     expect(json).toEqual({
       error: 'InternalServerError',

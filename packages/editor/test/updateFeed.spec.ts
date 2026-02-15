@@ -1,38 +1,35 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
-import app from '../src/index';
+import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/updateFeed';
 
 // request helper
-async function updateFeed(request: { uri: string; langFilter?: boolean; isActive?: boolean }) {
-  const req = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+async function updateFeed(
+  request: { uri: string; langFilter?: boolean; isActive?: boolean },
+  envOverrides?: Partial<Env>
+) {
+  return requestJson<{
+    message?: string;
+    feed?: { uri: string; langFilter: boolean; isActive: boolean };
+    error?: string;
+  }>({
+    path: ENDPOINT_PATH,
+    init: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
     },
-    body: JSON.stringify(request),
+    envOverrides,
   });
-  const ctx = createExecutionContext();
-  const response = await app.fetch(req, env, ctx);
-  await waitOnExecutionContext(ctx);
-  return {
-    response,
-    json: await response.json(),
-  };
-}
-
-// response validation helper
-function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
 }
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
     const db = env.DB;
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['feeds']);
     await db
       .prepare('INSERT INTO feeds (feed_uri,lang_filter, is_active) VALUES (?, ?, ?)')
       .bind('at://did:plc:testuser/app.bsky.feed.generator/feed1rkey', 1, 1)
@@ -47,7 +44,7 @@ describe(ENDPOINT_PATH, () => {
     };
 
     const { response, json } = await updateFeed(request);
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       message: 'Feed updated successfully',
       feed: {
@@ -82,7 +79,7 @@ describe(ENDPOINT_PATH, () => {
     };
 
     const { response, json } = await updateFeed(request);
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       message: 'Feed updated successfully',
       feed: {
@@ -106,7 +103,7 @@ describe(ENDPOINT_PATH, () => {
     };
 
     const { response, json } = await updateFeed(request);
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       message: 'Feed updated successfully',
       feed: {
@@ -134,7 +131,7 @@ describe(ENDPOINT_PATH, () => {
     };
 
     const { response, json } = await updateFeed(request);
-    assertValidResponse(response);
+    expectJsonResponse(response);
     expect(json).toEqual({
       message: 'Feed updated successfully',
       feed: {
@@ -194,33 +191,25 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('returns InternalServerError when feed select query fails', async () => {
-    const req = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed1rkey',
-        langFilter: false,
-      }),
-    });
-    const ctx = createExecutionContext();
     const failingEnv = {
-      ...env,
       DB: {
         prepare: () => ({
           bind: () => ({
             all: async () => ({ success: false, results: [] }),
           }),
         }),
-      },
+      } as unknown as D1Database,
     };
 
-    const response = await app.fetch(req, failingEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await updateFeed(
+      {
+        uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed1rkey',
+        langFilter: false,
+      },
+      failingEnv
+    );
 
     expect(response.status).toBe(500);
-    const json = await response.json();
     expect(json).toEqual({
       error: 'InternalServerError',
       message: 'Failed to query the database',
@@ -228,19 +217,7 @@ describe(ENDPOINT_PATH, () => {
   });
 
   it('returns InternalServerError when feed update batch fails', async () => {
-    const req = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed1rkey',
-        langFilter: false,
-      }),
-    });
-    const ctx = createExecutionContext();
     const failingBatchEnv = {
-      ...env,
       DB: {
         prepare: (sql: string) => {
           if (sql === 'SELECT * FROM feeds WHERE feed_uri = ?') {
@@ -265,14 +242,18 @@ describe(ENDPOINT_PATH, () => {
           };
         },
         batch: async () => [{ success: false }],
-      },
+      } as unknown as D1Database,
     };
 
-    const response = await app.fetch(req, failingBatchEnv, ctx);
-    await waitOnExecutionContext(ctx);
+    const { response, json } = await updateFeed(
+      {
+        uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed1rkey',
+        langFilter: false,
+      },
+      failingBatchEnv
+    );
 
     expect(response.status).toBe(500);
-    const json = await response.json();
     expect(json).toEqual({
       error: 'InternalServerError',
       message: 'Failed to update feed',

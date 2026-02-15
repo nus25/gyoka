@@ -1,8 +1,8 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import app from '../src/index';
+import type { ErrorResponse } from 'shared/src/types';
+import { assertErrorResponse, clearTables, expectJsonResponse, requestJson } from './testUtils';
 
-const BASE_URL = 'http://localhost:8787';
 const ENDPOINT_PATH = '/api/feed/removePostByAuthor';
 
 const dummyFeed = {
@@ -44,33 +44,30 @@ interface RemovePostByAuthorResponse {
   deletedCount: number;
 }
 
-interface ErrorResponse {
-  error: string;
-  message: string;
+function assertRemovePostByAuthorResponse(
+  response: RemovePostByAuthorResponse | ErrorResponse
+): asserts response is RemovePostByAuthorResponse {
+  expect(response).toHaveProperty('deletedCount');
 }
 
 // request helper
-async function removePostByAuthor(feed: string, author: string) {
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+async function removePostByAuthor(feed: string, author: string, envOverrides?: Partial<Env>) {
+  return requestJson<RemovePostByAuthorResponse | ErrorResponse>({
+    path: ENDPOINT_PATH,
+    init: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ feed, author }),
     },
-    body: JSON.stringify({ feed, author }),
+    envOverrides,
   });
-  const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-  return {
-    response,
-    json: (await response.json()) as RemovePostByAuthorResponse | ErrorResponse,
-  };
 }
 
 // response validation helper
 function assertValidResponse(response: Response) {
-  expect(response.status).toBe(200);
-  expect(response.headers.get('Content-Type')).toBe('application/json');
+  expectJsonResponse(response);
 }
 
 // database helpers
@@ -124,10 +121,7 @@ async function countTotalPosts(): Promise<number> {
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
-    const db = env.DB;
-    await db.prepare('DELETE FROM posts').run();
-    await db.prepare('DELETE FROM post_languages').run();
-    await db.prepare('DELETE FROM feeds').run();
+    await clearTables(['posts', 'post_languages', 'feeds']);
   });
 
   it('removes all posts by a specific author', async () => {
@@ -187,7 +181,8 @@ describe(ENDPOINT_PATH, () => {
 
     const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
     assertValidResponse(response);
-    expect((json as RemovePostByAuthorResponse).deletedCount).toBe(0);
+    assertRemovePostByAuthorResponse(json);
+    expect(json.deletedCount).toBe(0);
 
     // The post should still exist
     const totalCount = await countTotalPosts();
@@ -205,7 +200,8 @@ describe(ENDPOINT_PATH, () => {
 
     const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
     assertValidResponse(response);
-    expect((json as RemovePostByAuthorResponse).deletedCount).toBe(1);
+    assertRemovePostByAuthorResponse(json);
+    expect(json.deletedCount).toBe(1);
 
     // Only the post in feed2 should remain
     const author1Count = await countPostsByAuthor(author1Did);
@@ -250,7 +246,8 @@ describe(ENDPOINT_PATH, () => {
 
     const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
     assertValidResponse(response);
-    expect((json as RemovePostByAuthorResponse).deletedCount).toBe(1);
+    assertRemovePostByAuthorResponse(json);
+    expect(json.deletedCount).toBe(1);
 
     // Verify posts still exist in feed2
     const totalCount = await countTotalPosts();
@@ -286,20 +283,12 @@ describe(ENDPOINT_PATH, () => {
     };
 
     // Create a custom environment with the mock database
-    const mockEnv = { ...env, DB: mockDb };
-
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feed: dummyFeed.uri, author: author1Did }),
+    const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did, {
+      DB: mockDb as unknown as D1Database,
     });
 
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
-
     expect(response.status).toBe(500);
-    const json = (await response.json()) as ErrorResponse;
+    assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
     expect(json.message).toBe('Failed to query the database');
   });
@@ -331,20 +320,12 @@ describe(ENDPOINT_PATH, () => {
     };
 
     // Create a custom environment with the mock database
-    const mockEnv = { ...env, DB: mockDb };
-
-    const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feed: dummyFeed.uri, author: author1Did }),
+    const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did, {
+      DB: mockDb as unknown as D1Database,
     });
 
-    const ctx = createExecutionContext();
-    const response = await app.fetch(request, mockEnv, ctx);
-    await waitOnExecutionContext(ctx);
-
     expect(response.status).toBe(500);
-    const json = (await response.json()) as ErrorResponse;
+    assertErrorResponse(json);
     expect(json.error).toBe('InternalServerError');
     expect(json.message).toBe('Failed to remove posts from the database');
   });
@@ -372,7 +353,8 @@ describe(ENDPOINT_PATH, () => {
 
     const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
     assertValidResponse(response);
-    expect((json as RemovePostByAuthorResponse).deletedCount).toBe(3);
+    assertRemovePostByAuthorResponse(json);
+    expect(json.deletedCount).toBe(3);
 
     // Verify all author1's posts were removed
     const author1Count = await countPostsByAuthor(author1Did);
@@ -385,38 +367,17 @@ describe(ENDPOINT_PATH, () => {
     await insertPost(feedId, { ...dummyPosts[0], id: 2001, uri: `at://${author1Did}/app.bsky.feed.post/dev-post-1` });
     await insertPost(feedId, { ...dummyPosts[2], id: 2002, uri: `at://${author2Did}/app.bsky.feed.post/dev-post-2` });
 
-    const createRequest = (author: string) =>
-      new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ feed: dummyFeed.uri, author }),
-      });
-
-    const disabledCtx = createExecutionContext();
-    const disabledResponse = await app.fetch(
-      createRequest(author1Did),
-      {
-        ...env,
-        DEVELOPER_MODE: undefined,
-      },
-      disabledCtx
-    );
-    await waitOnExecutionContext(disabledCtx);
+    const { response: disabledResponse } = await removePostByAuthor(dummyFeed.uri, author1Did, {
+      DEVELOPER_MODE: undefined,
+    });
     expect(disabledResponse.status).toBe(200);
     expect(logSpy).not.toHaveBeenCalled();
 
     logSpy.mockClear();
 
-    const enabledCtx = createExecutionContext();
-    const enabledResponse = await app.fetch(
-      createRequest(author2Did),
-      {
-        ...env,
-        DEVELOPER_MODE: 'enabled',
-      },
-      enabledCtx
-    );
-    await waitOnExecutionContext(enabledCtx);
+    const { response: enabledResponse } = await removePostByAuthor(dummyFeed.uri, author2Did, {
+      DEVELOPER_MODE: 'enabled',
+    });
     expect(enabledResponse.status).toBe(200);
     expect(logSpy).toHaveBeenCalledWith('feed id:', feedId, 'author:', author2Did, 'deletedCount:', 1);
 
