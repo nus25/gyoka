@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { clearTables, expectJsonResponse, requestJson } from './testUtils';
+import type { ErrorResponse } from 'shared/src/types';
+import { assertErrorResponse, clearTables, expectJsonResponse, requestJson } from './testUtils';
 
 const ENDPOINT_PATH = '/api/feed/getPosts';
 
@@ -20,6 +21,12 @@ interface GetPostsResponse {
   cursor?: string;
 }
 
+function assertGetPostsResponse(
+  response: GetPostsResponse | ErrorResponse
+): asserts response is GetPostsResponse {
+  expect(response).toHaveProperty('posts');
+}
+
 async function getPosts(
   feed: string,
   limit?: number,
@@ -30,7 +37,7 @@ async function getPosts(
   if (limit) params.set('limit', limit.toString());
   if (cursor) params.set('cursor', cursor);
 
-  return requestJson<GetPostsResponse>({
+  return requestJson<GetPostsResponse | ErrorResponse>({
     path: `${ENDPOINT_PATH}?${params.toString()}`,
     envOverrides,
   });
@@ -96,6 +103,7 @@ describe(ENDPOINT_PATH, () => {
 
     const { response, json } = await getPosts(dummyFeed.uri);
     assertValidResponse(response);
+    assertGetPostsResponse(json);
     expect(json.posts).toHaveLength(5);
     expect(json.posts[0].uri).toBe(posts[4].uri); // Latest post first
   });
@@ -116,11 +124,13 @@ describe(ENDPOINT_PATH, () => {
 
     // Get first page
     const { json: firstPage } = await getPosts(dummyFeed.uri, 5);
+    assertGetPostsResponse(firstPage);
     expect(firstPage.posts).toHaveLength(5);
     expect(firstPage.cursor).toBeDefined();
 
     // Get second page
     const { json: secondPage } = await getPosts(dummyFeed.uri, 6, firstPage.cursor);
+    assertGetPostsResponse(secondPage);
     expect(secondPage.posts).toHaveLength(5);
     expect(secondPage.cursor).toBeUndefined(); // No more pages
 
@@ -144,6 +154,7 @@ describe(ENDPOINT_PATH, () => {
     }
 
     const { json } = await getPosts(dummyFeed.uri, 3);
+    assertGetPostsResponse(json);
     expect(json.posts).toHaveLength(3);
   });
 
@@ -151,6 +162,7 @@ describe(ENDPOINT_PATH, () => {
     await insertFeed(dummyFeed);
     const { response, json } = await getPosts(dummyFeed.uri);
     assertValidResponse(response);
+    assertGetPostsResponse(json);
     expect(json.posts).toEqual([]);
     expect(json.cursor).toBeUndefined();
   });
@@ -196,6 +208,7 @@ describe(ENDPOINT_PATH, () => {
     await insertPost(feedId, post);
 
     const { json } = await getPosts(dummyFeed.uri);
+    assertGetPostsResponse(json);
     expect(json.posts).toHaveLength(1);
     expect(json.posts[0].langs).toEqual(expect.arrayContaining(['en', 'ja', 'fr']));
   });
@@ -223,6 +236,7 @@ describe(ENDPOINT_PATH, () => {
     const { response, json } = await getPosts(dummyFeed.uri, undefined, undefined, failingFeedCheckEnv);
 
     expect(response.status).toBe(500);
+    assertErrorResponse(json);
     expect(json).toEqual({
       error: 'InternalServerError',
       message: 'Failed to query the database',
@@ -253,6 +267,7 @@ describe(ENDPOINT_PATH, () => {
     const { response, json } = await getPosts(dummyFeed.uri, undefined, undefined, failingPostsQueryEnv);
 
     expect(response.status).toBe(500);
+    assertErrorResponse(json);
     expect(json).toEqual({
       error: 'InternalServerError',
       message: 'Failed to fetch posts',
