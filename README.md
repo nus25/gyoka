@@ -36,7 +36,7 @@ Gyoka does **not** support:
     pnpm d1-create
     ```
 
-3. Add the `database_id` to the production environment settings in both `packages/editor/wrangler.jsonc` and `packages/generator/wrangler.jsonc`. Also update the `vars` and other configuration settings as needed.
+3. Add the `database_id` to the production environment settings in both `packages/editor/wrangler.jsonc` and `packages/generator/wrangler.jsonc`. Also update the `vars` and other worker configuration settings as needed.
 
     ```json
     "env": {
@@ -58,26 +58,13 @@ Gyoka does **not** support:
     ```
 
 4. Initialize database.
-
-    ```sh
-    pnpm d1-init-local
-    pnpm d1-add-dummy-local
-    ```
-
-5. Run at local.
-
-    ```sh
-    pnpm editor dev
-    pnpm generator dev
-    ```
-
-6. Access documents.
-
-    If local-dev port is 8787, you can see documents below.
-    - Redocs: localhost:8787/redocs
-    - Swagger UI: localhost:8787/docs
     
-7. (Optional) Configure build-time flags in `wrangler.jsonc`:
+    Initialize remote D1 instance
+    ```sh
+    pnpm d1-init:production
+    ```
+    
+5. (Optional) Configure build-time flags in `wrangler.jsonc`:
 
     ```json
     "define": {
@@ -95,6 +82,7 @@ Deploy editor and generator workers to Cloudflare workers.
 pnpm editor run deploy
 pnpm generator run deploy
 ```
+
 # Authentication
 The Gyoka-editor API supports simple API key authentication when an API key is configured.
 To protect the API endpoints, it is recommended to use it in combination with Cloudflare Zero Trust.
@@ -108,6 +96,27 @@ For the deploy worker, use `wrangler secret put` at `packages/editor` directory.
 ```sh
 pnpx wrangler secret put GYOKA_API_KEY --env production
 ```
+
+# Run at local for development
+Initialize and add sample data to the local D1 database for development purposes
+1. Initialize and add sample data to local D1 for development
+    ```sh
+    pnpm d1-init:local
+    pnpm d1-add-sample:local
+    ```
+
+2. Run at local.
+
+    ```sh
+    pnpm editor dev
+    pnpm generator dev
+    ```
+
+3. Access documents.
+
+    If local-dev port is 8787, you can see documents below.
+    - Redocs: localhost:8787/redocs
+    - Swagger UI: localhost:8787/docs
 
 ## License
 

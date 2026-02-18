@@ -7,9 +7,10 @@
     "editor": "pnpm -F gyoka-editor",
     "generator": "pnpm -F gyoka-generator",
     "shared": "pnpm -F shared",
-    "d1-create": "pnpx wrangler d1 create gyoka-db",
-    "d1-init-local": "pnpm editor d1-init-local",
-    "d1-add-dummy-local": "pnpm editor d1-add-dummy-local",
+    "d1-create": "wrangler d1 create gyoka-db --binding=DB",
+    "d1-init:local": "pnpm editor d1-init:local",
+    "d1-init:production": "pnpm editor d1-init:production",
+    "d1-add-sample:local": "pnpm editor d1-add-sample:local",
     "test:all": "pnpm -r test run",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
@@ -17,6 +18,7 @@
   "author": "Nus",
   "license": "MIT",
   "devDependencies": {
+    "wrangler": "4.61.0",
     "@vitest/coverage-istanbul": "^3.2.x",
     "vitest": "^3.2.x",
     "eslint": "^9.27.0",
