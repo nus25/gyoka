@@ -66,6 +66,7 @@
         "FEEDGEN_PUBLISHER_DID": "did:example:publisher",
         /* hostname of the feed generator service endpoint */
         "FEEDGEN_HOST": "feed-generator.example.com",
+        /* Runtime flag: enables verbose debug logging in endpoints when set to "enabled". */
         "DEVELOPER_MODE": "disabled",
         /* Version from package.json (overridden by --var during deploy) */
         "VERSION": "0.0.0",

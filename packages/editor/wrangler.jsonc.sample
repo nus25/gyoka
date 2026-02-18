@@ -60,6 +60,7 @@
         "__OPENAPI_DOCS_ENABLED__": "false"
       },
       "vars": {
+        /* Runtime flag: enables verbose debug logging in endpoints when set to "enabled". */
         "DEVELOPER_MODE": "disabled",
         /* Maximum number of posts allowed per batchAddPosts request (integer, >= 1). */
         "MAX_BATCH_POSTS": "25",
