@@ -10,6 +10,7 @@ import {
   BadRequestError,
   InternalServerError,
 } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
 
 const SQL_INSERT_POST = `
 INSERT INTO posts (feed_id, did, uri, cid, indexed_at, feed_context, reason)
@@ -19,6 +20,7 @@ WHERE feed_uri = ?
 RETURNING post_id`;
 const SQL_INSERT_POST_LANG = `
 INSERT INTO post_languages (post_id, language) VALUES (?, ?)`;
+const logger = createLogger({ service: 'editor' });
 
 export class AddPost extends BaseOpenAPIRoute {
   schema = {
@@ -192,7 +194,11 @@ export class AddPost extends BaseOpenAPIRoute {
         throw new InternalServerError('Failed to add post languages to DB');
       }
     } catch (error) {
-      console.error('Failed to add post to feed:', error);
+      logger.error('db.insert.post.failed', {
+        feedUri: feed_uri,
+        postUri: post.uri,
+        error,
+      });
       throw error;
     }
     const response = {

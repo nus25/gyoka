@@ -112,7 +112,14 @@ describe(ENDPOINT_PATH, () => {
       assertTrimFeedResponse(enabledJson);
       expect(enabledJson.message).toContain('Posts trimed successfully');
       expect(enabledJson.deletedCount).toBe(2);
-      expect(logSpy).toHaveBeenCalledWith({ feedID: feedId, remain: 3, feedPosts: 5 });
+      expect(logSpy).toHaveBeenCalled();
+
+      const payload = JSON.parse(logSpy.mock.calls[0][0] as string) as Record<string, unknown>;
+      expect(payload.level).toBe('debug');
+      expect(payload.event).toBe('db.trim.feed.start');
+      expect(payload.feedId).toBe(feedId);
+      expect(payload.remain).toBe(3);
+      expect(payload.feedPosts).toBe(5);
 
       logSpy.mockClear();
 

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   BadRequestError,
@@ -11,6 +11,10 @@ import {
   createErrorResponse,
 } from '../src/errors';
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe('Success cases', () => {
   it('Given createErrorResponse input When response is created Then status and json body are set', async () => {
     const response = createErrorResponse('BadRequest', 'validation failed', 400);
@@ -21,6 +25,24 @@ describe('Success cases', () => {
       error: 'BadRequest',
       message: 'validation failed',
     });
+  });
+
+  it('Given createErrorResponse log options When response is created Then structured log is emitted', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const response = createErrorResponse('BadRequest', 'validation failed', 400, {
+      event: 'api.validate.request.failed',
+      details: { 'x-api-key': 'dummy' },
+    });
+
+    expect(response.status).toBe(400);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    const logEntry = warnSpy.mock.calls[0][0] as string;
+    const payload = JSON.parse(logEntry) as Record<string, unknown>;
+    expect(payload.event).toBe('api.validate.request.failed');
+    expect(payload.errorCode).toBe('BadRequest');
+    expect(payload['x-api-key']).toBe('[REDACTED]');
   });
 
   it('Given GyokaBaseError message When instance is created Then default code and status are set', () => {

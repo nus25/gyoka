@@ -17,9 +17,11 @@ import { TrimFeed } from './endpoints/trimFeed';
 import { UpdateDocument } from './endpoints/updateDocument';
 import { AppContext } from 'shared/src/types';
 import { GyokaBaseError, InternalServerError, createErrorResponse } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
 
 const API_VERSION = '1.2.1';
 const OPENAPI_DOCS_ENABLED = __OPENAPI_DOCS_ENABLED__;
+const logger = createLogger({ service: 'editor' });
 
 // Start a Hono app
 const app = new Hono<{ Bindings: EnvWithSecret }>();
@@ -90,15 +92,25 @@ openapi.post('/api/gyoka/updateDocument', UpdateDocument);
 // Global error handler
 app.onError((err, c) => {
   if (err instanceof GyokaBaseError) {
-    console.error('API Exception:', err.message, err.status);
+    const level = err.status >= 500 ? 'error' : 'warn';
+    const details: Record<string, unknown> = {
+      errorCode: err.errorCode,
+      status: err.status,
+      message: err.message,
+    };
+
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.error(err.stack);
+      details.stack = err.stack;
     }
+
+    logger[level]('api.handle.exception.failed', details);
     return createErrorResponse(err.errorCode, err.message, err.status);
   }
 
   // For other errors, return a generic 500 response
-  console.error(err);
+  logger.error('api.handle.unexpected.failed', {
+    err,
+  });
   return createErrorResponse('InternalServerError', 'An unexpected error occurred.', 500);
 });
 

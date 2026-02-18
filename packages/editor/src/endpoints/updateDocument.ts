@@ -4,8 +4,10 @@ import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { DOCUMENT_TYPES } from 'shared/src/constants';
 import { AppContext } from 'shared/src/types';
 import { UnauthorizedError, BadRequestError, InternalServerError } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
 const SQL_UPDATE_DOCUMENT =
   'INSERT OR REPLACE INTO documents (type, url, content) VALUES (?, ?, ?)';
+const logger = createLogger({ service: 'editor' });
 
 export class UpdateDocument extends BaseOpenAPIRoute {
   schema = {
@@ -57,7 +59,10 @@ export class UpdateDocument extends BaseOpenAPIRoute {
         content,
       });
     } catch (error) {
-      console.error('Failed to update document:', error);
+      logger.error('db.upsert.document.failed', {
+        type,
+        error,
+      });
       throw new InternalServerError('Failed to update document');
     }
   }

@@ -135,7 +135,13 @@ describe(ENDPOINT_PATH, () => {
         DEVELOPER_MODE: 'enabled',
       });
       expect(enabledResponse.status).toBe(200);
-      expect(logSpy).toHaveBeenCalledWith('feed id:', feedId, 'author:', author2Did, 'deletedCount:', 1);
+      expect(logSpy).toHaveBeenCalled();
+
+      const payload = JSON.parse(logSpy.mock.calls[0][0] as string) as Record<string, unknown>;
+      expect(payload.level).toBe('debug');
+      expect(payload.event).toBe('db.remove.posts_by_author.start');
+      expect(payload.feedId).toBe(feedId);
+      expect(payload.author).toBe(author2Did);
 
       logSpy.mockRestore();
     });

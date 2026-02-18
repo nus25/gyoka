@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:test';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   ACTIVE_FEED_URI,
@@ -10,11 +10,18 @@ import {
 } from './getFeedSkeleton.shared';
 
 describe('Error cases', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   beforeEach(async () => {
     await resetAndSeedFeeds();
   });
 
   it('Given unknown feed URI When requesting skeleton Then it returns 404 UnknownFeed', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     const response = await requestFeedSkeleton(
       'feed=at://did:plc:testuser/app.bsky.feed.generator/non_feed'
     );
@@ -22,6 +29,12 @@ describe('Error cases', () => {
     expect(response.status).toBe(404);
     const data: ErrorResponse = await response.json();
     expect(data.error).toBe('UnknownFeed');
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).not.toHaveBeenCalled();
+
+    const payload = JSON.parse(warnSpy.mock.calls[0][0] as string) as Record<string, unknown>;
+    expect(payload.event).toBe('api.handle.exception.failed');
+    expect(payload.status).toBe(404);
   });
 
   it('Given inactive feed URI When requesting skeleton Then it returns 404 UnknownFeed', async () => {
@@ -50,6 +63,8 @@ describe('Error cases', () => {
   });
 
   it('Given main query failure When requesting skeleton Then it returns 500', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     const response = await requestFeedSkeleton(
       `feed=${ACTIVE_FEED_URI}`,
       {},
@@ -71,6 +86,11 @@ describe('Error cases', () => {
       error: 'InternalServerError',
       message: 'Failed to fetch feed skeleton',
     });
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+
+    const payload = JSON.parse(errorSpy.mock.calls[0][0] as string) as Record<string, unknown>;
+    expect(payload.event).toBe('api.handle.exception.failed');
+    expect(payload.status).toBe(500);
   });
 
   it('Given feed existence verification failure When requesting skeleton Then it returns 500', async () => {

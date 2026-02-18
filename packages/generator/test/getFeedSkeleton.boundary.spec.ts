@@ -195,7 +195,7 @@ describe('Boundary cases', () => {
     expect(response.status).toBe(200);
     const data: FeedSkeletonResponse = await response.json();
     expect(Array.isArray(data.feed)).toBe(true);
-    expect(logSpy).not.toHaveBeenCalledWith('Generated query:', expect.any(String));
+    expect(logSpy).not.toHaveBeenCalled();
 
     logSpy.mockRestore();
   });

@@ -10,6 +10,9 @@ import {
   BadRequestError,
   InternalServerError,
 } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
+
+const logger = createLogger({ service: 'editor' });
 
 const SQL_INSERT_POST = `
 INSERT INTO posts (feed_id, did, uri, cid, indexed_at, feed_context, reason) VALUES (?, ?, ?, ?, ?, ?, ?)`;
@@ -259,7 +262,9 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
           .all();
 
         if (!success) {
-          console.error('Failed to query the database');
+          logger.error('db.query.feeds.failed', {
+            feedCount: feedUris.length,
+          });
           throw new InternalServerError('Failed to query the database');
         }
 
@@ -276,7 +281,9 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
         }
       }
     } catch (error) {
-      console.error('Error querying feeds:', error);
+      logger.error('db.query.feeds.failed', {
+        error,
+      });
       throw new InternalServerError('Failed to query feeds');
     }
 
@@ -377,7 +384,7 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
           }
         } catch (error) {
           // Handle batch insert errors (log raw message, sanitize response)
-          console.error('[BatchAddPosts] Error batch inserting posts', {
+          logger.error('db.batch_insert.posts.failed', {
             feed_uri,
             error,
           });

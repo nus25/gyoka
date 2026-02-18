@@ -3,10 +3,12 @@ import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { feedUri, postUri, repostUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
 import { InternalServerError, BadRequestError, UnknownFeedError } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
 
 // https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/getFeedSkeleton.json
 
 const MAX_ACCEPT_LANGUAGE_CODES = 10;
+const logger = createLogger({ service: 'generator', minLevel: 'debug' });
 export class GetFeedSkeleton extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Generator'],
@@ -154,16 +156,18 @@ ORDER BY p.indexed_at DESC, p.cid DESC, p.post_id DESC
 LIMIT ?;`;
 
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('Generated query:', SQL_TEMPLATE_SELECT_POST);
-      console.log('Bindings:', [
-        feedUri,
-        cursor || null,
-        cursorIndexedAt,
-        cursorIndexedAt,
-        cursorCid,
-        ...languageCodes,
-        limit,
-      ]);
+      logger.debug('db.query.feed_skeleton.start', {
+        query: SQL_TEMPLATE_SELECT_POST,
+        bindings: [
+          feedUri,
+          cursor || null,
+          cursorIndexedAt,
+          cursorIndexedAt,
+          cursorCid,
+          ...languageCodes,
+          limit,
+        ],
+      });
     }
     const { success, results } = await c.env.DB.prepare(SQL_TEMPLATE_SELECT_POST)
       .bind(
@@ -193,7 +197,14 @@ LIMIT ?;`;
       if (!feedExistsResult.success) {
         throw new InternalServerError('Failed to verify feed existence');
       }
-      console.log(feedExistsResult);
+      if (c.env.DEVELOPER_MODE === 'enabled') {
+        logger.debug('db.query.feed_exists.success', {
+          feedUri,
+          success: feedExistsResult.success,
+          resultCount: feedExistsResult.results.length,
+          rowsRead: feedExistsResult.meta?.rows_read,
+        });
+      }
       if (!feedExistsResult.results[0]?.feed_id) {
         throw new UnknownFeedError(`The feed generator with URI ${feedUri} does not existed.`);
       }

@@ -9,6 +9,7 @@ import {
 } from 'shared/src/errors';
 import { feedUri, postUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
+import { createLogger } from 'shared/src/logger';
 
 const SQL_DELETE_POST = `
 DELETE FROM posts 
@@ -16,6 +17,7 @@ WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)
   AND uri = ? 
   AND (? IS NULL OR indexed_at = ?)`;
 const SQL_CHECK_FEED = 'SELECT feed_id FROM feeds WHERE feed_uri = ?';
+const logger = createLogger({ service: 'editor', minLevel: 'debug' });
 
 export class RemovePost extends BaseOpenAPIRoute {
   schema = {
@@ -65,7 +67,10 @@ export class RemovePost extends BaseOpenAPIRoute {
     // Delete the post from the database using subquery for feed_id
     const indexed_at = post.indexedAt ? new Date(post.indexedAt).toISOString() : null;
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('feed uri:', feed_uri, 'post:', post);
+      logger.debug('db.remove.post.start', {
+        feedUri: feed_uri,
+        post,
+      });
     }
     const deleteResult = await db
       .prepare(SQL_DELETE_POST)

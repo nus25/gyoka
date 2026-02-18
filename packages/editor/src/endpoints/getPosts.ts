@@ -8,6 +8,7 @@ import {
   BadRequestError,
   InternalServerError,
 } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
 
 // note: cidが一致すればlanguagesの結果は等しくなるのでパフォーマンスのためにindexed_atとfeed_idはJOINに使用しない。
 const SQL_SELECT_POSTS = `
@@ -25,6 +26,7 @@ WHERE p.feed_id = ?
 GROUP BY pl.post_id
 ORDER BY p.indexed_at DESC, p.cid DESC, p.post_id DESC
 LIMIT ?`;
+const logger = createLogger({ service: 'editor', minLevel: 'debug' });
 
 export class GetPosts extends BaseOpenAPIRoute {
   schema = {
@@ -105,15 +107,10 @@ export class GetPosts extends BaseOpenAPIRoute {
     // Fetch posts
 
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('Generated query:', SQL_SELECT_POSTS);
-      console.log('Bindings:', [
-        feed_id,
-        cursor || null,
-        cursorIndexedAt,
-        cursorIndexedAt,
-        cursorCid,
-        limit,
-      ]);
+      logger.debug('db.query.posts.start', {
+        query: SQL_SELECT_POSTS,
+        bindings: [feed_id, cursor || null, cursorIndexedAt, cursorIndexedAt, cursorCid, limit],
+      });
     }
     const { success: postsSuccess, results: postsResults } = await db
       .prepare(SQL_SELECT_POSTS)

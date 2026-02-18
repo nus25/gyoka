@@ -1,14 +1,41 @@
 import * as z from 'zod';
 import { extendZodWithOpenApi } from '@hono/zod-openapi';
+import { createLogger, type LogLevel } from './logger';
 extendZodWithOpenApi(z);
+
+const sharedLogger = createLogger({});
 
 export type ErrorResponse = {
   error: string;
   message?: string;
 };
 
-export function createErrorResponse(error: string, message: string, status: number): Response {
+type ErrorResponseLogOptions = {
+  event?: string;
+  level?: LogLevel;
+  details?: Record<string, unknown>;
+};
+
+export function createErrorResponse(
+  error: string,
+  message: string,
+  status: number,
+  logOptions?: ErrorResponseLogOptions
+): Response {
   const responseBody: ErrorResponse = { error, message };
+
+  if (logOptions) {
+    const level = logOptions.level ?? (status >= 500 ? 'error' : 'warn');
+    const event = logOptions.event ?? 'api.respond.error.failed';
+    const details = {
+      status,
+      errorCode: error,
+      message,
+      ...(logOptions.details ?? {}),
+    };
+    sharedLogger[level](event, details);
+  }
+
   return new Response(JSON.stringify(responseBody), {
     status,
     headers: { 'Content-Type': 'application/json' },

@@ -86,7 +86,12 @@ describe(ENDPOINT_PATH, () => {
         { DEVELOPER_MODE: 'enabled' }
       );
       expect(enabledResponse.status).toBe(200);
-      expect(logSpy).toHaveBeenCalledWith('feed uri:', dummyFeed.uri, 'post:', { uri: post2.uri });
+      expect(logSpy).toHaveBeenCalled();
+
+      const payload = JSON.parse(logSpy.mock.calls[0][0] as string) as Record<string, unknown>;
+      expect(payload.level).toBe('debug');
+      expect(payload.event).toBe('db.remove.post.start');
+      expect(payload.feedUri).toBe(dummyFeed.uri);
 
       logSpy.mockRestore();
     });

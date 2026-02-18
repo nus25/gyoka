@@ -9,9 +9,11 @@ import { GetDocument } from './endpoints/getDocument';
 import { AppContext } from 'shared/src/types';
 import { createErrorResponse } from 'shared/src/errors';
 import { GyokaBaseError, InternalServerError } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
 
 const OPENAPI_DOCS_ENABLED = __OPENAPI_DOCS_ENABLED__;
 const app = new Hono();
+const logger = createLogger({ service: 'generator' });
 
 // Setup OpenAPI registry
 const openapi = fromHono(app, {
@@ -51,16 +53,26 @@ openapi.get('/xrpc/app.bsky.feed.getFeedSkeleton', GetFeedSkeleton);
 // Global error handler
 app.onError((err, c) => {
   if (err instanceof GyokaBaseError) {
-    console.error('API Exception:', err.message, err.status);
+    const level = err.status >= 500 ? 'error' : 'warn';
+    const details: Record<string, unknown> = {
+      errorCode: err.errorCode,
+      status: err.status,
+      message: err.message,
+    };
+
     // @ts-expect-error: 'DEVELOPER_MODE' may not exist on 'env' in some environments
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.error(err.stack);
+      details.stack = err.stack;
     }
+
+    logger[level]('api.handle.exception.failed', details);
     return createErrorResponse(err.errorCode, err.message, err.status);
   }
 
   // For other errors, return a generic 500 response
-  console.error(err);
+  logger.error('api.handle.unexpected.failed', {
+    err,
+  });
   return createErrorResponse('InternalServerError', 'An unexpected error occurred.', 500);
 });
 

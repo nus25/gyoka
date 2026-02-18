@@ -130,8 +130,13 @@ describe('Success cases', () => {
     expect(response.status).toBe(200);
     const data: FeedSkeletonResponse = await response.json();
     expect(Array.isArray(data.feed)).toBe(true);
-    expect(logSpy).toHaveBeenCalledWith('Generated query:', expect.any(String));
-    expect(logSpy).toHaveBeenCalledWith('Bindings:', expect.any(Array));
+    expect(logSpy).toHaveBeenCalled();
+    const logLine = logSpy.mock.calls[0][0] as string;
+    const payload = JSON.parse(logLine) as Record<string, unknown>;
+    expect(payload.level).toBe('debug');
+    expect(payload.event).toBe('db.query.feed_skeleton.start');
+    expect(payload.query).toBeTypeOf('string');
+    expect(Array.isArray(payload.bindings)).toBe(true);
 
     logSpy.mockRestore();
   });

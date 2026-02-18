@@ -9,6 +9,7 @@ import {
   BadRequestError,
   InternalServerError,
 } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
 
 const SQL_DELETE_POST = `
 DELETE FROM posts 
@@ -41,6 +42,8 @@ type EntryResult = {
   status: 'removed' | 'error';
   error?: string;
 };
+
+const logger = createLogger({ service: 'editor', minLevel: 'debug' });
 
 export class BatchRemovePosts extends BaseOpenAPIRoute {
   schema = {
@@ -106,7 +109,7 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
     }
 
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('Batch removing posts:', {
+      logger.debug('db.batch_remove.posts.start', {
         totalPosts,
         uniqueFeeds: new Set(entries.map((e) => e.feed)).size,
       });
@@ -147,8 +150,10 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
         const feedQuery = `SELECT feed_id, feed_uri FROM feeds WHERE feed_uri IN (${placeholders})`;
 
         if (c.env.DEVELOPER_MODE === 'enabled') {
-          console.log('Generated query:', feedQuery);
-          console.log('Bindings:', feedUris);
+          logger.debug('db.query.batch_remove_feeds.start', {
+            query: feedQuery,
+            bindings: feedUris,
+          });
         }
 
         const { success, results } = await db
@@ -173,7 +178,9 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
         }
       }
     } catch (error) {
-      console.error('Error querying feeds:', error);
+      logger.error('db.query.batch_remove_feeds.failed', {
+        error,
+      });
       throw new InternalServerError('Failed to query feeds');
     }
 
@@ -225,8 +232,10 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
           const checkBindings: (string | number)[] = [feed_id, ...uniqueUris];
 
           if (c.env.DEVELOPER_MODE === 'enabled') {
-            console.log('Generated query:', checkQuery);
-            console.log('Bindings:', checkBindings);
+            logger.debug('db.query.batch_remove_check_posts.start', {
+              query: checkQuery,
+              bindings: checkBindings,
+            });
           }
 
           const { success, results } = await db
@@ -249,7 +258,10 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
           }
         }
       } catch (error) {
-        console.error(`Error checking posts for feed ${feed_uri}:`, error);
+        logger.error('db.query.batch_remove_check_posts.failed', {
+          feedUri: feed_uri,
+          error,
+        });
         // Mark all posts as error
         for (const postToRemove of postsToRemove) {
           recordEntryResult(postToRemove.entryIndex, {
@@ -312,8 +324,10 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
           });
 
           if (c.env.DEVELOPER_MODE === 'enabled') {
-            console.log('Generated query:', SQL_DELETE_POST.trim());
-            console.log('Bindings:', deleteBindingsForLog);
+            logger.debug('db.query.batch_remove_delete_posts.start', {
+              query: SQL_DELETE_POST.trim(),
+              bindings: deleteBindingsForLog,
+            });
           }
 
           const batchResult = await db.batch(batchStatements);
@@ -339,7 +353,10 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
             }
           }
         } catch (error) {
-          console.error(`Error batch deleting posts for feed ${feed_uri}:`, error);
+          logger.error('db.batch_remove.delete_posts.failed', {
+            feedUri: feed_uri,
+            error,
+          });
 
           // Mark all valid posts as error
           for (const postToRemove of validPosts) {
@@ -376,7 +393,7 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
             }
           }
         }
-        console.log('Feed deletion result:', {
+        logger.debug('db.batch_remove.posts.success', {
           feed_uri,
           deleted: deletedCount,
           errors: errorCount,

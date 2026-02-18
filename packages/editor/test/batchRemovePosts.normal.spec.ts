@@ -278,10 +278,14 @@ describe(ENDPOINT_PATH, () => {
         DEVELOPER_MODE: 'enabled',
       });
       expect(enabledResponse.status).toBe(200);
-      expect(logSpy).toHaveBeenCalledWith('Batch removing posts:', expect.any(Object));
-      expect(logSpy).toHaveBeenCalledWith('Generated query:', expect.any(String));
-      expect(logSpy).toHaveBeenCalledWith('Bindings:', expect.any(Array));
-      expect(logSpy).toHaveBeenCalledWith('Feed deletion result:', expect.any(Object));
+      expect(logSpy).toHaveBeenCalled();
+
+      const events = logSpy.mock.calls.map(
+        (call) => (JSON.parse(call[0] as string) as Record<string, unknown>).event
+      );
+      expect(events).toContain('db.batch_remove.posts.start');
+      expect(events).toContain('db.query.batch_remove_feeds.start');
+      expect(events).toContain('db.batch_remove.posts.success');
 
       logSpy.mockRestore();
     });

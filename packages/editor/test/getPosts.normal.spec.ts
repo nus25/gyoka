@@ -108,8 +108,13 @@ describe(ENDPOINT_PATH, () => {
         DEVELOPER_MODE: 'enabled',
       });
       expect(enabledResponse.status).toBe(200);
-      expect(logSpy).toHaveBeenCalledWith('Generated query:', expect.any(String));
-      expect(logSpy).toHaveBeenCalledWith('Bindings:', expect.any(Array));
+      expect(logSpy).toHaveBeenCalled();
+
+      const payload = JSON.parse(logSpy.mock.calls[0][0] as string) as Record<string, unknown>;
+      expect(payload.level).toBe('debug');
+      expect(payload.event).toBe('db.query.posts.start');
+      expect(payload.query).toBeTypeOf('string');
+      expect(Array.isArray(payload.bindings)).toBe(true);
 
       logSpy.mockRestore();
     });

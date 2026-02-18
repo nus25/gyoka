@@ -9,6 +9,7 @@ import {
 } from 'shared/src/errors';
 import { feedUri, did } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
+import { createLogger } from 'shared/src/logger';
 
 const SQL_SELECT_FEED_AND_COUNT = `
 SELECT 
@@ -17,6 +18,7 @@ SELECT
 FROM feeds f
 WHERE f.feed_uri = ?`;
 const SQL_DELETE_POSTS_BY_AUTHOR = 'DELETE FROM posts WHERE feed_id = ? AND did = ?';
+const logger = createLogger({ service: 'editor', minLevel: 'debug' });
 
 export class RemovePostByAuthor extends BaseOpenAPIRoute {
   schema = {
@@ -72,7 +74,11 @@ export class RemovePostByAuthor extends BaseOpenAPIRoute {
 
     // Delete all posts by the author from the database
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('feed id:', feed_id, 'author:', author, 'deletedCount:', deletedCount);
+      logger.debug('db.remove.posts_by_author.start', {
+        feedId: feed_id,
+        author,
+        deletedCount,
+      });
     }
     const deleteResult = await db.prepare(SQL_DELETE_POSTS_BY_AUTHOR).bind(feed_id, author).run();
     if (!deleteResult.success) {
