@@ -36,7 +36,7 @@ Gyoka does **not** support:
     pnpm d1-create
     ```
 
-3. Add the `database_id` to the production environment settings in both `packages/editor/wrangler.jsonc` and `packages/generator/wrangler.jsonc`. Also update the `vars` and other worker configuration settings as needed.
+3. Add the `database_id` to the `production` environment settings in both `packages/editor/wrangler.jsonc` and `packages/generator/wrangler.jsonc`. Also update the `vars` and other worker configuration settings as needed.
 
     ```json
     "env": {
