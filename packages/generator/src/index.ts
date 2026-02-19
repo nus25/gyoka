@@ -220,7 +220,7 @@ export default {
       if (request.method === 'GET') {
         const docMatch = /^\/doc\/([^/]+)$/.exec(url.pathname);
         if (docMatch) {
-          return getDocument(env, decodeURIComponent(docMatch[1]));
+          return await getDocument(env, decodeURIComponent(docMatch[1]));
         }
       }
 
