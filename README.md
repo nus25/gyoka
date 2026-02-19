@@ -11,9 +11,9 @@ Gyoka supports:
 - Response for `/xrpc/app.bsky.feed.describeFeedGenerator`
 - Response for `/.well-known/did.json`
 - Language tag filtering via `/xrpc/app.bsky.feed.getFeedSkeleton` request header
+- JWT authentication for generator XRPC endpoints is configurable via `FEEDGEN_AUTH_REQUIRED`.
 
 Gyoka does **not** support:
-- JWT in `/xrpc/app.bsky.feed.getFeedSkeleton` requests (they are ignored)
 - Setting the `acceptsInteractions` value in `app.bsky.feed.generator` record (it must be `false`)
 
 
@@ -43,6 +43,7 @@ Gyoka does **not** support:
 		"production": {
 			"vars": {
 				"FEEDGEN_PUBLISHER_DID": "did:plc:publisher",
+                "FEEDGEN_AUTH_REQUIRED": "enabled",
 				"FEEDGEN_HOST": "feed-generator.example.com",
 				"DEVELOPER_MODE": "disabled"
 			},
@@ -56,6 +57,12 @@ Gyoka does **not** support:
 		}
     }
     ```
+
+        - `FEEDGEN_PUBLISHER_DID` must be a valid DID string (e.g. `did:plc:...`)
+        - `FEEDGEN_HOST` must be the deployed Worker host that AppView accesses (e.g. `feed-generator.example.com`)
+        - `FEEDGEN_AUTH_REQUIRED`
+            - `enabled`: requires service JWT for generator XRPC endpoints
+            - `disabled`: skips JWT verification
 
 4. Initialize database.
     
@@ -112,11 +119,11 @@ Initialize and add sample data to the local D1 database for development purposes
     pnpm generator dev
     ```
 
-3. Access documents.
+3. Access endpoints.
 
-    If local-dev port is 8787, you can see documents below.
-    - Redocs: localhost:8787/redocs
-    - Swagger UI: localhost:8787/docs
+    If generator's local-dev port is 8787, you can access examples below.
+    - DID Document: localhost:8787/.well-known/did.json
+    - Generator document endpoint: localhost:8787/doc/{type}
 
 ## License
 

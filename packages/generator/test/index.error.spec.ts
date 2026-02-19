@@ -46,6 +46,34 @@ describe('Error cases', () => {
     });
   });
 
+  it('Given invalid publisher DID format When describing generator Then it returns 500 internal server error', async () => {
+    const response = await requestPath(DESCRIBE_ENDPOINT, {
+      FEEDGEN_PUBLISHER_DID: 'not-a-did',
+      FEEDGEN_HOST: env.FEEDGEN_HOST,
+      DB: env.DB,
+    } as unknown as typeof env);
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: 'InternalServerError',
+      message: 'Invalid required environment variables',
+    });
+  });
+
+  it('Given invalid host format When describing generator Then it returns 500 internal server error', async () => {
+    const response = await requestPath(DESCRIBE_ENDPOINT, {
+      FEEDGEN_PUBLISHER_DID: env.FEEDGEN_PUBLISHER_DID,
+      FEEDGEN_HOST: 'invalid_host',
+      DB: env.DB,
+    } as unknown as typeof env);
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: 'InternalServerError',
+      message: 'Invalid required environment variables',
+    });
+  });
+
   it('Given unexpected non-Gyoka error When describing generator Then it returns 500 internal server error', async () => {
     const response = await requestPath(DESCRIBE_ENDPOINT, {
       FEEDGEN_PUBLISHER_DID: env.FEEDGEN_PUBLISHER_DID,

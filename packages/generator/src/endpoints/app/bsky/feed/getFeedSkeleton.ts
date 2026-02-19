@@ -1,7 +1,4 @@
-import * as z from 'zod';
-import { BaseOpenAPIRoute } from 'shared/src/routes';
-import { feedUri, postUri, repostUri } from 'shared/src/validators';
-import { AppContext } from 'shared/src/types';
+import { parseResourceUri } from '@atcute/lexicons/syntax';
 import { InternalServerError, BadRequestError, UnknownFeedError } from 'shared/src/errors';
 import { createLogger } from 'shared/src/logger';
 
@@ -9,120 +6,71 @@ import { createLogger } from 'shared/src/logger';
 
 const MAX_ACCEPT_LANGUAGE_CODES = 10;
 const logger = createLogger({ service: 'generator', minLevel: 'debug' });
-export class GetFeedSkeleton extends BaseOpenAPIRoute {
-  schema = {
-    tags: ['Feed Generator'],
-    summary: 'Get a skeleton of a feed',
-    request: {
-      query: z.object({
-        feed: feedUri.openapi({
-          description: 'Feed generator URI',
-        }),
-        limit: z.number().int().min(1).max(100).default(50).openapi({
-          description: 'Maximum number of feed items to return.',
-          example: 50,
-        }),
-        cursor: z.string().optional().openapi({
-          description: 'Pagination cursor for fetching the next set of results.',
-          example: 'next-page-cursor',
-        }),
-      }),
-    },
-    responses: {
-      '200': {
-        description: 'Feed skeleton response',
-        content: {
-          'application/json': {
-            schema: z.object({
-              cursor: z.string().optional().openapi({
-                description: 'Pagination cursor for the next set of results.',
-                example: 'next-page-cursor',
-              }),
-              feed: z
-                .array(
-                  z.object({
-                    post: postUri,
-                    reason: z
-                      .union([
-                        z.object({
-                          repost: repostUri,
-                        }),
-                        z.object({}).openapi({
-                          description: 'Pinned post reason.(currentry not used in bluesky)',
-                        }),
-                      ])
-                      .optional()
-                      .openapi({
-                        description: 'Reason for including the post in the feed skeleton.',
-                      }),
-                    feedContext: z.string().max(2000).optional().openapi({
-                      description: 'Context passed through to the client and feed generator.',
-                      example: 'Some feed context',
-                    }),
-                  })
-                )
-                .openapi({
-                  description: 'Array of feed posts in the skeleton.',
-                }),
-            }),
-          },
-        },
-      },
-      ...BadRequestError.schema(),
-      ...UnknownFeedError.schema(),
-      ...InternalServerError.schema(),
-    },
-  };
+export function extractLanguageCodes(acceptLanguage: string): string[] {
+  if (!acceptLanguage) return [];
 
-  extractLanguageCodes(acceptLanguage: string): string[] {
-    if (!acceptLanguage) return [];
+  const maxCount = MAX_ACCEPT_LANGUAGE_CODES;
+  const seen = new Set<string>();
+  const parts = acceptLanguage.split(',');
 
-    const maxCount = MAX_ACCEPT_LANGUAGE_CODES;
-    const seen = new Set<string>();
-    const parts = acceptLanguage.split(',');
+  for (let i = 0; i < parts.length && seen.size < maxCount; i++) {
+    const semicolonPos = parts[i].indexOf(';');
+    const lang = semicolonPos === -1 ? parts[i] : parts[i].substring(0, semicolonPos);
+    const trimmed = lang.trim();
+    const dashPos = trimmed.indexOf('-');
+    const langCode = (dashPos === -1 ? trimmed : trimmed.substring(0, dashPos)).toLowerCase();
 
-    for (let i = 0; i < parts.length && seen.size < maxCount; i++) {
-      const semicolonPos = parts[i].indexOf(';');
-      const lang = semicolonPos === -1 ? parts[i] : parts[i].substring(0, semicolonPos);
-      const trimmed = lang.trim();
-      const dashPos = trimmed.indexOf('-');
-      const langCode = (dashPos === -1 ? trimmed : trimmed.substring(0, dashPos)).toLowerCase();
-
-      if (langCode) {
-        seen.add(langCode);
-      }
+    if (langCode) {
+      seen.add(langCode);
     }
-
-    return Array.from(seen);
   }
 
-  async handle(c: AppContext): Promise<Response> {
-    const {
-      feed: feedUri,
-      limit,
-      cursor,
-    } = (await this.getValidatedData<typeof this.schema>()).query;
-    // cursor check
-    let cursorIndexedAt: string | null = null;
-    let cursorCid: string | null = null;
-    if (cursor) {
-      const cursorParts = cursor.split('::');
-      if (
-        cursorParts.length !== 2 ||
-        cursorParts.some((part) => part === '') ||
-        isNaN(parseInt(cursorParts[0], 10))
-      ) {
-        throw new BadRequestError('Malformed cursor');
-      }
-      cursorIndexedAt = new Date(parseInt(cursorParts[0], 10)).toISOString();
-      cursorCid = cursorParts[1];
-    }
+  return Array.from(seen);
+}
 
-    // get posts
-    // language codes for filter
-    const acceptLanguage = c.req.header('Accept-Language') || '';
-    const languageCodes = this.extractLanguageCodes(acceptLanguage);
-    const SQL_TEMPLATE_SELECT_POST = `
+function assertFeedUri(feed: string): void {
+  const parsed = parseResourceUri(feed);
+  if (!parsed.ok || parsed.value.collection !== 'app.bsky.feed.generator' || !parsed.value.rkey) {
+    throw new BadRequestError('Invalid feed URI format');
+  }
+}
+
+type GetFeedSkeletonArgs = {
+  env: Env;
+  request: Request;
+  feed: string;
+  limit: number;
+  cursor?: string;
+};
+
+export async function getFeedSkeleton({
+  env,
+  request,
+  feed,
+  limit,
+  cursor,
+}: GetFeedSkeletonArgs): Promise<Response> {
+  assertFeedUri(feed);
+
+  let cursorIndexedAt: string | null = null;
+  let cursorCid: string | null = null;
+  if (cursor) {
+    const cursorParts = cursor.split('::');
+    if (
+      cursorParts.length !== 2 ||
+      cursorParts.some((part) => part === '') ||
+      Number.isNaN(parseInt(cursorParts[0], 10))
+    ) {
+      throw new BadRequestError('Malformed cursor');
+    }
+    cursorIndexedAt = new Date(parseInt(cursorParts[0], 10)).toISOString();
+    cursorCid = cursorParts[1];
+  }
+
+  const acceptLanguage = request.headers.get('Accept-Language') || '';
+  const languageCodes = extractLanguageCodes(acceptLanguage);
+
+  const SQL_TEMPLATE_SELECT_POST = `
 SELECT p.uri, p.cid, p.indexed_at, p.reason, p.feed_context
 FROM feeds f
 INNER JOIN posts p ON p.feed_id = f.feed_id
@@ -141,7 +89,6 @@ WHERE f.feed_uri = ?
   AND (
     f.lang_filter = 0
     OR ${
-      // if no language codes is send, always true
       languageCodes.length === 0
         ? '1=1'
         : `EXISTS (
@@ -155,91 +102,80 @@ WHERE f.feed_uri = ?
 ORDER BY p.indexed_at DESC, p.cid DESC, p.post_id DESC
 LIMIT ?;`;
 
-    if (c.env.DEVELOPER_MODE === 'enabled') {
-      logger.debug('db.query.feed_skeleton.start', {
-        query: SQL_TEMPLATE_SELECT_POST,
-        bindings: [
-          feedUri,
-          cursor || null,
-          cursorIndexedAt,
-          cursorIndexedAt,
-          cursorCid,
-          ...languageCodes,
-          limit,
-        ],
-      });
-    }
-    const { success, results } = await c.env.DB.prepare(SQL_TEMPLATE_SELECT_POST)
-      .bind(
-        feedUri,
+  if (env.DEVELOPER_MODE === 'enabled') {
+    logger.debug('db.query.feed_skeleton.start', {
+      query: SQL_TEMPLATE_SELECT_POST,
+      bindings: [
+        feed,
         cursor || null,
         cursorIndexedAt,
         cursorIndexedAt,
         cursorCid,
         ...languageCodes,
-        limit
-      )
-      .all();
+        limit,
+      ],
+    });
+  }
 
-    if (!success) {
-      throw new InternalServerError('Failed to fetch feed skeleton');
-    }
+  const { success, results } = await env.DB.prepare(SQL_TEMPLATE_SELECT_POST)
+    .bind(feed, cursor || null, cursorIndexedAt, cursorIndexedAt, cursorCid, ...languageCodes, limit)
+    .all();
 
-    if (results.length === 0) {
-      // find out if feed exists
-      const feedExistsQuery = `
+  if (!success) {
+    throw new InternalServerError('Failed to fetch feed skeleton');
+  }
+
+  if (results.length === 0) {
+    const feedExistsQuery = `
       SELECT feed_id
       FROM feeds
       WHERE feed_uri = ?
         AND is_active = 1
       LIMIT 1;`;
-      const feedExistsResult = await c.env.DB.prepare(feedExistsQuery).bind(feedUri).all();
-      if (!feedExistsResult.success) {
-        throw new InternalServerError('Failed to verify feed existence');
-      }
-      if (c.env.DEVELOPER_MODE === 'enabled') {
-        logger.debug('db.query.feed_exists.success', {
-          feedUri,
-          success: feedExistsResult.success,
-          resultCount: feedExistsResult.results.length,
-          rowsRead: feedExistsResult.meta?.rows_read,
-        });
-      }
-      if (!feedExistsResult.results[0]?.feed_id) {
-        throw new UnknownFeedError(`The feed generator with URI ${feedUri} does not existed.`);
-      }
+    const feedExistsResult = await env.DB.prepare(feedExistsQuery).bind(feed).all();
+    if (!feedExistsResult.success) {
+      throw new InternalServerError('Failed to verify feed existence');
     }
+    if (env.DEVELOPER_MODE === 'enabled') {
+      logger.debug('db.query.feed_exists.success', {
+        feedUri: feed,
+        success: feedExistsResult.success,
+        resultCount: feedExistsResult.results.length,
+        rowsRead: feedExistsResult.meta?.rows_read,
+      });
+    }
+    if (!feedExistsResult.results[0]?.feed_id) {
+      throw new UnknownFeedError(`The feed generator with URI ${feed} does not existed.`);
+    }
+  }
 
-    const feed = results.map((post) => ({
-      post: post.uri,
-      reason: post.reason ? JSON.parse(post.reason as string) : undefined, // Decode JSON string to object
-      feedContext: post.feed_context ?? undefined,
-    }));
-    const nextCursor =
-      results.length == limit
-        ? `${new Date(results[results.length - 1].indexed_at as string).getTime()}::${
-            results[results.length - 1].cid
-          }`
-        : undefined;
+  const feedItems = results.map((post) => ({
+    post: post.uri,
+    reason: post.reason ? JSON.parse(post.reason as string) : undefined,
+    feedContext: post.feed_context ?? undefined,
+  }));
 
-    // create response body
-    const responseBody = {
+  const nextCursor =
+    results.length === limit
+      ? `${new Date(results[results.length - 1].indexed_at as string).getTime()}::${
+          results[results.length - 1].cid
+        }`
+      : undefined;
+
+  const headers = new Headers();
+  headers.set('Content-Type', 'application/json');
+  if (languageCodes.length > 0) {
+    headers.set('Content-Language', languageCodes.join(', '));
+  }
+
+  return new Response(
+    JSON.stringify({
       cursor: nextCursor,
-      feed,
-    };
-
-    // Create headers
-    const headers = new Headers();
-    headers.set('Content-Type', 'application/json');
-
-    // Set Content-Language header if language codes are available
-    if (languageCodes.length > 0) {
-      headers.set('Content-Language', Array.from(languageCodes).join(', '));
-    }
-
-    return new Response(JSON.stringify(responseBody), {
+      feed: feedItems,
+    }),
+    {
       status: 200,
       headers,
-    });
-  }
+    }
+  );
 }

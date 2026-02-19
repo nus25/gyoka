@@ -59,7 +59,25 @@ describe('Error cases', () => {
 
     expect(response.status).toBe(400);
     const data: ErrorResponse = await response.json();
-    expect(data.error).toBe('BadRequest');
+    expect(data.error).toBe('InvalidRequest');
+  });
+
+  it('Given invalid query parameter type When requesting skeleton Then issues are logged but excluded from response', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const response = await requestFeedSkeleton(`feed=${ACTIVE_FEED_URI}&limit=abc`);
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as ErrorResponse & {
+      'net.kelinci.atcute.issues'?: unknown;
+    };
+    expect(data.error).toBe('InvalidRequest');
+    expect(data['net.kelinci.atcute.issues']).toBeUndefined();
+    expect(warnSpy).toHaveBeenCalled();
+
+    const payload = JSON.parse(warnSpy.mock.calls[0][0] as string) as Record<string, unknown>;
+    expect(payload.event).toBe('api.validate.request.failed');
+    expect(Array.isArray(payload.issues)).toBe(true);
   });
 
   it('Given main query failure When requesting skeleton Then it returns 500', async () => {

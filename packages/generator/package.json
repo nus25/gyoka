@@ -10,10 +10,13 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "chanfana": "3.0.0",
-    "hono": "^4.11.7",
-    "zod": "^4.3.5",
-    "shared": "workspace:*"
+    "shared": "workspace:*",
+    "@atcute/atproto": "^3.0.3",
+    "@atcute/bluesky": "^3.0.4",
+    "@atcute/identity": "^1.0.2",
+    "@atcute/identity-resolver": "^1.1.3",
+    "@atcute/lexicons": "^1.0.4",
+    "@atcute/xrpc-server": "^0.1.1"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "0.12.7",
