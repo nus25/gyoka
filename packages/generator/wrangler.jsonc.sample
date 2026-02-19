@@ -15,7 +15,8 @@
         "__OPENAPI_DOCS_ENABLED__": "false"
       },
       "vars": {
-        "FEEDGEN_AUTH_REQUIRED": "disabled"
+        "FEEDGEN_AUTH_REQUIRED": "disabled",
+        "DID_CACHE_TTL_SECONDS": "2592000"
       },
       "d1_databases": [
         {
@@ -45,6 +46,7 @@
         "FEEDGEN_PUBLISHER_DID": "did:example:developer",
         "FEEDGEN_HOST": "dev.example.com",
         "FEEDGEN_AUTH_REQUIRED": "disabled",
+        "DID_CACHE_TTL_SECONDS": "2592000",
         "DEVELOPER_MODE": "enabled"
       }
     },
@@ -70,7 +72,10 @@
         "FEEDGEN_PUBLISHER_DID": "did:example:publisher",
         /* deployed worker host accessed from AppView */
         "FEEDGEN_HOST": "feed-generator.example.com",
+        /* Runtime flag: enable service JWT authentication for XRPC endpoints when set to "enabled". */
         "FEEDGEN_AUTH_REQUIRED": "enabled",
+        /* DID resolver cache TTL in seconds. 2592000 = 30 days. */
+        "DID_CACHE_TTL_SECONDS": "2592000",
         /* Runtime flag: enables verbose debug logging in endpoints when set to "enabled". */
         "DEVELOPER_MODE": "disabled",
         /* Version from package.json (overridden by --var during deploy) */

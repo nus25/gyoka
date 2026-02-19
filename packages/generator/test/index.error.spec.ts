@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:test';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { requestPath } from './index.shared';
 
@@ -90,5 +90,29 @@ describe('Error cases', () => {
       error: 'InternalServerError',
       message: 'An unexpected error occurred.',
     });
+  });
+
+  it('Given auth required and missing authorization header When describing generator Then it returns 401 without unexpected error log', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const response = await requestPath(DESCRIBE_ENDPOINT, {
+      ...env,
+      FEEDGEN_AUTH_REQUIRED: 'enabled',
+    } as typeof env);
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      error: 'AuthenticationRequired',
+      message: 'missing authorization header',
+    });
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).not.toHaveBeenCalled();
+
+    const payload = JSON.parse(warnSpy.mock.calls[0][0] as string) as Record<string, unknown>;
+    expect(payload.event).toBe('api.handle.exception.failed');
+    expect(payload.errorCode).toBe('AuthenticationRequired');
+    expect(payload.status).toBe(401);
   });
 });

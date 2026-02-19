@@ -1,7 +1,7 @@
 import { type Nsid } from '@atcute/lexicons';
 import { normalizeWebDid } from '@atcute/identity';
 import { isDid, isHandle } from '@atcute/lexicons/syntax';
-import { AuthRequiredError, XRPCRouter } from '@atcute/xrpc-server';
+import { AuthRequiredError, XRPCError, XRPCRouter } from '@atcute/xrpc-server';
 import { ServiceJwtVerifier, type VerifiedJwt } from '@atcute/xrpc-server/auth';
 import { cors } from '@atcute/xrpc-server/middlewares/cors';
 
@@ -12,6 +12,7 @@ import {
 } from '@atcute/identity-resolver';
 
 import { AppBskyFeedGetFeedSkeleton, AppBskyFeedDescribeFeedGenerator } from '@atcute/bluesky';
+import { createDidResolverFetch } from './didResolverCache';
 import { describeFeedGenerator } from './endpoints/app/bsky/feed/describeFeedGenerator';
 import { getFeedSkeleton } from './endpoints/app/bsky/feed/getFeedSkeleton';
 import { getDidDocument } from './endpoints/getDidDocument';
@@ -29,6 +30,22 @@ type InvalidRequestPayload = {
 };
 
 function handleAppError(err: unknown, env?: Env): Response {
+  if (err instanceof XRPCError) {
+    const level = err.status >= 500 ? 'error' : 'warn';
+    const details: Record<string, unknown> = {
+      errorCode: err.error,
+      status: err.status,
+      message: err.description,
+    };
+
+    if (env?.DEVELOPER_MODE === 'enabled') {
+      details.stack = err.stack;
+    }
+
+    logger[level]('api.handle.exception.failed', details);
+    return err.toResponse();
+  }
+
   if (err instanceof GyokaBaseError) {
     const level = err.status >= 500 ? 'error' : 'warn';
     const details: Record<string, unknown> = {
@@ -64,12 +81,17 @@ function assertRequiredConfiguration(env: Env): void {
   }
 }
 
-function createRequireAuth(env: Env) {
+function createRequireAuth(env: Env, ctx: ExecutionContext) {
   const serviceDid = normalizeWebDid(`did:web:${env.FEEDGEN_HOST}`);
+  const didResolverFetch = createDidResolverFetch(env, ctx, logger);
   const didDocResolver = new CompositeDidDocumentResolver({
     methods: {
-      plc: new PlcDidDocumentResolver(),
-      web: new WebDidDocumentResolver(),
+      plc: new PlcDidDocumentResolver({
+        fetch: didResolverFetch,
+      }),
+      web: new WebDidDocumentResolver({
+        fetch: didResolverFetch,
+      }),
     },
   });
 
@@ -105,8 +127,8 @@ function createRequireAuth(env: Env) {
   };
 }
 
-function createRouter(env: Env): XRPCRouter {
-  const requireAuth = createRequireAuth(env);
+function createRouter(env: Env, ctx: ExecutionContext): XRPCRouter {
+  const requireAuth = createRequireAuth(env, ctx);
   const router = new XRPCRouter({
     middlewares: [cors()],
     handleException: (error) => handleAppError(error, env),
@@ -185,7 +207,7 @@ async function sanitizeAtcuteValidationResponse(response: Response): Promise<Res
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
       assertRequiredConfiguration(env);
 
@@ -202,7 +224,7 @@ export default {
         }
       }
 
-      const router = createRouter(env);
+      const router = createRouter(env, ctx);
       const routerResponse = await router.fetch(request);
       return sanitizeAtcuteValidationResponse(routerResponse);
     } catch (err) {
