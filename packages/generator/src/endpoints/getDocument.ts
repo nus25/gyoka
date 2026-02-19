@@ -1,5 +1,5 @@
 import { DOCUMENT_TYPES } from 'shared/src/constants';
-import { NotFoundError } from 'shared/src/errors';
+import { NotFoundError } from 'shared/src/errors/core';
 
 // get service document from D1 documents table
 

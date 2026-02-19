@@ -1,5 +1,5 @@
 import { parseResourceUri } from '@atcute/lexicons/syntax';
-import { InternalServerError, BadRequestError, UnknownFeedError } from 'shared/src/errors';
+import { InternalServerError, BadRequestError, UnknownFeedError } from 'shared/src/errors/core';
 import { createLogger } from 'shared/src/logger';
 
 // https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/getFeedSkeleton.json

@@ -16,8 +16,8 @@ import { describeFeedGenerator } from './endpoints/app/bsky/feed/describeFeedGen
 import { getFeedSkeleton } from './endpoints/app/bsky/feed/getFeedSkeleton';
 import { getDidDocument } from './endpoints/getDidDocument';
 import { getDocument } from './endpoints/getDocument';
-import { createErrorResponse } from 'shared/src/errors';
-import { GyokaBaseError, InternalServerError } from 'shared/src/errors';
+import { createErrorResponse } from 'shared/src/errors/core';
+import { GyokaBaseError, InternalServerError } from 'shared/src/errors/core';
 import { createLogger } from 'shared/src/logger';
 
 const logger = createLogger({ service: 'generator' });

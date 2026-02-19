@@ -1,5 +1,5 @@
 import { DOCUMENT_TYPES } from 'shared/src/constants';
-import { InternalServerError } from 'shared/src/errors';
+import { InternalServerError } from 'shared/src/errors/core';
 
 // https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/describeFeedGenerator.json
 

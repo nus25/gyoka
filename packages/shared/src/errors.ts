@@ -1,64 +1,21 @@
 import * as z from 'zod';
 import { extendZodWithOpenApi } from '@hono/zod-openapi';
-import { createLogger, type LogLevel } from './logger';
+import {
+  BadRequestError as CoreBadRequestError,
+  ConflictError as CoreConflictError,
+  createErrorResponse,
+  GyokaBaseError,
+  InternalServerError as CoreInternalServerError,
+  NotFoundError as CoreNotFoundError,
+  type ErrorResponse,
+  UnauthorizedError as CoreUnauthorizedError,
+  UnknownFeedError as CoreUnknownFeedError,
+} from './errors/core';
 extendZodWithOpenApi(z);
 
-const sharedLogger = createLogger({});
+export { createErrorResponse, GyokaBaseError, type ErrorResponse };
 
-export type ErrorResponse = {
-  error: string;
-  message?: string;
-};
-
-type ErrorResponseLogOptions = {
-  event?: string;
-  level?: LogLevel;
-  details?: Record<string, unknown>;
-};
-
-export function createErrorResponse(
-  error: string,
-  message: string,
-  status: number,
-  logOptions?: ErrorResponseLogOptions
-): Response {
-  const responseBody: ErrorResponse = { error, message };
-
-  if (logOptions) {
-    const level = logOptions.level ?? (status >= 500 ? 'error' : 'warn');
-    const event = logOptions.event ?? 'api.respond.error.failed';
-    const details = {
-      status,
-      errorCode: error,
-      message,
-      ...(logOptions.details ?? {}),
-    };
-    sharedLogger[level](event, details);
-  }
-
-  return new Response(JSON.stringify(responseBody), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
-
-export class GyokaBaseError extends Error {
-  errorCode = 'GyokaBaseError';
-  status = 500;
-  constructor(message = '') {
-    super(message);
-    this.message = message;
-  }
-}
-
-export class InternalServerError extends GyokaBaseError {
-  errorCode = 'InternalServerError';
-  status = 500;
-
-  constructor(message = '') {
-    super(message);
-    this.message = message;
-  }
+export class InternalServerError extends CoreInternalServerError {
 
   static schema() {
     return {
@@ -77,14 +34,7 @@ export class InternalServerError extends GyokaBaseError {
   }
 }
 
-export class NotFoundError extends GyokaBaseError {
-  errorCode = 'NotFound';
-  status = 404;
-
-  constructor(message = '') {
-    super(message);
-    this.message = message;
-  }
+export class NotFoundError extends CoreNotFoundError {
 
   static schema() {
     return {
@@ -106,14 +56,7 @@ export class NotFoundError extends GyokaBaseError {
   }
 }
 
-export class BadRequestError extends GyokaBaseError {
-  errorCode = 'BadRequest';
-  status = 400;
-
-  constructor(message = '') {
-    super(message);
-    this.message = message;
-  }
+export class BadRequestError extends CoreBadRequestError {
 
   static schema() {
     return {
@@ -134,14 +77,7 @@ export class BadRequestError extends GyokaBaseError {
   }
 }
 
-export class UnknownFeedError extends GyokaBaseError {
-  errorCode = 'UnknownFeed';
-  status = 404;
-
-  constructor(message = '') {
-    super(message);
-    this.message = message;
-  }
+export class UnknownFeedError extends CoreUnknownFeedError {
   static schema() {
     return {
       404: {
@@ -162,14 +98,7 @@ export class UnknownFeedError extends GyokaBaseError {
   }
 }
 
-export class UnauthorizedError extends GyokaBaseError {
-  errorCode = 'Unauthorized';
-  status = 401;
-
-  constructor(message = '') {
-    super(message);
-    this.message = message;
-  }
+export class UnauthorizedError extends CoreUnauthorizedError {
   static schema() {
     return {
       401: {
@@ -190,14 +119,7 @@ export class UnauthorizedError extends GyokaBaseError {
   }
 }
 
-export class ConflictError extends GyokaBaseError {
-  errorCode = 'Conflict';
-  status = 409;
-
-  constructor(message = '') {
-    super(message);
-    this.message = message;
-  }
+export class ConflictError extends CoreConflictError {
 
   static schema() {
     return {
