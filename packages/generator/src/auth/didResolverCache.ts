@@ -94,9 +94,12 @@ async function revalidate(
     }
 
     if (response.status === 304) {
+      // 304 Not Modified - update the cached timestamp without changing the content
+      await cache.put(cacheKey, stampCachedResponse(cached.clone(), Date.now()));
       logger.debug('auth.revalidate.didcache.success', {
         url: cacheKey.url,
         updated: false,
+        refreshed: true,
       });
       return;
     }
