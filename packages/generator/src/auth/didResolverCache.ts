@@ -155,11 +155,41 @@ export function createDidResolverFetch(
       ttlSeconds,
     });
 
+    // stale - fetch with etag
+    if (cached) {
+      const etag = cached.headers.get('etag');
+      if (etag) {
+        const headers = new Headers(request.headers);
+        headers.set('If-None-Match', etag);
+        const conditionalReq = new Request(request.url, {
+          method: 'GET',
+          headers,
+          cache: 'no-cache',
+        });
+        const response = await fetch(conditionalReq);
+        if (response.status === 304) {
+          // Not Modified - update the cached timestamp without changing the content
+          await cache.put(cacheKey, stampCachedResponse(cached.clone(), Date.now()));
+          logger.debug('auth.resolve.didcache.success', {
+            url: cacheKey.url,
+            cache: 'refreshed',
+            refreshed: true,
+          });
+          return cached;
+        }
+        if (response.ok && response.status === 200) {
+          await cache.put(cacheKey, stampCachedResponse(response.clone(), Date.now()));
+          return response;
+        }
+        // fallthrough for other statuses
+      }
+    }
+
+    // normal fetch
     const response = await fetch(request);
     if (response.ok && response.status === 200) {
       ctx.waitUntil(cache.put(cacheKey, stampCachedResponse(response.clone(), Date.now())));
     }
-
     return response;
   };
 }
