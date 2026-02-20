@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_DID_CACHE_TTL_SECONDS,
   resolveDidCacheTtlSeconds,
-} from '../src/didResolverCache';
+} from '../src/auth/didResolverCache';
 
 describe('didResolverCache', () => {
   it('Given undefined ttl env When resolving ttl Then default 30 days is used', () => {

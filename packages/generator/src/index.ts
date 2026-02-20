@@ -1,18 +1,9 @@
-import { type Nsid } from '@atcute/lexicons';
-import { normalizeWebDid } from '@atcute/identity';
 import { isDid, isHandle } from '@atcute/lexicons/syntax';
-import { AuthRequiredError, XRPCError, XRPCRouter } from '@atcute/xrpc-server';
-import { ServiceJwtVerifier, type VerifiedJwt } from '@atcute/xrpc-server/auth';
+import { XRPCError, XRPCRouter } from '@atcute/xrpc-server';
 import { cors } from '@atcute/xrpc-server/middlewares/cors';
 
-import {
-  CompositeDidDocumentResolver,
-  PlcDidDocumentResolver,
-  WebDidDocumentResolver,
-} from '@atcute/identity-resolver';
-
 import { AppBskyFeedGetFeedSkeleton, AppBskyFeedDescribeFeedGenerator } from '@atcute/bluesky';
-import { createDidResolverFetch } from './didResolverCache';
+import { createRequireAuth } from './auth/createRequireAuth';
 import { describeFeedGenerator } from './endpoints/app/bsky/feed/describeFeedGenerator';
 import { getFeedSkeleton } from './endpoints/app/bsky/feed/getFeedSkeleton';
 import { getDidDocument } from './endpoints/getDidDocument';
@@ -21,7 +12,7 @@ import { createErrorResponse } from 'shared/src/errors/core';
 import { GyokaBaseError, InternalServerError } from 'shared/src/errors/core';
 import { createLogger } from 'shared/src/logger';
 
-const logger = createLogger({ service: 'generator' });
+const logger = createLogger({ service: 'generator', minLevel: 'debug' });
 
 type InvalidRequestPayload = {
   error?: string;
@@ -79,52 +70,6 @@ function assertRequiredConfiguration(env: Env): void {
   if (!isDid(env.FEEDGEN_PUBLISHER_DID) || !isHandle(env.FEEDGEN_HOST)) {
     throw new InternalServerError('Invalid required environment variables');
   }
-}
-
-function createRequireAuth(env: Env, ctx: ExecutionContext) {
-  const serviceDid = normalizeWebDid(`did:web:${env.FEEDGEN_HOST}`);
-  const didResolverFetch = createDidResolverFetch(env, ctx, logger);
-  const didDocResolver = new CompositeDidDocumentResolver({
-    methods: {
-      plc: new PlcDidDocumentResolver({
-        fetch: didResolverFetch,
-      }),
-      web: new WebDidDocumentResolver({
-        fetch: didResolverFetch,
-      }),
-    },
-  });
-
-  const jwtVerifier = new ServiceJwtVerifier({
-    serviceDid,
-    resolver: didDocResolver,
-  });
-
-  return async (request: Request, lxm: Nsid): Promise<VerifiedJwt | null> => {
-    if (env.FEEDGEN_AUTH_REQUIRED !== 'enabled') {
-      return null;
-    }
-
-    const auth = request.headers.get('authorization');
-    if (auth === null) {
-      throw new AuthRequiredError({ description: 'missing authorization header' });
-    }
-    if (!auth.startsWith('Bearer ')) {
-      throw new AuthRequiredError({ description: 'invalid authorization scheme' });
-    }
-
-    const jwtString = auth.slice('Bearer '.length).trim();
-
-    const result = await jwtVerifier.verify(jwtString, { lxm });
-    if (!result.ok) {
-      if ('error' in result) {
-        throw new AuthRequiredError(result.error);
-      }
-      throw new AuthRequiredError({ description: 'invalid authorization token' });
-    }
-
-    return result.value;
-  };
 }
 
 function createRouter(env: Env, ctx: ExecutionContext): XRPCRouter {
