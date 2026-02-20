@@ -1,1 +1,0 @@
-declare const __OPENAPI_DOCS_ENABLED__: boolean;
