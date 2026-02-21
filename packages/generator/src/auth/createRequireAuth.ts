@@ -11,7 +11,7 @@ import {
 import { createDidResolverFetch } from './didResolverCache';
 import { createLogger } from 'shared/src/logger';
 
-const logger = createLogger({ service: 'generator' });
+const logger = createLogger({ service: 'generator', minLevel: 'debug' });
 
 export function createRequireAuth(env: Env, ctx: ExecutionContext) {
   const serviceDid = normalizeWebDid(`did:web:${env.FEEDGEN_HOST}`);
