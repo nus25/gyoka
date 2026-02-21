@@ -11,11 +11,16 @@ import {
 import { createDidResolverFetch } from './didResolverCache';
 import { createLogger } from 'shared/src/logger';
 
-const logger = createLogger({ service: 'generator', minLevel: 'debug' });
-
 export function createRequireAuth(env: Env, ctx: ExecutionContext) {
   const serviceDid = normalizeWebDid(`did:web:${env.FEEDGEN_HOST}`);
-  const didResolverFetch = createDidResolverFetch(env, ctx, logger);
+  const didResolverFetch = createDidResolverFetch(
+    env,
+    ctx,
+    createLogger({
+      service: 'generator',
+      minLevel: env.DEVELOPER_MODE === 'enabled' ? 'debug' : 'info',
+    })
+  );
   const didDocResolver = new CompositeDidDocumentResolver({
     methods: {
       plc: new PlcDidDocumentResolver({
