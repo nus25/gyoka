@@ -22,7 +22,7 @@
     "@cloudflare/vitest-pool-workers": "catalog:",
     "@cloudflare/workers-types": "catalog:",
     "@types/node": "^22.15.35",
-    "@types/service-worker-mock": "^2.0.4",
+
     "wrangler": "catalog:"
   },
   "packageManager": "pnpm@10.28.2",

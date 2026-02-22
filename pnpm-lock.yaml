@@ -71,9 +71,6 @@ importers:
       '@types/node':
         specifier: ^22.15.35
         version: 22.19.1
-      '@types/service-worker-mock':
-        specifier: ^2.0.4
-        version: 2.0.4
       wrangler:
         specifier: 'catalog:'
         version: 4.61.0(@cloudflare/workers-types@4.20260124.0)
@@ -102,9 +99,6 @@ importers:
       '@types/node':
         specifier: ^22.15.35
         version: 22.19.1
-      '@types/service-worker-mock':
-        specifier: ^2.0.4
-        version: 2.0.4
       wrangler:
         specifier: 'catalog:'
         version: 4.61.0(@cloudflare/workers-types@4.20260124.0)
@@ -982,9 +976,6 @@ packages:
 
   '@types/node@22.19.1':
     resolution: {integrity: sha512-LCCV0HdSZZZb34qifBsyWlUmok6W7ouER+oQIGBScS8EsZsQbrtFTUrDX4hOl+CS6p7cnNC4td+qrSVGSCTUfQ==}
-
-  '@types/service-worker-mock@2.0.4':
-    resolution: {integrity: sha512-MEBT2eiqYfhxjqYm/oAf2AvKLbPTPwJJAYrMdheKnGyz1yG9XBRfxCzi93h27qpSvI7jOYfXqFLVMLBXFDqo4A==}
 
   '@typescript-eslint/eslint-plugin@8.54.0':
     resolution: {integrity: sha512-hAAP5io/7csFStuOmR782YmTthKBJ9ND3WVL60hcOjvtGFb+HJxH4O5huAcmcZ9v9G8P+JETiZ/G1B8MALnWZQ==}
@@ -2484,8 +2475,6 @@ snapshots:
   '@types/node@22.19.1':
     dependencies:
       undici-types: 6.21.0
-
-  '@types/service-worker-mock@2.0.4': {}
 
   '@typescript-eslint/eslint-plugin@8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint@9.39.2)(typescript@5.9.3)':
     dependencies:
