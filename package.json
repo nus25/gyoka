@@ -18,7 +18,7 @@
   "author": "Nus",
   "license": "MIT",
   "devDependencies": {
-    "wrangler": "4.61.0",
+    "wrangler": "catalog:",
     "@vitest/coverage-istanbul": "^3.2.x",
     "vitest": "^3.2.x",
     "eslint": "^9.27.0",
