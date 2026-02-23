@@ -1,5 +1,10 @@
 # .prettierignore
 **/node_modules/
 **/.wrangler/
-**/coverage
+**/coverage/
 **/worker-configuration.d.ts
+**/pnpm-lock.yaml
+**/pnpm-workspace.yaml
+**/.dev.vars
+**/.git/
+**/data/
