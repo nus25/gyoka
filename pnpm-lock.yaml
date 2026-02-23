@@ -4,6 +4,18 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@cloudflare/vitest-pool-workers':
+      specifier: 0.12.7
+      version: 0.12.7
+    '@cloudflare/workers-types':
+      specifier: 4.20260124.0
+      version: 4.20260124.0
+    wrangler:
+      specifier: 4.61.0
+      version: 4.61.0
+
 patchedDependencies:
   '@cloudflare/vitest-pool-workers@0.12.7':
     hash: 41eeb2ea99506999c3d1d0f758d5a6139326a46376f9423526b56b02b2340395
@@ -25,6 +37,9 @@ importers:
       globals:
         specifier: ^15.0.0
         version: 15.15.0
+      prettier:
+        specifier: ^3.8.1
+        version: 3.8.1
       typescript-eslint:
         specifier: ^8.0.0
         version: 8.54.0(eslint@9.39.2)(typescript@5.9.3)
@@ -32,7 +47,7 @@ importers:
         specifier: ^3.2.x
         version: 3.2.4(@types/node@22.19.1)(yaml@2.8.2)
       wrangler:
-        specifier: 4.61.0
+        specifier: 'catalog:'
         version: 4.61.0(@cloudflare/workers-types@4.20260124.0)
 
   packages/editor:
@@ -51,19 +66,16 @@ importers:
         version: 4.3.6
     devDependencies:
       '@cloudflare/vitest-pool-workers':
-        specifier: 0.12.7
+        specifier: 'catalog:'
         version: 0.12.7(patch_hash=41eeb2ea99506999c3d1d0f758d5a6139326a46376f9423526b56b02b2340395)(@cloudflare/workers-types@4.20260124.0)(@vitest/runner@3.2.4)(@vitest/snapshot@3.2.4)(vitest@3.2.4(@types/node@22.19.1)(yaml@2.8.2))
       '@cloudflare/workers-types':
-        specifier: 4.20260124.0
+        specifier: 'catalog:'
         version: 4.20260124.0
       '@types/node':
         specifier: ^22.15.35
         version: 22.19.1
-      '@types/service-worker-mock':
-        specifier: ^2.0.4
-        version: 2.0.4
       wrangler:
-        specifier: 4.61.0
+        specifier: 'catalog:'
         version: 4.61.0(@cloudflare/workers-types@4.20260124.0)
 
   packages/generator:
@@ -91,19 +103,16 @@ importers:
         version: link:../shared
     devDependencies:
       '@cloudflare/vitest-pool-workers':
-        specifier: 0.12.7
+        specifier: 'catalog:'
         version: 0.12.7(patch_hash=41eeb2ea99506999c3d1d0f758d5a6139326a46376f9423526b56b02b2340395)(@cloudflare/workers-types@4.20260124.0)(@vitest/runner@3.2.4)(@vitest/snapshot@3.2.4)(vitest@3.2.4(@types/node@22.19.1)(yaml@2.8.2))
       '@cloudflare/workers-types':
-        specifier: 4.20260124.0
+        specifier: 'catalog:'
         version: 4.20260124.0
       '@types/node':
         specifier: ^22.15.35
         version: 22.19.1
-      '@types/service-worker-mock':
-        specifier: ^2.0.4
-        version: 2.0.4
       wrangler:
-        specifier: 4.61.0
+        specifier: 'catalog:'
         version: 4.61.0(@cloudflare/workers-types@4.20260124.0)
 
   packages/shared:
@@ -122,10 +131,10 @@ importers:
         version: 4.3.6
     devDependencies:
       '@cloudflare/vitest-pool-workers':
-        specifier: 0.12.7
+        specifier: 'catalog:'
         version: 0.12.7(patch_hash=41eeb2ea99506999c3d1d0f758d5a6139326a46376f9423526b56b02b2340395)(@cloudflare/workers-types@4.20260124.0)(@vitest/runner@3.2.4)(@vitest/snapshot@3.2.4)(vitest@3.2.4(@types/node@22.19.1)(yaml@2.8.2))
       '@cloudflare/workers-types':
-        specifier: 4.20260124.0
+        specifier: 'catalog:'
         version: 4.20260124.0
       '@types/node':
         specifier: ^22.15.35
@@ -1034,9 +1043,6 @@ packages:
   '@types/node@22.19.1':
     resolution: {integrity: sha512-LCCV0HdSZZZb34qifBsyWlUmok6W7ouER+oQIGBScS8EsZsQbrtFTUrDX4hOl+CS6p7cnNC4td+qrSVGSCTUfQ==}
 
-  '@types/service-worker-mock@2.0.4':
-    resolution: {integrity: sha512-MEBT2eiqYfhxjqYm/oAf2AvKLbPTPwJJAYrMdheKnGyz1yG9XBRfxCzi93h27qpSvI7jOYfXqFLVMLBXFDqo4A==}
-
   '@typescript-eslint/eslint-plugin@8.54.0':
     resolution: {integrity: sha512-hAAP5io/7csFStuOmR782YmTthKBJ9ND3WVL60hcOjvtGFb+HJxH4O5huAcmcZ9v9G8P+JETiZ/G1B8MALnWZQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -1632,6 +1638,11 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
+
+  prettier@3.8.1:
+    resolution: {integrity: sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==}
+    engines: {node: '>=14'}
+    hasBin: true
 
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
@@ -2626,8 +2637,6 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/service-worker-mock@2.0.4': {}
-
   '@typescript-eslint/eslint-plugin@8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.9.3))(eslint@9.39.2)(typescript@5.9.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
@@ -3293,6 +3302,8 @@ snapshots:
       source-map-js: 1.2.1
 
   prelude-ls@1.2.1: {}
+
+  prettier@3.8.1: {}
 
   punycode@2.3.1: {}
 

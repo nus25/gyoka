@@ -12,19 +12,22 @@
     "d1-init:production": "pnpm editor d1-init:production",
     "d1-add-sample:local": "pnpm editor d1-add-sample:local",
     "test:all": "pnpm -r test run",
+    "fmt": "prettier --check . --write",
+    "fmt:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
   "author": "Nus",
   "license": "MIT",
   "devDependencies": {
-    "wrangler": "4.61.0",
-    "@vitest/coverage-istanbul": "^3.2.x",
-    "vitest": "^3.2.x",
-    "eslint": "^9.27.0",
     "@eslint/js": "^9.0.0",
+    "@vitest/coverage-istanbul": "^3.2.x",
+    "eslint": "^9.27.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.8.1",
     "typescript-eslint": "^8.0.0",
-    "globals": "^15.0.0"
+    "vitest": "^3.2.x",
+    "wrangler": "catalog:"
   },
   "packageManager": "pnpm@10.28.2"
 }

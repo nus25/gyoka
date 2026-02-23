@@ -1,9 +1,17 @@
 packages:
   - packages/*
 
-minimumReleaseAge: 10080
+minimumReleaseAge: 1440 # 24 hours
 trustPolicy: no-downgrade
 blockExoticSubdeps: true
+
+catalog:
+  "wrangler": 4.61.0
+  "@cloudflare/vitest-pool-workers": 0.12.7
+  "@cloudflare/workers-types": 4.20260124.0
+
+catalogMode: strict
+cleanupUnusedCatalogs: true
 
 onlyBuiltDependencies:
   - esbuild
