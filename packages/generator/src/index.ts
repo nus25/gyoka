@@ -10,9 +10,14 @@ import { getDidDocument } from './endpoints/getDidDocument';
 import { getDocument } from './endpoints/getDocument';
 import { createErrorResponse } from 'shared/src/errors/core';
 import { GyokaBaseError, InternalServerError } from 'shared/src/errors/core';
-import { createLogger } from 'shared/src/logger';
+import { createLogger, Logger } from 'shared/src/logger';
+import { env as cloudflareEnv} from 'cloudflare:workers'
+import { resolveDidCacheTtlSeconds } from './auth/didResolverCache';
 
-const logger = createLogger({ service: 'generator', minLevel: 'debug' });
+const logger = createLogger({
+  service: 'generator',
+  minLevel: cloudflareEnv.DEVELOPER_MODE === 'enabled' ? 'debug' : 'info',
+});
 
 type InvalidRequestPayload = {
   error?: string;
@@ -20,7 +25,7 @@ type InvalidRequestPayload = {
   'net.kelinci.atcute.issues'?: unknown;
 };
 
-function handleAppError(err: unknown, env?: Env): Response {
+function handleAppError(err: unknown, devMode: boolean): Response {
   if (err instanceof XRPCError) {
     const level = err.status >= 500 ? 'error' : 'warn';
     const details: Record<string, unknown> = {
@@ -29,7 +34,7 @@ function handleAppError(err: unknown, env?: Env): Response {
       message: err.description,
     };
 
-    if (env?.DEVELOPER_MODE === 'enabled') {
+    if (devMode) {
       details.stack = err.stack;
     }
 
@@ -45,7 +50,7 @@ function handleAppError(err: unknown, env?: Env): Response {
       message: err.message,
     };
 
-    if (env?.DEVELOPER_MODE === 'enabled') {
+    if (devMode) {
       details.stack = err.stack;
     }
 
@@ -72,11 +77,15 @@ function assertRequiredConfiguration(env: Env): void {
   }
 }
 
-function createRouter(env: Env, ctx: ExecutionContext): XRPCRouter {
-  const requireAuth = createRequireAuth(env, ctx);
+const envMap = new WeakMap<Request, Env>();
+
+export function createRouter(env: Env, logger: Logger): XRPCRouter {
+  const requiredAuth = env.FEEDGEN_AUTH_REQUIRED === 'enabled';
+  const ttlSeconds = resolveDidCacheTtlSeconds(env.DID_CACHE_TTL_SECONDS);
+  const requireAuth = createRequireAuth(requiredAuth, env.FEEDGEN_HOST, ttlSeconds, logger);
   const router = new XRPCRouter({
     middlewares: [cors()],
-    handleException: (error) => handleAppError(error, env),
+    handleException: (error) => handleAppError(error, env.DEVELOPER_MODE === 'enabled'),
   });
 
   router.addQuery(AppBskyFeedGetFeedSkeleton.mainSchema, {
@@ -84,7 +93,7 @@ function createRouter(env: Env, ctx: ExecutionContext): XRPCRouter {
       await requireAuth(request, 'app.bsky.feed.getFeedSkeleton');
 
       return getFeedSkeleton({
-        env,
+        env: envMap.get(request)!, // env should always be available in the map at this point
         request,
         feed: params.feed,
         limit: params.limit,
@@ -96,7 +105,7 @@ function createRouter(env: Env, ctx: ExecutionContext): XRPCRouter {
   router.addQuery(AppBskyFeedDescribeFeedGenerator.mainSchema, {
     async handler({ request }) {
       await requireAuth(request, 'app.bsky.feed.describeFeedGenerator');
-      return describeFeedGenerator(env);
+      return describeFeedGenerator(envMap.get(request)!);
     },
   });
 
@@ -151,29 +160,31 @@ async function sanitizeAtcuteValidationResponse(response: Response): Promise<Res
   });
 }
 
+const router = createRouter(cloudflareEnv, logger);
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
       assertRequiredConfiguration(env);
 
       const url = new URL(request.url);
-
+      //  '/.well-known/did.json'
       if (request.method === 'GET' && url.pathname === '/.well-known/did.json') {
         return getDidDocument(env);
       }
-
+      // '/doc/:id'
       if (request.method === 'GET') {
         const docMatch = /^\/doc\/([^/]+)$/.exec(url.pathname);
         if (docMatch) {
           return await getDocument(env, decodeURIComponent(docMatch[1]));
         }
       }
-
-      const router = createRouter(env, ctx);
+      // '/xrpc/:method' and others handled by router
+      envMap.set(request, env);
       const routerResponse = await router.fetch(request);
-      return sanitizeAtcuteValidationResponse(routerResponse);
+      return await sanitizeAtcuteValidationResponse(routerResponse);
     } catch (err) {
-      return handleAppError(err, env);
+      return handleAppError(err, env.DEVELOPER_MODE === 'enabled');
     }
   },
 } satisfies ExportedHandler;

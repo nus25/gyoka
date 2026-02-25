@@ -2,6 +2,7 @@ import { type Nsid } from '@atcute/lexicons';
 import { normalizeWebDid } from '@atcute/identity';
 import { AuthRequiredError } from '@atcute/xrpc-server';
 import { ServiceJwtVerifier, type VerifiedJwt } from '@atcute/xrpc-server/auth';
+import { Logger } from 'shared/src/logger';
 import {
   CompositeDidDocumentResolver,
   PlcDidDocumentResolver,
@@ -9,18 +10,10 @@ import {
 } from '@atcute/identity-resolver';
 
 import { createDidResolverFetch } from './didResolverCache';
-import { createLogger } from 'shared/src/logger';
 
-export function createRequireAuth(env: Env, ctx: ExecutionContext) {
-  const serviceDid = normalizeWebDid(`did:web:${env.FEEDGEN_HOST}`);
-  const didResolverFetch = createDidResolverFetch(
-    env,
-    ctx,
-    createLogger({
-      service: 'generator',
-      minLevel: env.DEVELOPER_MODE === 'enabled' ? 'debug' : 'info',
-    })
-  );
+export function createRequireAuth(requiedAuth:boolean, host:string, ttlSeconds: number, logger: Logger) {
+  const serviceDid = normalizeWebDid(`did:web:${host}`);
+  const didResolverFetch = createDidResolverFetch(ttlSeconds, logger);
   const didDocResolver = new CompositeDidDocumentResolver({
     methods: {
       plc: new PlcDidDocumentResolver({
@@ -38,7 +31,7 @@ export function createRequireAuth(env: Env, ctx: ExecutionContext) {
   });
 
   return async (request: Request, lxm: Nsid): Promise<VerifiedJwt | null> => {
-    if (env.FEEDGEN_AUTH_REQUIRED !== 'enabled') {
+    if (!requiedAuth) {
       return null;
     }
 

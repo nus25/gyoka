@@ -20,33 +20,11 @@ Public feed generator worker for Bluesky AT Protocol.
   - `disabled`: skip JWT verification
 - `DID_CACHE_TTL_SECONDS`
   - DID resolver cache TTL in seconds
-  - default: `2592000` (30 days)
-  - invalid values (non-numeric, 0, negative) fallback to default
-- `DID_CACHE_REVALIDATE_INTERVAL_SECONDS`
-  - Minimum interval for background DID cache revalidation in seconds
-  - default: `86400` (1 day)
+  - default: `8686400` (1 day)
   - invalid values fallback to default
-- `DID_CACHE_TIMESTAMP_GRANULARITY_SECONDS`
-  - Timestamp granularity for DID cache metadata in seconds
-  - default: `86400` (1 day)
-  - invalid values fallback to default
-  - used to round cache timestamps for privacy-friendly precision
 - `DEVELOPER_MODE`
   - `enabled`: include stack traces in logs/responses where applicable
   - `disabled`: production-safe logging
-
-## DID resolver cache behavior
-
-gyoka-generator validates JWTs in XRPC requests using the resolved DID document of the user and caches the DID document.
-By default: "Cache is valid for 30 days, and if accessed, revalidation occurs approximately once per day in background of the request."
-(TTL = 30 days, revalidate interval = 1 day, timestamp granularity = 1 day)
-
-- Fresh hit: return cached DID doc and revalidate in background only when interval elapsed
-- Stale/miss: fetch from origin, cache `200` responses if the DID document is changed
-- `cache: no-cache`: bypass cache read and fetch origin directly
-- Cache timestamps are rounded by `DID_CACHE_TIMESTAMP_GRANULARITY_SECONDS`
-- Effective timing is clamped to: `TTL >= REVALIDATE_INTERVAL >= TIMESTAMP_GRANULARITY`
-
 
 
 ## Local development

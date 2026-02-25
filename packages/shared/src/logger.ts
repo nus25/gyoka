@@ -9,6 +9,13 @@ type LoggerOptions = {
   includeService?: boolean;
 };
 
+export type Logger = {
+  debug: (event: string, details?: Record<string, unknown>) => void;
+  info: (event: string, details?: Record<string, unknown>) => void;
+  warn: (event: string, details?: Record<string, unknown>) => void;
+  error: (event: string, details?: Record<string, unknown>) => void;
+};
+
 const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
   debug: 10,
   info: 20,
@@ -75,7 +82,7 @@ function writeLog(level: LogLevel, payload: LogRecord): void {
   console.log(line);
 }
 
-export function createLogger(options: LoggerOptions) {
+export function createLogger(options: LoggerOptions): Logger {
   const minLevel = options.minLevel ?? 'info';
   const includeTimestamp = options.includeTimestamp ?? false;
   const includeService = options.includeService ?? false;

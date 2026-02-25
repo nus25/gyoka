@@ -1,9 +1,14 @@
 import { env } from 'cloudflare:test';
 import { describe, expect, it, vi } from 'vitest';
 
-import { requestPath } from './index.shared';
+import { requestPath, getRequest } from './index.shared';
+import { createRouter } from '../src/index';
+import { createLogger } from 'shared/src/logger';
+import { get } from 'http';
 
 const DESCRIBE_ENDPOINT = '/xrpc/app.bsky.feed.describeFeedGenerator';
+const SKELETON_ENDPOINT =
+  '/xrpc/app.bsky.feed.getFeedSkeleton?feed=at://did:web:example.com/app.bsky.feed.generator/feed';
 
 describe('Error cases', () => {
   it('Given missing required env variables When describing generator Then it returns 500 internal server error', async () => {
@@ -96,23 +101,37 @@ describe('Error cases', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const response = await requestPath(DESCRIBE_ENDPOINT, {
+    const mockEnv = {
       ...env,
       FEEDGEN_AUTH_REQUIRED: 'enabled',
-    } as typeof env);
+    };
 
-    expect(response.status).toBe(401);
-    expect(await response.json()).toEqual({
-      error: 'AuthenticationRequired',
-      message: 'missing authorization header',
-    });
+    // create a new router for auth required scenario
+    const router = createRouter(
+      mockEnv,
+      createLogger({ service: 'generator-test', minLevel: 'debug' })
+    );
 
-    expect(warnSpy).toHaveBeenCalledTimes(1);
-    expect(errorSpy).not.toHaveBeenCalled();
+    const validate = async (response) => {
+      expect(response.status).toBe(401);
+      expect(await response.json()).toEqual({
+        error: 'AuthenticationRequired',
+        message: 'missing authorization header',
+      });
 
-    const payload = JSON.parse(warnSpy.mock.calls[0][0] as string) as Record<string, unknown>;
-    expect(payload.event).toBe('api.handle.exception.failed');
-    expect(payload.errorCode).toBe('AuthenticationRequired');
-    expect(payload.status).toBe(401);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).not.toHaveBeenCalled();
+
+      const payload = JSON.parse(warnSpy.mock.calls[0][0] as string) as Record<string, unknown>;
+      expect(payload.event).toBe('api.handle.exception.failed');
+      expect(payload.errorCode).toBe('AuthenticationRequired');
+      expect(payload.status).toBe(401);
+      warnSpy.mockClear();
+      errorSpy.mockClear();
+    };
+    const responseSkeleton = await router.fetch(getRequest(SKELETON_ENDPOINT));
+    await validate(responseSkeleton);
+    const responseDescribe = await router.fetch(getRequest(DESCRIBE_ENDPOINT));
+    await validate(responseDescribe);
   });
 });

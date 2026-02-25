@@ -11,3 +11,7 @@ export async function requestPath(path: string, requestEnv = env) {
   await waitOnExecutionContext(ctx);
   return response;
 }
+
+export function getRequest(path: string): Request {
+  return new Request(`${BASE_URL}${path}`);
+}
