@@ -19,24 +19,27 @@ export async function describeFeedGenerator(env: Env): Promise<Response> {
     throw new InternalServerError('Failed to fetch links');
   }
 
-  const linkMap = docResults.reduce((acc, row) => {
-    const type = row.type;
-    const url = row.url;
-    if (type === DOCUMENT_TYPES.PRIVACY_POLICY) {
-      if (!url) {
-        acc.privacyPolicy = `https://${env.FEEDGEN_HOST}/doc/${DOCUMENT_TYPES.PRIVACY_POLICY}`;
-      } else {
-        acc.privacyPolicy = url;
+  const linkMap = docResults.reduce(
+    (acc, row) => {
+      const type = row.type;
+      const url = row.url;
+      if (type === DOCUMENT_TYPES.PRIVACY_POLICY) {
+        if (!url) {
+          acc.privacyPolicy = `https://${env.FEEDGEN_HOST}/doc/${DOCUMENT_TYPES.PRIVACY_POLICY}`;
+        } else {
+          acc.privacyPolicy = url;
+        }
+      } else if (type === DOCUMENT_TYPES.TOS) {
+        if (!url) {
+          acc.termsOfService = `https://${env.FEEDGEN_HOST}/doc/${DOCUMENT_TYPES.TOS}`;
+        } else {
+          acc.termsOfService = url;
+        }
       }
-    } else if (type === DOCUMENT_TYPES.TOS) {
-      if (!url) {
-        acc.termsOfService = `https://${env.FEEDGEN_HOST}/doc/${DOCUMENT_TYPES.TOS}`;
-      } else {
-        acc.termsOfService = url;
-      }
-    }
-    return acc;
-  }, {} as { privacyPolicy?: string; termsOfService?: string });
+      return acc;
+    },
+    {} as { privacyPolicy?: string; termsOfService?: string }
+  );
 
   const response = {
     did: env.FEEDGEN_PUBLISHER_DID,

@@ -118,7 +118,15 @@ LIMIT ?;`;
   }
 
   const { success, results } = await env.DB.prepare(SQL_TEMPLATE_SELECT_POST)
-    .bind(feed, cursor || null, cursorIndexedAt, cursorIndexedAt, cursorCid, ...languageCodes, limit)
+    .bind(
+      feed,
+      cursor || null,
+      cursorIndexedAt,
+      cursorIndexedAt,
+      cursorCid,
+      ...languageCodes,
+      limit
+    )
     .all();
 
   if (!success) {

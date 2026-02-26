@@ -1,4 +1,4 @@
-import { Logger } from "shared/src/logger";
+import { Logger } from 'shared/src/logger';
 
 export const DEFAULT_DID_CACHE_TTL_SECONDS = 60 * 60 * 24 * 30;
 
@@ -17,9 +17,8 @@ export function resolveDidCacheTtlSeconds(ttlSecondsRaw?: string): number {
   }
   return parsed;
 }
-  
+
 export function createDidResolverFetch(ttlSeconds: number, logger: Logger): DidResolverFetch {
-  
   return async (input, init) => {
     const request = new Request(input, init);
     request.headers.set('accept', 'application/did+ld+json');
@@ -27,7 +26,7 @@ export function createDidResolverFetch(ttlSeconds: number, logger: Logger): DidR
     const bypassCache = init?.cache === 'no-cache' || request.cache === 'no-cache';
 
     if (bypassCache) {
-      const response = await fetch(request);      // force bypass cache with no-cache directive
+      const response = await fetch(request); // force bypass cache with no-cache directive
       logger.debug('auth.resolve.didcache.fetch', {
         url: request.url,
         cache: 'bypass',

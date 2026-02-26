@@ -11,13 +11,16 @@ import { getDocument } from './endpoints/getDocument';
 import { createErrorResponse } from 'shared/src/errors/core';
 import { GyokaBaseError, InternalServerError } from 'shared/src/errors/core';
 import { createLogger, Logger } from 'shared/src/logger';
-import { env as cloudflareEnv} from 'cloudflare:workers'
+import { env as workerEnv } from 'cloudflare:workers';
 import { resolveDidCacheTtlSeconds } from './auth/didResolverCache';
 
 const logger = createLogger({
   service: 'generator',
-  minLevel: cloudflareEnv.DEVELOPER_MODE === 'enabled' ? 'debug' : 'info',
+  minLevel: workerEnv.DEVELOPER_MODE === 'enabled' ? 'debug' : 'info',
 });
+
+// closure to hold env map for request handlers since we can't pass env directly through router context
+const envMap = new WeakMap<Request, Env>();
 
 type InvalidRequestPayload = {
   error?: string;
@@ -77,8 +80,6 @@ function assertRequiredConfiguration(env: Env): void {
   }
 }
 
-const envMap = new WeakMap<Request, Env>();
-
 export function createRouter(env: Env, logger: Logger): XRPCRouter {
   const requiredAuth = env.FEEDGEN_AUTH_REQUIRED === 'enabled';
   const ttlSeconds = resolveDidCacheTtlSeconds(env.DID_CACHE_TTL_SECONDS);
@@ -93,7 +94,7 @@ export function createRouter(env: Env, logger: Logger): XRPCRouter {
       await requireAuth(request, 'app.bsky.feed.getFeedSkeleton');
 
       return getFeedSkeleton({
-        env: envMap.get(request)!, // env should always be available in the map at this point
+        env: envMap.get(request)!,
         request,
         feed: params.feed,
         limit: params.limit,
@@ -160,7 +161,7 @@ async function sanitizeAtcuteValidationResponse(response: Response): Promise<Res
   });
 }
 
-const router = createRouter(cloudflareEnv, logger);
+const router = createRouter(workerEnv, logger);
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -180,7 +181,7 @@ export default {
         }
       }
       // '/xrpc/:method' and others handled by router
-      envMap.set(request, env);
+      envMap.set(request, env); // make env available to handlers
       const routerResponse = await router.fetch(request);
       return await sanitizeAtcuteValidationResponse(routerResponse);
     } catch (err) {

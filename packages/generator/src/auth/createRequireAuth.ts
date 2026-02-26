@@ -11,7 +11,12 @@ import {
 
 import { createDidResolverFetch } from './didResolverCache';
 
-export function createRequireAuth(requiedAuth:boolean, host:string, ttlSeconds: number, logger: Logger) {
+export function createRequireAuth(
+  requiedAuth: boolean,
+  host: string,
+  ttlSeconds: number,
+  logger: Logger
+) {
   const serviceDid = normalizeWebDid(`did:web:${host}`);
   const didResolverFetch = createDidResolverFetch(ttlSeconds, logger);
   const didDocResolver = new CompositeDidDocumentResolver({
