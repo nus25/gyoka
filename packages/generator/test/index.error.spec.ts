@@ -2,7 +2,7 @@ import { env } from 'cloudflare:test';
 import { describe, expect, it, vi } from 'vitest';
 
 import { requestPath, getRequest } from './index.shared';
-import { createRouter } from '../src/index';
+import { createXrpcRouter } from '../src/xrpcRouter';
 import { createLogger } from 'shared/src/logger';
 import { get } from 'http';
 
@@ -107,8 +107,9 @@ describe('Error cases', () => {
     };
 
     // create a new router for auth required scenario
-    const router = createRouter(
+    const router = createXrpcRouter(
       mockEnv,
+      new WeakMap<Request, Env>(),
       createLogger({ service: 'generator-test', minLevel: 'debug' })
     );
 
