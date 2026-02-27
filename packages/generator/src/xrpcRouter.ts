@@ -23,8 +23,8 @@ export async function sanitizeAtcuteValidationResponse(
     return response;
   }
 
-  const contentType = response.headers.get('Content-Type') || '';
-  if (!contentType.toLowerCase().includes('application/json')) {
+  const contentType = response.headers.get('Content-Type');
+  if (!contentType || !contentType.toLowerCase().includes('application/json')) {
     return response;
   }
 
