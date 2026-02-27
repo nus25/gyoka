@@ -19,13 +19,31 @@ const xrpcRouter = createXrpcRouter(workerEnv, envMap, logger);
 
 function assertRequiredConfiguration(env: Env): void {
   if (!env.FEEDGEN_PUBLISHER_DID || !env.FEEDGEN_HOST) {
+    logger.error('config.validation.failed', {
+      message: 'Missing required environment variables',
+      missingVariables: [
+        !env.FEEDGEN_PUBLISHER_DID ? 'FEEDGEN_PUBLISHER_DID' : null,
+        !env.FEEDGEN_HOST ? 'FEEDGEN_HOST' : null,
+      ].filter(Boolean),
+    });
     throw new InternalServerError('Missing required environment variables');
   }
+
   if (!env.DB) {
+    logger.error('config.validation.failed', {
+      message: 'Missing database configuration',
+    });
     throw new InternalServerError('Missing database configuration');
   }
 
   if (!isDid(env.FEEDGEN_PUBLISHER_DID) || !isHandle(env.FEEDGEN_HOST)) {
+    logger.error('config.validation.failed', {
+      message: 'Invalid required environment variables',
+      invalidVariables: [
+        !isDid(env.FEEDGEN_PUBLISHER_DID) ? 'FEEDGEN_PUBLISHER_DID' : null,
+        !isHandle(env.FEEDGEN_HOST) ? 'FEEDGEN_HOST' : null,
+      ].filter(Boolean),
+    });
     throw new InternalServerError('Invalid required environment variables');
   }
 }

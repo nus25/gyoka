@@ -12,6 +12,8 @@ const SKELETON_ENDPOINT =
 
 describe('Error cases', () => {
   it('Given missing required env variables When describing generator Then it returns 500 internal server error', async () => {
+    const spyError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     const noHostResponse = await requestPath(DESCRIBE_ENDPOINT, {
       FEEDGEN_PUBLISHER_DID: env.FEEDGEN_PUBLISHER_DID,
       FEEDGEN_HOST: undefined,
@@ -23,6 +25,15 @@ describe('Error cases', () => {
       error: 'InternalServerError',
       message: 'Missing required environment variables',
     });
+    const logLine1 = spyError.mock.calls[0][0] as string;
+    expect(JSON.parse(logLine1)).toEqual({
+      level: 'error',
+      event: 'config.validation.failed',
+      message: 'Missing required environment variables',
+      missingVariables: ['FEEDGEN_HOST'],
+    });
+
+    spyError.mockClear();
 
     const noDidResponse = await requestPath(DESCRIBE_ENDPOINT, {
       FEEDGEN_PUBLISHER_DID: undefined,
@@ -35,6 +46,15 @@ describe('Error cases', () => {
       error: 'InternalServerError',
       message: 'Missing required environment variables',
     });
+    const logLine2 = spyError.mock.calls[0][0] as string;
+    expect(JSON.parse(logLine2)).toEqual({
+      level: 'error',
+      message: 'Missing required environment variables',
+      event: 'config.validation.failed',
+      missingVariables: ['FEEDGEN_PUBLISHER_DID'],
+    });
+
+    spyError.mockRestore();
   });
 
   it('Given missing DB config When describing generator Then it returns 500 internal server error', async () => {
