@@ -5,7 +5,7 @@ import { createRequireAuth } from './auth/createRequireAuth';
 import { describeFeedGenerator } from './endpoints/app/bsky/feed/describeFeedGenerator';
 import { getFeedSkeleton } from './endpoints/app/bsky/feed/getFeedSkeleton';
 import { Logger } from 'shared/src/logger';
-import { resolveDidCacheTtlSeconds } from './auth/didResolverCache';
+import { resolveDidCacheTtlSeconds } from './auth/didResolverFetch';
 import { handleAppError } from './errorHandler';
 
 type InvalidRequestPayload = {

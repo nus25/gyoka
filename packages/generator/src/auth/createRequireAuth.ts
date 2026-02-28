@@ -9,7 +9,7 @@ import {
   WebDidDocumentResolver,
 } from '@atcute/identity-resolver';
 
-import { createDidResolverFetch } from './didResolverCache';
+import { createDidResolverFetch } from './didResolverFetch';
 
 export function createRequireAuth(
   requiedAuth: boolean,

@@ -1,6 +1,6 @@
 import { Logger } from 'shared/src/logger';
 
-export const DEFAULT_DID_CACHE_TTL_SECONDS = 60 * 60 * 24 * 30;
+export const DEFAULT_DID_CACHE_TTL_SECONDS = 60 * 60 * 24; // 1 day in seconds
 
 type DidResolverFetch = (
   input: URL | RequestInfo<unknown, CfProperties<unknown>>,
