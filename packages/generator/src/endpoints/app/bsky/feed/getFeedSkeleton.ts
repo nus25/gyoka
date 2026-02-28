@@ -1,4 +1,4 @@
-import { parseResourceUri } from '@atcute/lexicons/syntax';
+import { parseResourceUri, isDid } from '@atcute/lexicons/syntax';
 import { InternalServerError, BadRequestError, UnknownFeedError } from 'shared/src/errors/core';
 import { createLogger } from 'shared/src/logger';
 
@@ -32,6 +32,9 @@ function assertFeedUri(feed: string): void {
   const parsed = parseResourceUri(feed);
   if (!parsed.ok || parsed.value.collection !== 'app.bsky.feed.generator' || !parsed.value.rkey) {
     throw new BadRequestError('Invalid feed URI format');
+  }
+  if (!isDid(parsed.value.repo)) {
+    throw new BadRequestError('DID-based AT URI is required');
   }
 }
 

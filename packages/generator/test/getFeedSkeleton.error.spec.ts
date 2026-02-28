@@ -80,6 +80,17 @@ describe('Error cases', () => {
     expect(data.error).toBe('BadRequest');
   });
 
+  it('Given handle-based feed URI format When requesting skeleton Then it returns 400 BadRequest', async () => {
+    const response = await requestFeedSkeleton(
+      'feed=at://test.example.com/app.bsky.feed.generator/feed'
+    );
+
+    expect(response.status).toBe(400);
+    const data: ErrorResponse = await response.json();
+    expect(data.error).toBe('BadRequest');
+    expect(data.message).toBe('DID-based AT URI is required');
+  });
+
   it('Given invalid query parameter type When requesting skeleton Then issues are logged but excluded from response', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
