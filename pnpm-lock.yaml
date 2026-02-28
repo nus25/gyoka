@@ -102,6 +102,9 @@ importers:
         specifier: workspace:*
         version: link:../shared
     devDependencies:
+      '@atcute/crypto':
+        specifier: ^2.3.0
+        version: 2.3.0
       '@cloudflare/vitest-pool-workers':
         specifier: 'catalog:'
         version: 0.12.7(patch_hash=41eeb2ea99506999c3d1d0f758d5a6139326a46376f9423526b56b02b2340395)(@cloudflare/workers-types@4.20260124.0)(@vitest/runner@3.2.4)(@vitest/snapshot@3.2.4)(vitest@3.2.4(@types/node@22.19.1)(yaml@2.8.2))
@@ -1976,7 +1979,7 @@ snapshots:
   '@atcute/crypto@2.3.0':
     dependencies:
       '@atcute/multibase': 1.1.7
-      '@atcute/uint8array': 1.1.0
+      '@atcute/uint8array': 1.1.1
       '@noble/secp256k1': 3.0.0
 
   '@atcute/identity-resolver@1.2.2(@atcute/identity@1.1.3)':

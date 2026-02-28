@@ -55,6 +55,8 @@ export function createRequireAuth(
       if ('error' in result) {
         throw new AuthRequiredError(result.error);
       }
+      // this case should not happen
+      /* istanbul ignore next -- @preserve*/
       throw new AuthRequiredError({ description: 'invalid authorization token' });
     }
 
