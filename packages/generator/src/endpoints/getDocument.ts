@@ -32,5 +32,11 @@ export async function getDocument(env: Env, type: string): Promise<Response> {
     text = `You can view the document at ${result.url}\n${result.content as string}`;
   }
 
-  return new Response(text, { status: 200 });
+  return new Response(text, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
 }
