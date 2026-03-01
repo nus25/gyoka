@@ -111,21 +111,21 @@ describe('Success cases', () => {
     const data: FeedSkeletonResponse = await response.json();
     expect(data.feed.length).toBe(2);
     expect(data.cursor).toBe(`${cursorTime}::cid2`);
-    expect(data.feed[0].post).toBe('at://did:plc:testuser/app.bsky.feed.post/getfeedskeleton/post3');
-    expect(data.feed[1].post).toBe('at://did:plc:testuser/app.bsky.feed.post/getfeedskeleton/post2');
+    expect(data.feed[0].post).toBe(
+      'at://did:plc:testuser/app.bsky.feed.post/getfeedskeleton/post3'
+    );
+    expect(data.feed[1].post).toBe(
+      'at://did:plc:testuser/app.bsky.feed.post/getfeedskeleton/post2'
+    );
   });
 
   it('Given DEVELOPER_MODE enabled When requesting skeleton Then debug logs are emitted', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    const response = await requestFeedSkeleton(
-      `feed=${ACTIVE_FEED_URI}`,
-      {},
-      {
-        ...env,
-        DEVELOPER_MODE: 'enabled',
-      } as typeof env
-    );
+    const response = await requestFeedSkeleton(`feed=${ACTIVE_FEED_URI}`, {}, {
+      ...env,
+      DEVELOPER_MODE: 'enabled',
+    } as typeof env);
 
     expect(response.status).toBe(200);
     const data: FeedSkeletonResponse = await response.json();

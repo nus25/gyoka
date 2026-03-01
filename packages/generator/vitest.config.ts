@@ -2,11 +2,11 @@ import path from 'node:path';
 import { defineWorkersProject, readD1Migrations } from '@cloudflare/vitest-pool-workers/config';
 
 export default defineWorkersProject(async () => {
-	// Read all migrations in the `migrations` directory
-	const migrationsPath = path.join(__dirname, '../shared/migrations');
-	const migrations = await readD1Migrations(migrationsPath);
+  // Read all migrations in the `migrations` directory
+  const migrationsPath = path.join(__dirname, '../shared/migrations');
+  const migrations = await readD1Migrations(migrationsPath);
 
-	return {
+  return {
     test: {
       name: 'generator',
       include: ['**/*.spec.ts'],

@@ -17,7 +17,9 @@ describe('Boundary cases', () => {
   });
 
   it('Given no active feeds When describing generator Then empty feeds are returned', async () => {
-    await insertFeeds([{ uri: 'at://did:plc:testuser/app.bsky.feed.generator/gyoka_feed1', is_active: 0 }]);
+    await insertFeeds([
+      { uri: 'at://did:plc:testuser/app.bsky.feed.generator/gyoka_feed1', is_active: 0 },
+    ]);
 
     const { response, json } = await requestDescribeFeedGeneratorJson();
 

@@ -1,7 +1,10 @@
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { requestDescribeFeedGeneratorJson, resetDescribeFeedGeneratorTables } from './describeFeedGenerator.shared';
+import {
+  requestDescribeFeedGeneratorJson,
+  resetDescribeFeedGeneratorTables,
+} from './describeFeedGenerator.shared';
 
 describe('Error cases', () => {
   beforeEach(async () => {

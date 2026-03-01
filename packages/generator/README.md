@@ -26,7 +26,6 @@ Public feed generator worker for Bluesky AT Protocol.
   - `enabled`: include stack traces in logs/responses where applicable
   - `disabled`: production-safe logging
 
-
 ## Local development
 
 Run from repository root:
@@ -47,7 +46,6 @@ pnpm generator coverage
 ## Deploy
 
 1. Update production settings in `wrangler.jsonc`.
-
    - Set `routes`/`workers_dev` for your domain
    - Set production `vars`
    - Set production `d1_databases[0].database_id`
