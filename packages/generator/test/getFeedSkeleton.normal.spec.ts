@@ -1,5 +1,6 @@
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { extractLanguageCodes } from '../src/endpoints/app/bsky/feed/getFeedSkeleton';
 
 import {
   ACTIVE_FEED_URI,
@@ -140,5 +141,23 @@ describe('Success cases', () => {
     expect(Array.isArray(payload.bindings)).toBe(true);
 
     logSpy.mockRestore();
+  });
+
+  it('Given mixed locales and q-values When extracting Then primary language codes are normalized and deduplicated', () => {
+    const result = extractLanguageCodes('en-US;q=0.9, fr-FR, en-GB,  ja-JP;q=0.8, fr');
+
+    expect(result).toEqual(['en', 'fr', 'ja']);
+  });
+
+  it('Given empty and invalid tokens mixed with valid languages When extracting Then empty tokens are ignored', () => {
+    const result = extractLanguageCodes(' , ;q=0.1, de-DE,   , es');
+
+    expect(result).toEqual(['de', 'es']);
+  });
+
+  it('Given over 10 language tags When extracting Then result is capped at 10', () => {
+    const result = extractLanguageCodes('en,fr,de,es,it,pt,ru,ja,ko,zh,ar');
+
+    expect(result).toEqual(['en', 'fr', 'de', 'es', 'it', 'pt', 'ru', 'ja', 'ko', 'zh']);
   });
 });

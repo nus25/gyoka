@@ -6,26 +6,83 @@ import { createLogger } from 'shared/src/logger';
 
 const MAX_ACCEPT_LANGUAGE_CODES = 10;
 const logger = createLogger({ service: 'generator', minLevel: 'debug' });
+
+const SQL_SELECT_POST_BASE = `
+SELECT p.uri, p.cid, p.indexed_at, p.reason, p.feed_context
+FROM feeds f
+INNER JOIN posts p ON p.feed_id = f.feed_id
+WHERE f.feed_uri = ?
+  AND f.is_active = 1
+  AND (
+    ? IS NULL
+    OR (
+      p.indexed_at < ?
+      OR (
+        p.indexed_at = ?
+        AND p.cid < ?
+      )
+    )
+  )
+  AND (
+    f.lang_filter = 0
+    OR __LANG_FILTER_CLAUSE__
+  )
+ORDER BY p.indexed_at DESC, p.cid DESC, p.post_id DESC
+LIMIT ?;`;
+
+const SQL_LANG_FILTER_CLAUSES = Array.from({ length: MAX_ACCEPT_LANGUAGE_CODES + 1 }, (_, count) =>
+  count === 0
+    ? '1=1'
+    : `EXISTS (
+            SELECT 1
+            FROM post_languages pl
+            WHERE pl.post_id = p.post_id
+              AND pl.language IN (${Array.from({ length: count }, () => '?').join(',')}, "*")
+          )`
+);
+
+const SQL_SELECT_POST_BY_LANG_COUNT = SQL_LANG_FILTER_CLAUSES.map((langFilterClause) =>
+  SQL_SELECT_POST_BASE.replace('__LANG_FILTER_CLAUSE__', langFilterClause)
+);
+
+const SQL_SELECT_FEED_EXISTS = `
+      SELECT feed_id
+      FROM feeds
+      WHERE feed_uri = ?
+        AND is_active = 1
+      LIMIT 1;`;
+
 export function extractLanguageCodes(acceptLanguage: string): string[] {
-  if (!acceptLanguage) return [];
+  if (!acceptLanguage) {
+    return [];
+  }
 
   const maxCount = MAX_ACCEPT_LANGUAGE_CODES;
   const seen = new Set<string>();
-  const parts = acceptLanguage.split(',');
+  const languageCodes: string[] = [];
 
-  for (let i = 0; i < parts.length && seen.size < maxCount; i++) {
-    const semicolonPos = parts[i].indexOf(';');
-    const lang = semicolonPos === -1 ? parts[i] : parts[i].substring(0, semicolonPos);
+  let start = 0;
+  for (let i = 0; i <= acceptLanguage.length && languageCodes.length < maxCount; i++) {
+    if (i !== acceptLanguage.length && acceptLanguage.charCodeAt(i) !== 44) {
+      continue;
+    }
+
+    const token = acceptLanguage.slice(start, i);
+    start = i + 1;
+
+    const semicolonPos = token.indexOf(';');
+    const lang = semicolonPos === -1 ? token : token.substring(0, semicolonPos);
     const trimmed = lang.trim();
     const dashPos = trimmed.indexOf('-');
     const langCode = (dashPos === -1 ? trimmed : trimmed.substring(0, dashPos)).toLowerCase();
 
-    if (langCode) {
+    if (langCode && !seen.has(langCode)) {
       seen.add(langCode);
+      languageCodes.push(langCode);
     }
   }
 
-  return Array.from(seen);
+  return languageCodes;
 }
 
 function assertFeedUri(feed: string): void {
@@ -92,42 +149,11 @@ export async function getFeedSkeleton({
 
   const acceptLanguage = request.headers.get('Accept-Language') || '';
   const languageCodes = extractLanguageCodes(acceptLanguage);
-
-  const SQL_TEMPLATE_SELECT_POST = `
-SELECT p.uri, p.cid, p.indexed_at, p.reason, p.feed_context
-FROM feeds f
-INNER JOIN posts p ON p.feed_id = f.feed_id
-WHERE f.feed_uri = ?
-  AND f.is_active = 1
-  AND (
-    ? IS NULL
-    OR (
-      p.indexed_at < ?
-      OR (
-        p.indexed_at = ?
-        AND p.cid < ?
-      )
-    )
-  )
-  AND (
-    f.lang_filter = 0
-    OR ${
-      languageCodes.length === 0
-        ? '1=1'
-        : `EXISTS (
-            SELECT 1
-            FROM post_languages pl
-            WHERE pl.post_id = p.post_id
-              AND pl.language IN (${languageCodes.map(() => '?').join(',')}, "*")
-          )`
-    }
-  )
-ORDER BY p.indexed_at DESC, p.cid DESC, p.post_id DESC
-LIMIT ?;`;
+  const sqlTemplateSelectPost = SQL_SELECT_POST_BY_LANG_COUNT[languageCodes.length];
 
   if (env.DEVELOPER_MODE === 'enabled') {
     logger.debug('db.query.feed_skeleton.start', {
-      query: SQL_TEMPLATE_SELECT_POST,
+      query: sqlTemplateSelectPost,
       bindings: [
         feed,
         cursor || null,
@@ -140,7 +166,7 @@ LIMIT ?;`;
     });
   }
 
-  const { success, results } = await env.DB.prepare(SQL_TEMPLATE_SELECT_POST)
+  const { success, results } = await env.DB.prepare(sqlTemplateSelectPost)
     .bind(
       feed,
       cursor || null,
@@ -157,13 +183,7 @@ LIMIT ?;`;
   }
 
   if (results.length === 0) {
-    const feedExistsQuery = `
-      SELECT feed_id
-      FROM feeds
-      WHERE feed_uri = ?
-        AND is_active = 1
-      LIMIT 1;`;
-    const feedExistsResult = await env.DB.prepare(feedExistsQuery).bind(feed).all();
+    const feedExistsResult = await env.DB.prepare(SQL_SELECT_FEED_EXISTS).bind(feed).all();
     if (!feedExistsResult.success) {
       throw new InternalServerError('Failed to verify feed existence');
     }
