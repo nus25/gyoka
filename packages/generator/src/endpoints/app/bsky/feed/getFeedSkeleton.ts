@@ -46,6 +46,33 @@ type GetFeedSkeletonArgs = {
   cursor?: string;
 };
 
+function parseCursor(cursor: string): { indexedAt: string; cid: string } {
+  const cursorParts = cursor.split('::');
+  if (cursorParts.length !== 2 || cursorParts.some((part) => part === '')) {
+    throw new BadRequestError('Malformed cursor');
+  }
+
+  const timestampRaw = cursorParts[0];
+  if (!/^-?\d+$/.test(timestampRaw)) {
+    throw new BadRequestError('Malformed cursor');
+  }
+
+  const timestampMs = Number(timestampRaw);
+  if (!Number.isSafeInteger(timestampMs)) {
+    throw new BadRequestError('Malformed cursor');
+  }
+
+  const date = new Date(timestampMs);
+  if (Number.isNaN(date.getTime())) {
+    throw new BadRequestError('Malformed cursor');
+  }
+
+  return {
+    indexedAt: date.toISOString(),
+    cid: cursorParts[1],
+  };
+}
+
 export async function getFeedSkeleton({
   env,
   request,
@@ -58,16 +85,9 @@ export async function getFeedSkeleton({
   let cursorIndexedAt: string | null = null;
   let cursorCid: string | null = null;
   if (cursor) {
-    const cursorParts = cursor.split('::');
-    if (
-      cursorParts.length !== 2 ||
-      cursorParts.some((part) => part === '') ||
-      Number.isNaN(parseInt(cursorParts[0], 10))
-    ) {
-      throw new BadRequestError('Malformed cursor');
-    }
-    cursorIndexedAt = new Date(parseInt(cursorParts[0], 10)).toISOString();
-    cursorCid = cursorParts[1];
+    const parsedCursor = parseCursor(cursor);
+    cursorIndexedAt = parsedCursor.indexedAt;
+    cursorCid = parsedCursor.cid;
   }
 
   const acceptLanguage = request.headers.get('Accept-Language') || '';

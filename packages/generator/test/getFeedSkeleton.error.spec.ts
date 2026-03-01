@@ -54,6 +54,17 @@ describe('Error cases', () => {
     expect(data.message).toBe('Malformed cursor');
   });
 
+  it('Given out-of-range cursor timestamp When requesting skeleton Then it returns 400 BadRequest', async () => {
+    const response = await requestFeedSkeleton(
+      `feed=${ACTIVE_FEED_URI}&cursor=999999999999999999999::cid1`
+    );
+
+    expect(response.status).toBe(400);
+    const data: ErrorResponse = await response.json();
+    expect(data.error).toBe('BadRequest');
+    expect(data.message).toBe('Malformed cursor');
+  });
+
   it('Given invalid feed URI format When requesting skeleton Then it returns 400 BadRequest', async () => {
     const response = await requestFeedSkeleton('feed=invalid-feed-uri');
 
