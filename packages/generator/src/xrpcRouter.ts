@@ -1,5 +1,4 @@
 import { XRPCRouter } from '@atcute/xrpc-server';
-import { cors } from '@atcute/xrpc-server/middlewares/cors';
 import { AppBskyFeedGetFeedSkeleton, AppBskyFeedDescribeFeedGenerator } from '@atcute/bluesky';
 import { createRequireAuth } from './auth/createRequireAuth';
 import { describeFeedGenerator } from './endpoints/app/bsky/feed/describeFeedGenerator';
@@ -74,7 +73,6 @@ export function createXrpcRouter(
   const ttlSeconds = resolveDidCacheTtlSeconds(workerEnv.DID_CACHE_TTL_SECONDS);
   const requireAuth = createRequireAuth(requiredAuth, workerEnv.FEEDGEN_HOST, ttlSeconds, logger);
   const router = new XRPCRouter({
-    middlewares: [cors()],
     handleException: (error) =>
       handleAppError(error, workerEnv.DEVELOPER_MODE === 'enabled', logger),
   });

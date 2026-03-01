@@ -19,6 +19,7 @@ describe('Success cases', () => {
     const response = await requestFeedSkeleton(`feed=${ACTIVE_FEED_URI}`);
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull();
     const data: FeedSkeletonResponse = await response.json();
     expect(Array.isArray(data.feed)).toBe(true);
     expect(data.feed.length).toBeLessThanOrEqual(50);
