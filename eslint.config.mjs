@@ -15,7 +15,8 @@ export default defineConfig([
       'data/**',
       '**/worker-configuration.d.ts',
       '**/vitest.config.ts',
-      '**/*.jsonc'
+      '**/*.jsonc',
+      '**/settings.json',
     ],
   },
   {

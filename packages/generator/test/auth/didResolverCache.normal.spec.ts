@@ -20,7 +20,6 @@ describe('Success case', () => {
         },
       },
     };
-    const expectedRequest = new Request(url, expectedHeaders);
 
     await cachedFetch(url, null);
     // check if fetch was called with the correct parameters
@@ -39,8 +38,6 @@ describe('Success case', () => {
     const cachedFetch = createDidResolverFetch(17, logger);
     const did = 'did:plc:123456789abcdefghi';
     const url = new URL(`https://plc.directory/${did}`);
-
-    const expectedRequest = new Request(url, { cache: 'no-cache' });
 
     await cachedFetch(url, { cache: 'no-cache' });
     // check if fetch was called with the correct parameters
