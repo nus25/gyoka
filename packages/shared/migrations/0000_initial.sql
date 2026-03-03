@@ -47,12 +47,10 @@ CREATE TABLE IF NOT EXISTS documents (
 );
 
 -- Drop existing indexes if they exist
-DROP INDEX IF EXISTS idx_feeds_feed_uri;
 DROP INDEX IF EXISTS idx_posts_feed_indexed_cid_post_id;
 DROP INDEX IF EXISTS idx_post_languages_language_post_id;
 DROP INDEX IF EXISTS idx_posts_did;
 DROP INDEX IF EXISTS idx_posts_uri;
-CREATE INDEX IF NOT EXISTS idx_feeds_feed_uri ON feeds(feed_uri);
 CREATE INDEX IF NOT EXISTS idx_posts_feed_indexed_cid_post_id ON posts(feed_id, indexed_at DESC, cid DESC, post_id DESC);
 CREATE INDEX IF NOT EXISTS idx_post_languages_language_post_id ON post_languages(language, post_id);
 CREATE INDEX IF NOT EXISTS idx_posts_did ON posts(did); -- DIDによる削除用
