@@ -69,7 +69,9 @@ export async function insertPost(
   const did = post.uri.split('/')[2];
 
   await db
-    .prepare('INSERT INTO posts (post_id, feed_id, did, uri, cid, indexed_at) VALUES (?, ?, ?, ?, ?, ?)')
+    .prepare(
+      'INSERT INTO posts (post_id, feed_id, did, uri, cid, indexed_at) VALUES (?, ?, ?, ?, ?, ?)'
+    )
     .bind(post.id, feedId, did, post.uri, post.cid, post.indexedAt)
     .run();
 

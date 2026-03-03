@@ -59,7 +59,12 @@ describe(ENDPOINT_PATH, () => {
         } as unknown as D1Database,
       };
 
-      const { response, json } = await getPosts(dummyFeed.uri, undefined, undefined, failingFeedCheckEnv);
+      const { response, json } = await getPosts(
+        dummyFeed.uri,
+        undefined,
+        undefined,
+        failingFeedCheckEnv
+      );
 
       expect(response.status).toBe(500);
       assertErrorResponse(json);
@@ -88,7 +93,12 @@ describe(ENDPOINT_PATH, () => {
         } as unknown as D1Database,
       };
 
-      const { response, json } = await getPosts(dummyFeed.uri, undefined, undefined, failingPostsQueryEnv);
+      const { response, json } = await getPosts(
+        dummyFeed.uri,
+        undefined,
+        undefined,
+        failingPostsQueryEnv
+      );
 
       expect(response.status).toBe(500);
       assertErrorResponse(json);

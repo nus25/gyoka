@@ -169,7 +169,9 @@ describe(ENDPOINT_PATH, () => {
       assertValidResponse(response);
 
       expect(json.results![0].results[0].status).toBe('error');
-      expect(json.results![0].results[0].error).toBe('At least one valid language code is required');
+      expect(json.results![0].results[0].error).toBe(
+        'At least one valid language code is required'
+      );
     });
 
     it('Given posts array is empty When batch add is called Then it returns 400', async () => {

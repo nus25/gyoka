@@ -1,11 +1,7 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { assertErrorResponse } from './testUtils';
-import {
-  ENDPOINT_PATH,
-  registerFeed,
-  resetRegisterFeedTables,
-} from './registerFeed.shared';
+import { ENDPOINT_PATH, registerFeed, resetRegisterFeedTables } from './registerFeed.shared';
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {

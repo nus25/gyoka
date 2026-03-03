@@ -92,9 +92,9 @@ describe(ENDPOINT_PATH, () => {
       await insertPost(feedId, post2);
       await insertPost(feedId, post3);
 
-  expect(await countPostLanguagesByPostId(post1.id)).toBeGreaterThan(0);
-  expect(await countPostLanguagesByPostId(post2.id)).toBeGreaterThan(0);
-  expect(await countPostLanguagesByPostId(post3.id)).toBeGreaterThan(0);
+      expect(await countPostLanguagesByPostId(post1.id)).toBeGreaterThan(0);
+      expect(await countPostLanguagesByPostId(post2.id)).toBeGreaterThan(0);
+      expect(await countPostLanguagesByPostId(post3.id)).toBeGreaterThan(0);
 
       const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
       assertValidResponse(response);

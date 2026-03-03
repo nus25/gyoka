@@ -31,7 +31,10 @@ describe(ENDPOINT_PATH, () => {
       });
 
       const db = env.DB;
-      const { results } = await db.prepare('SELECT * FROM documents WHERE type = ?').bind(request.type).all();
+      const { results } = await db
+        .prepare('SELECT * FROM documents WHERE type = ?')
+        .bind(request.type)
+        .all();
       expect(results.length).toBe(1);
       expect(results[0].url).toBe(request.url);
       expect(results[0].content).toBe(request.content);

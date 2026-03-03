@@ -36,7 +36,6 @@ Gyoka is a stock-post-style feed generator for Bluesky on Cloudflare Workers.
    ```
 
 3. Configure production settings.
-
    - Set production `database_id` in:
      - `packages/editor/wrangler.jsonc`
      - `packages/generator/wrangler.jsonc`
@@ -80,7 +79,6 @@ Gyoka is a stock-post-style feed generator for Bluesky on Cloudflare Workers.
    ```
 
 3. Open endpoints.
-
    - generator DID document: `http://localhost:8787/.well-known/did.json`
    - editor OpenAPI docs (dev): `http://localhost:8787/docs`
 

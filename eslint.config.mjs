@@ -29,7 +29,7 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
     rules: {
       indent: ['error', 2, { ignoredNodes: ['TemplateLiteral'], SwitchCase: 1 }],
-      '@typescript-eslint/no-unused-vars': ['error', { args: 'none' }]
+      '@typescript-eslint/no-unused-vars': ['error', { args: 'none' }],
     },
   },
   tseslint.configs.recommended,

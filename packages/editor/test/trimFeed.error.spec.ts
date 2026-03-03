@@ -16,7 +16,10 @@ describe(ENDPOINT_PATH, () => {
 
   describe('Error cases', () => {
     it('Given a non-existent feed When trim is called Then it returns 404', async () => {
-      const { response } = await trimFeed('at://did:plc:nonexistent/app.bsky.feed.generator/feed', 5);
+      const { response } = await trimFeed(
+        'at://did:plc:nonexistent/app.bsky.feed.generator/feed',
+        5
+      );
       expect(response.status).toBe(404);
     });
 

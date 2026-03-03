@@ -92,9 +92,13 @@ describe(ENDPOINT_PATH, () => {
         },
       };
 
-      const { response, json } = await removePost(dummyFeed.uri, { uri: dummyPost.uri }, {
-        DB: mockDb as unknown as D1Database,
-      });
+      const { response, json } = await removePost(
+        dummyFeed.uri,
+        { uri: dummyPost.uri },
+        {
+          DB: mockDb as unknown as D1Database,
+        }
+      );
 
       expect(response.status).toBe(500);
       assertErrorResponse(json);
@@ -118,9 +122,13 @@ describe(ENDPOINT_PATH, () => {
         },
       };
 
-      const { response, json } = await removePost(dummyFeed.uri, { uri: dummyPost.uri }, {
-        DB: mockDb as unknown as D1Database,
-      });
+      const { response, json } = await removePost(
+        dummyFeed.uri,
+        { uri: dummyPost.uri },
+        {
+          DB: mockDb as unknown as D1Database,
+        }
+      );
 
       expect(response.status).toBe(500);
       assertErrorResponse(json);

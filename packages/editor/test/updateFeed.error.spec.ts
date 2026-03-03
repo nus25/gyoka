@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
-  DEFAULT_FEED_URI,
-  ENDPOINT_PATH,
-  seedDefaultFeed,
-  updateFeed,
-} from './updateFeed.shared';
+import { DEFAULT_FEED_URI, ENDPOINT_PATH, seedDefaultFeed, updateFeed } from './updateFeed.shared';
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
@@ -36,7 +31,8 @@ describe(ENDPOINT_PATH, () => {
       expect(response.status).toBe(404);
       expect(json).toEqual({
         error: 'UnknownFeed',
-        message: 'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist',
+        message:
+          'Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist',
       });
     });
 

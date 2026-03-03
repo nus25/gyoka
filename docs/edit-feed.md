@@ -22,17 +22,17 @@ To add a new post to the feed, use the `/api/feed/addPost` endpoint.
 
 ```json
 {
-    "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
-    "post": {
-        "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
-        "cid": "bafyreiabc123example456cid789xyz",
-        "languages": ["en", "ja"],
-        "indexedAt": "2024-01-15T12:00:00Z",
-        "reason": {
-            "$type": "app.bsky.feed.defs#skeletonReasonRepost",
-            "repost": "at://did:plc:reposter/app.bsky.feed.repost/repost-id"
-        }
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "post": {
+    "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
+    "cid": "bafyreiabc123example456cid789xyz",
+    "languages": ["en", "ja"],
+    "indexedAt": "2024-01-15T12:00:00Z",
+    "reason": {
+      "$type": "app.bsky.feed.defs#skeletonReasonRepost",
+      "repost": "at://did:plc:reposter/app.bsky.feed.repost/repost-id"
     }
+  }
 }
 ```
 
@@ -40,29 +40,29 @@ To add a new post to the feed, use the `/api/feed/addPost` endpoint.
 
 - `feed`: The URI of the feed (required)
 - `post`: Information about the post to be added
-    - `uri`: The URI of the post (required)
-    - `cid`: The CID of the post (required)
-    - `languages`: Array of language codes.This is used for language filter in generator if `langFilter` of the feed is `true` (optional)
-    - `indexedAt`: The timestamp when the post was indexed. Gyoka sorts feed posts in descending order by this timestamp (optional, defaults to the current time if not specified)
-    - `feedContext`: This is defined a part of feed interactions API (See [Bluesky API documentation](https://docs.bsky.app/docs/api/app-bsky-feed-get-feed-skeleton#responses)). At this time, you don't need to set this value.
-    - `reason`: When a post is a repost, you can specify the repost URI to display it as a repost in the feed (optional)
+  - `uri`: The URI of the post (required)
+  - `cid`: The CID of the post (required)
+  - `languages`: Array of language codes.This is used for language filter in generator if `langFilter` of the feed is `true` (optional)
+  - `indexedAt`: The timestamp when the post was indexed. Gyoka sorts feed posts in descending order by this timestamp (optional, defaults to the current time if not specified)
+  - `feedContext`: This is defined a part of feed interactions API (See [Bluesky API documentation](https://docs.bsky.app/docs/api/app-bsky-feed-get-feed-skeleton#responses)). At this time, you don't need to set this value.
+  - `reason`: When a post is a repost, you can specify the repost URI to display it as a repost in the feed (optional)
 
 ### Response Example
 
 ```json
 {
-    "message": "Post added successfully",
-    "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
-    "post": {
-        "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
-        "cid": "bafyreiabc123example456cid789xyz",
-        "languages": ["en", "ja"],
-        "indexedAt": "2024-01-15T12:00:00Z",
-        "reason": {
-            "$type": "app.bsky.feed.defs#skeletonReasonRepost",
-            "repost": "at://did:plc:reposter/app.bsky.feed.repost/repost-id"
-        }
+  "message": "Post added successfully",
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "post": {
+    "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
+    "cid": "bafyreiabc123example456cid789xyz",
+    "languages": ["en", "ja"],
+    "indexedAt": "2024-01-15T12:00:00Z",
+    "reason": {
+      "$type": "app.bsky.feed.defs#skeletonReasonRepost",
+      "repost": "at://did:plc:reposter/app.bsky.feed.repost/repost-id"
     }
+  }
 }
 ```
 
@@ -77,78 +77,78 @@ up to a total of 25 posts across all feeds in a single request.
 
 ```json
 {
-    "entries": [
+  "entries": [
+    {
+      "feed": "at://did:plc:user1/app.bsky.feed.generator/feed1",
+      "posts": [
         {
-            "feed": "at://did:plc:user1/app.bsky.feed.generator/feed1",
-            "posts": [
-                {
-                    "uri": "at://did:plc:author1/app.bsky.feed.post/post-1",
-                    "cid": "bafyreiabc123example456cid789xyz",
-                    "languages": ["en"],
-                    "indexedAt": "2024-01-15T12:00:00Z"
-                }
-            ]
+          "uri": "at://did:plc:author1/app.bsky.feed.post/post-1",
+          "cid": "bafyreiabc123example456cid789xyz",
+          "languages": ["en"],
+          "indexedAt": "2024-01-15T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "feed": "at://did:plc:user2/app.bsky.feed.generator/feed2",
+      "posts": [
+        {
+          "uri": "at://did:plc:author2/app.bsky.feed.post/post-2",
+          "cid": "bafyreibcd456example789cid012xyz",
+          "languages": ["ja"],
+          "indexedAt": "2024-01-15T13:00:00Z"
         },
         {
-            "feed": "at://did:plc:user2/app.bsky.feed.generator/feed2",
-            "posts": [
-                {
-                    "uri": "at://did:plc:author2/app.bsky.feed.post/post-2",
-                    "cid": "bafyreibcd456example789cid012xyz",
-                    "languages": ["ja"],
-                    "indexedAt": "2024-01-15T13:00:00Z"
-                },
-                {
-                    "uri": "at://did:plc:author2/app.bsky.feed.post/post-3",
-                    "cid": "bafyreibcd456example789cid012xyz",
-                    "languages": ["ja"],
-                    "indexedAt": "2024-01-15T14:00:00Z"
-                }
-            ]
+          "uri": "at://did:plc:author2/app.bsky.feed.post/post-3",
+          "cid": "bafyreibcd456example789cid012xyz",
+          "languages": ["ja"],
+          "indexedAt": "2024-01-15T14:00:00Z"
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
 ### Parameter Description
 
 - `entries`: Array of objects, each specifying a feed and the posts to add.
-    - `feed`: The URI of the feed (required)
-    - `posts`: Array of post objects to add (required, at least 1)
-        - `uri`: The URI of the post (required)
-        - `cid`: The CID of the post (required)
-        - `languages`: Array of language codes (optional)
-        - `indexedAt`: The timestamp when the post was indexed (optional, defaults to current time if not specified)
-        - `reason`: When a post is a repost, you can specify the repost URI to display it as a repost in the feed (optional)
+  - `feed`: The URI of the feed (required)
+  - `posts`: Array of post objects to add (required, at least 1)
+    - `uri`: The URI of the post (required)
+    - `cid`: The CID of the post (required)
+    - `languages`: Array of language codes (optional)
+    - `indexedAt`: The timestamp when the post was indexed (optional, defaults to current time if not specified)
+    - `reason`: When a post is a repost, you can specify the repost URI to display it as a repost in the feed (optional)
 
 ### Response Example
 
 ```json
 {
-    "results": [
+  "results": [
+    {
+      "feed": "at://did:plc:user1/app.bsky.feed.generator/feed1",
+      "results": [
         {
-            "feed": "at://did:plc:user1/app.bsky.feed.generator/feed1",
-            "results": [
-                {
-                    "uri": "at://did:plc:author1/app.bsky.feed.post/post-1",
-                    "status": "added"
-                }
-            ]
+          "uri": "at://did:plc:author1/app.bsky.feed.post/post-1",
+          "status": "added"
+        }
+      ]
+    },
+    {
+      "feed": "at://did:plc:user2/app.bsky.feed.generator/feed2",
+      "results": [
+        {
+          "uri": "at://did:plc:author2/app.bsky.feed.post/post-2",
+          "status": "added"
         },
         {
-            "feed": "at://did:plc:user2/app.bsky.feed.generator/feed2",
-            "results": [
-                {
-                    "uri": "at://did:plc:author2/app.bsky.feed.post/post-2",
-                    "status": "added"
-                },
-                {
-                    "uri": "at://did:plc:author2/app.bsky.feed.post/post-3",
-                    "status": "added"
-                }
-            ]
+          "uri": "at://did:plc:author2/app.bsky.feed.post/post-3",
+          "status": "added"
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
@@ -166,7 +166,6 @@ up to a total of 25 posts across all feeds in a single request.
   When using `batchAddPosts`, if some posts fail to be added (for example, due to invalid data), the response will indicate `"status": "error"` for those posts, along with an `error` field describing the reason. Posts that can be added successfully will have `"status": "added"`.  
   The operation is not atomic: posts that succeed will be added even if others fail in the same request. Please check the `results` array in the response to confirm which posts were added and which failed.
 
-
 ## Removing a Post (removePost)
 
 To remove a post from the feed, use the `/api/feed/removePost` endpoint.
@@ -175,11 +174,11 @@ To remove a post from the feed, use the `/api/feed/removePost` endpoint.
 
 ```json
 {
-    "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
-    "post": {
-        "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
-        "indexedAt": "2024-01-15T12:00:00Z"
-    }
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "post": {
+    "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
+    "indexedAt": "2024-01-15T12:00:00Z"
+  }
 }
 ```
 
@@ -187,19 +186,19 @@ To remove a post from the feed, use the `/api/feed/removePost` endpoint.
 
 - `feed`: The URI of the feed (required)
 - `post`: Information about the post to be removed
-    - `uri`: The URI of the post (required)
-    - `indexedAt`: The indexing time of the post (optional, used to remove a specific indexed post)
+  - `uri`: The URI of the post (required)
+  - `indexedAt`: The indexing time of the post (optional, used to remove a specific indexed post)
 
 ### Response Example
 
 ```json
 {
-    "message": "Post removed successfully",
-    "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
-    "post": {
-        "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
-        "indexedAt": "2024-01-15T12:00:00Z"
-    }
+  "message": "Post removed successfully",
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "post": {
+    "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
+    "indexedAt": "2024-01-15T12:00:00Z"
+  }
 }
 ```
 
@@ -213,68 +212,68 @@ This endpoint allows you to specify several feed and post combinations at once, 
 
 ```json
 {
-    "entries": [
+  "entries": [
+    {
+      "feed": "at://did:plc:user1/app.bsky.feed.generator/feed1",
+      "posts": [
         {
-            "feed": "at://did:plc:user1/app.bsky.feed.generator/feed1",
-            "posts": [
-                {
-                    "uri": "at://did:plc:author1/app.bsky.feed.post/post-1",
-                    "indexedAt": "2024-01-15T12:00:00Z"
-                }
-            ]
+          "uri": "at://did:plc:author1/app.bsky.feed.post/post-1",
+          "indexedAt": "2024-01-15T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "feed": "at://did:plc:user2/app.bsky.feed.generator/feed2",
+      "posts": [
+        {
+          "uri": "at://did:plc:author2/app.bsky.feed.post/post-2",
+          "indexedAt": "2024-01-15T13:00:00Z"
         },
         {
-            "feed": "at://did:plc:user2/app.bsky.feed.generator/feed2",
-            "posts": [
-                {
-                    "uri": "at://did:plc:author2/app.bsky.feed.post/post-2",
-                    "indexedAt": "2024-01-15T13:00:00Z"
-                },
-                {
-                    "uri": "at://did:plc:author2/app.bsky.feed.post/post-3"
-                }
-            ]
+          "uri": "at://did:plc:author2/app.bsky.feed.post/post-3"
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
 ### Parameter Description
 
 - `entries`: Array of objects, each specifying a feed and the posts to remove.
-    - `feed`: The URI of the feed (required)
-    - `posts`: Array of post objects to remove (required, at least 1)
-        - `uri`: The URI of the post (required)
-        - `indexedAt`: The timestamp when the post was indexed (optional, used to remove a specific indexed post)
+  - `feed`: The URI of the feed (required)
+  - `posts`: Array of post objects to remove (required, at least 1)
+    - `uri`: The URI of the post (required)
+    - `indexedAt`: The timestamp when the post was indexed (optional, used to remove a specific indexed post)
 
 ### Response Example
 
 ```json
 {
-    "results": [
+  "results": [
+    {
+      "feed": "at://did:plc:user1/app.bsky.feed.generator/feed1",
+      "results": [
         {
-            "feed": "at://did:plc:user1/app.bsky.feed.generator/feed1",
-            "results": [
-                {
-                    "uri": "at://did:plc:author1/app.bsky.feed.post/post-1",
-                    "status": "removed"
-                }
-            ]
+          "uri": "at://did:plc:author1/app.bsky.feed.post/post-1",
+          "status": "removed"
+        }
+      ]
+    },
+    {
+      "feed": "at://did:plc:user2/app.bsky.feed.generator/feed2",
+      "results": [
+        {
+          "uri": "at://did:plc:author2/app.bsky.feed.post/post-2",
+          "status": "removed"
         },
         {
-            "feed": "at://did:plc:user2/app.bsky.feed.generator/feed2",
-            "results": [
-                {
-                    "uri": "at://did:plc:author2/app.bsky.feed.post/post-2",
-                    "status": "removed"
-                },
-                {
-                    "uri": "at://did:plc:author2/app.bsky.feed.post/post-3",
-                    "status": "removed"
-                }
-            ]
+          "uri": "at://did:plc:author2/app.bsky.feed.post/post-3",
+          "status": "removed"
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
@@ -300,8 +299,8 @@ To remove all posts by a specific author from the feed, use the `/api/feed/remov
 
 ```json
 {
-    "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
-    "author": "did:plc:authoruser"
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "author": "did:plc:authoruser"
 }
 ```
 
@@ -314,10 +313,10 @@ To remove all posts by a specific author from the feed, use the `/api/feed/remov
 
 ```json
 {
-    "message": "Posts by author removed successfully",
-    "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
-    "author": "did:plc:authoruser",
-    "deletedCount": 3
+  "message": "Posts by author removed successfully",
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "author": "did:plc:authoruser",
+  "deletedCount": 3
 }
 ```
 
@@ -331,8 +330,8 @@ To limit the number of posts in the feed, use the `/api/feed/trimPosts` endpoint
 
 ```json
 {
-    "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
-    "remain": 100
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "remain": 100
 }
 ```
 
@@ -345,9 +344,9 @@ To limit the number of posts in the feed, use the `/api/feed/trimPosts` endpoint
 
 ```json
 {
-    "message": "Posts trimmed successfully",
-    "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
-    "deletedCount": 25
+  "message": "Posts trimmed successfully",
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "deletedCount": 25
 }
 ```
 
@@ -368,8 +367,8 @@ Error Response Example:
 
 ```json
 {
-    "error": "UnknownFeed",
-    "message": "Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist."
+  "error": "UnknownFeed",
+  "message": "Feed with URI at://did:plc:nonexistent/app.bsky.feed.generator/feed does not exist."
 }
 ```
 

@@ -248,8 +248,16 @@ describe(ENDPOINT_PATH, () => {
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       const feedId1 = await insertFeed(dummyFeed1);
       const feedId2 = await insertFeed(dummyFeed2);
-      const post1 = { ...dummyPost1, id: 3001, uri: 'at://did:plc:author1/app.bsky.feed.post/dev-post-1' };
-      const post2 = { ...dummyPost2, id: 3002, uri: 'at://did:plc:author2/app.bsky.feed.post/dev-post-2' };
+      const post1 = {
+        ...dummyPost1,
+        id: 3001,
+        uri: 'at://did:plc:author1/app.bsky.feed.post/dev-post-1',
+      };
+      const post2 = {
+        ...dummyPost2,
+        id: 3002,
+        uri: 'at://did:plc:author2/app.bsky.feed.post/dev-post-2',
+      };
       await insertPost(feedId1, post1);
       await insertPost(feedId2, post2);
 

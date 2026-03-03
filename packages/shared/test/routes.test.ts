@@ -42,7 +42,7 @@ describe('Success cases', () => {
     expect(response.status).toBe(400);
     expect(response.headers.get('Content-Type')).toBe('application/json');
 
-    const body = await response.json() as ErrorResponse;
+    const body = (await response.json()) as ErrorResponse;
     expect(body.error).toBe('BadRequest');
     expect(body.message).toContain('Too small: expected string to have >=3 characters');
   });

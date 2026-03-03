@@ -13,7 +13,12 @@ export async function updateDocument(
   },
   envOverrides?: Partial<Env>
 ) {
-  return requestJson<{ type?: string; url?: string | null; content?: string | null; error?: string }>({
+  return requestJson<{
+    type?: string;
+    url?: string | null;
+    content?: string | null;
+    error?: string;
+  }>({
     path: ENDPOINT_PATH,
     init: {
       method: 'POST',

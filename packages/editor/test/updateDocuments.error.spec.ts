@@ -1,11 +1,7 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DOCUMENT_TYPES } from 'shared/src/constants';
-import {
-  ENDPOINT_PATH,
-  resetDocumentsTable,
-  updateDocument,
-} from './updateDocuments.shared';
+import { ENDPOINT_PATH, resetDocumentsTable, updateDocument } from './updateDocuments.shared';
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {

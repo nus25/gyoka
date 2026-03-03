@@ -33,7 +33,10 @@ describe(ENDPOINT_PATH, () => {
       });
 
       const db = env.DB;
-      const { results } = await db.prepare('SELECT * FROM feeds WHERE feed_uri = ?').bind(request.uri).all();
+      const { results } = await db
+        .prepare('SELECT * FROM feeds WHERE feed_uri = ?')
+        .bind(request.uri)
+        .all();
       expect(results.length).toBe(1);
       expect(results[0].feed_uri).toBe(request.uri);
       expect(results[0].lang_filter).toBe(0);
@@ -58,7 +61,10 @@ describe(ENDPOINT_PATH, () => {
       });
 
       const db = env.DB;
-      const { results } = await db.prepare('SELECT * FROM feeds WHERE feed_uri = ?').bind(request.uri).all();
+      const { results } = await db
+        .prepare('SELECT * FROM feeds WHERE feed_uri = ?')
+        .bind(request.uri)
+        .all();
       expect(results.length).toBe(1);
       expect(results[0].feed_uri).toBe(request.uri);
       expect(results[0].lang_filter).toBe(0);
@@ -83,7 +89,10 @@ describe(ENDPOINT_PATH, () => {
       });
 
       const db = env.DB;
-      const { results } = await db.prepare('SELECT * FROM feeds WHERE feed_uri = ?').bind(request.uri).all();
+      const { results } = await db
+        .prepare('SELECT * FROM feeds WHERE feed_uri = ?')
+        .bind(request.uri)
+        .all();
       expect(results.length).toBe(1);
       expect(results[0].feed_uri).toBe(request.uri);
       expect(results[0].lang_filter).toBe(1);

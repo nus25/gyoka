@@ -20,7 +20,9 @@ export function assertValidResponse(response: Response) {
   expectJsonResponse(response);
 }
 
-export async function insertFeeds(feeds: Array<{ uri: string; lang_filter: number; is_active: number }>) {
+export async function insertFeeds(
+  feeds: Array<{ uri: string; lang_filter: number; is_active: number }>
+) {
   const db = env.DB;
   const placeholders = feeds.map(() => '(?, ?, ?)').join(', ');
   const values = feeds.flatMap(({ uri, lang_filter, is_active }) => [uri, lang_filter, is_active]);

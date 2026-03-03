@@ -38,7 +38,10 @@ describe(ENDPOINT_PATH, () => {
         },
       });
 
-      const { results } = await db.prepare('SELECT * FROM feeds WHERE feed_uri = ?').bind(DEFAULT_FEED_URI).all();
+      const { results } = await db
+        .prepare('SELECT * FROM feeds WHERE feed_uri = ?')
+        .bind(DEFAULT_FEED_URI)
+        .all();
       expect(results.length).toBe(1);
       expect(results[0].feed_uri).toBe(DEFAULT_FEED_URI);
       expect(results[0].lang_filter).toBe(1);

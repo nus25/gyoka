@@ -171,7 +171,10 @@ describe(ENDPOINT_PATH, () => {
         },
       };
 
-      const { response: pinResponse, json: pinJson } = await addPost(dummyFeed.uri, postWithReasonPin);
+      const { response: pinResponse, json: pinJson } = await addPost(
+        dummyFeed.uri,
+        postWithReasonPin
+      );
       assertValidResponse(pinResponse);
       expect(pinJson).toEqual({
         message: 'Post added successfully',

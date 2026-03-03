@@ -52,7 +52,9 @@ describe(ENDPOINT_PATH, () => {
       });
 
       const { success, results } = await db
-        .prepare('SELECT * FROM posts WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)')
+        .prepare(
+          'SELECT * FROM posts WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)'
+        )
         .bind(DEFAULT_FEED_URI)
         .all();
       expect(success).toBe(true);
