@@ -54,6 +54,7 @@ type BatchRemovePostsResponse = {
   message?: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function batchRemovePosts(entries: any[], envOverrides?: Partial<Env>) {
   return requestJson<BatchRemovePostsResponse>({
     path: ENDPOINT_PATH,
@@ -106,7 +107,8 @@ export async function insertPost(
 export async function verifyPostExists(uri: string, indexedAt?: string): Promise<boolean> {
   const db = env.DB;
   let query = 'SELECT 1 FROM posts WHERE uri = ?';
-  const bindings: any[] = [uri];
+
+  const bindings: string[] = [uri];
 
   if (indexedAt) {
     query += ' AND indexed_at = ?';

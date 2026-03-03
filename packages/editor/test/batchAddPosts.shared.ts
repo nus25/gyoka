@@ -50,7 +50,7 @@ export type BatchAddPostsResponse = {
   error?: string;
   message?: string;
 };
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function batchAddPosts(entries: any[], envOverrides?: Partial<Env>) {
   return requestJson<BatchAddPostsResponse>({
     path: ENDPOINT_PATH,

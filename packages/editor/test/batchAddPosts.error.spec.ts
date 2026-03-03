@@ -9,7 +9,6 @@ import {
   dummyFeed2,
   dummyPost1,
   dummyPost2,
-  dummyPost3,
   insertFeed,
   resetBatchAddTables,
 } from './batchAddPosts.shared';
