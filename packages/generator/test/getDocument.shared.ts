@@ -10,8 +10,7 @@ export async function resetDocuments() {
 }
 
 export async function insertDocument(type: string, url: string | null, content: string | null) {
-  await env.DB
-    .prepare('INSERT INTO documents (type, url, content) VALUES (?, ?, ?)')
+  await env.DB.prepare('INSERT INTO documents (type, url, content) VALUES (?, ?, ?)')
     .bind(type, url, content)
     .run();
 }

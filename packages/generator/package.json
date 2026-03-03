@@ -10,16 +10,20 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "chanfana": "3.0.0",
-    "hono": "^4.11.7",
-    "zod": "^4.3.5",
-    "shared": "workspace:*"
+    "shared": "workspace:*",
+    "@atcute/atproto": "^3.1.10",
+    "@atcute/bluesky": "^3.2.19",
+    "@atcute/identity": "^1.1.3",
+    "@atcute/identity-resolver": "^1.2.2",
+    "@atcute/lexicons": "^1.2.9",
+    "@atcute/xrpc-server": "^0.1.11"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "catalog:",
     "@cloudflare/workers-types": "catalog:",
     "@types/node": "^22.15.35",
-    "wrangler": "catalog:"
+    "wrangler": "catalog:",
+    "@atcute/crypto": "^2.3.0"
   },
   "packageManager": "pnpm@10.28.2",
   "author": "Nus",

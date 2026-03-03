@@ -15,6 +15,8 @@ describe('Success cases', () => {
     const response = await requestDocument(DOCUMENT_TYPES.PRIVACY_POLICY);
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toContain('text/plain');
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
     expect(await response.text()).toBe('Test content');
   });
 
@@ -24,6 +26,8 @@ describe('Success cases', () => {
     const response = await requestDocument(DOCUMENT_TYPES.TOS);
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toContain('text/plain');
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
     expect(await response.text()).toBe('See document at http://example.com');
   });
 
@@ -37,6 +41,8 @@ describe('Success cases', () => {
     const response = await requestDocument(DOCUMENT_TYPES.TOS);
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toContain('text/plain');
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
     const responseText = await response.text();
     expect(responseText).toContain('You can view the document at http://example.com/terms');
     expect(responseText).toContain('Terms of Service content');

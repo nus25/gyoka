@@ -1,3 +1,5 @@
 FEEDGEN_PUBLISHER_DID=did:example:developer
 FEEDGEN_HOST=test-generator.example.com
+FEEDGEN_AUTH_REQUIRED=disabled
+DID_CACHE_TTL_SECONDS=2592000
 DEVELOPER_MODE=enabled

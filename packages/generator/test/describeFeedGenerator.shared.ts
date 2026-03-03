@@ -30,8 +30,7 @@ export async function requestDescribeFeedGeneratorJson(requestEnv = env) {
 export async function insertFeeds(feeds: Array<{ uri: string; is_active: number }>) {
   const placeholders = feeds.map(() => '(?, ?)').join(', ');
   const values = feeds.flatMap(({ uri, is_active }) => [uri, is_active]);
-  await env.DB
-    .prepare(`INSERT INTO feeds (feed_uri, is_active) VALUES ${placeholders}`)
+  await env.DB.prepare(`INSERT INTO feeds (feed_uri, is_active) VALUES ${placeholders}`)
     .bind(...values)
     .run();
 }
@@ -39,8 +38,7 @@ export async function insertFeeds(feeds: Array<{ uri: string; is_active: number 
 export async function insertDocuments(documents: Array<{ type: string; url: string | null }>) {
   const placeholders = documents.map(() => '(?, ?)').join(', ');
   const values = documents.flatMap(({ type, url }) => [type, url]);
-  await env.DB
-    .prepare(`INSERT INTO documents (type, url) VALUES ${placeholders}`)
+  await env.DB.prepare(`INSERT INTO documents (type, url) VALUES ${placeholders}`)
     .bind(...values)
     .run();
 }

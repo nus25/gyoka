@@ -5,12 +5,10 @@ import { requestDidDocument } from './getDidDocument.shared';
 
 describe('Error cases', () => {
   it('Given missing FEEDGEN_HOST When requesting DID document Then it returns 500', async () => {
-    const response = await requestDidDocument(
-      {
-        ...env,
-        FEEDGEN_HOST: undefined,
-      } as unknown as typeof env
-    );
+    const response = await requestDidDocument({
+      ...env,
+      FEEDGEN_HOST: undefined,
+    } as unknown as typeof env);
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({
@@ -20,12 +18,10 @@ describe('Error cases', () => {
   });
 
   it('Given missing DB configuration When requesting DID document Then it returns 500', async () => {
-    const response = await requestDidDocument(
-      {
-        ...env,
-        DB: undefined,
-      } as unknown as typeof env
-    );
+    const response = await requestDidDocument({
+      ...env,
+      DB: undefined,
+    } as unknown as typeof env);
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({

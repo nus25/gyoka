@@ -12,12 +12,10 @@ describe('Boundary cases', () => {
 
   it('Given host with nested subdomain When requesting DID document Then host is reflected in id and endpoint', async () => {
     const customHost = 'sub.feed-generator.example.com';
-    const response = await requestDidDocument(
-      {
-        ...env,
-        FEEDGEN_HOST: customHost,
-      } as typeof env
-    );
+    const response = await requestDidDocument({
+      ...env,
+      FEEDGEN_HOST: customHost,
+    } as typeof env);
 
     expect(response.status).toBe(200);
     const json = (await response.json()) as {

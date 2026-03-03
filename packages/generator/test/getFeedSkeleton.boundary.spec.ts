@@ -112,8 +112,7 @@ describe('Boundary cases', () => {
     const activeData: FeedSkeletonResponse = await activeResponse.json();
     expect(activeData.feed).toHaveLength(0);
 
-    await env.DB
-      .prepare('UPDATE feeds SET is_active = 0 WHERE feed_uri = ?')
+    await env.DB.prepare('UPDATE feeds SET is_active = 0 WHERE feed_uri = ?')
       .bind(ACTIVE_FEED_URI)
       .run();
 
@@ -166,8 +165,7 @@ describe('Boundary cases', () => {
       langs: ['en'],
     });
 
-    await env.DB
-      .prepare('UPDATE posts SET feed_context = ?, reason = ? WHERE post_id = ?')
+    await env.DB.prepare('UPDATE posts SET feed_context = ?, reason = ? WHERE post_id = ?')
       .bind(testFeedContext, JSON.stringify(testReason), 1)
       .run();
 
@@ -183,14 +181,10 @@ describe('Boundary cases', () => {
   it('Given DEVELOPER_MODE disabled When requesting skeleton Then debug logs are not emitted', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    const response = await requestFeedSkeleton(
-      `feed=${ACTIVE_FEED_URI}`,
-      {},
-      {
-        ...env,
-        DEVELOPER_MODE: undefined,
-      } as typeof env
-    );
+    const response = await requestFeedSkeleton(`feed=${ACTIVE_FEED_URI}`, {}, {
+      ...env,
+      DEVELOPER_MODE: undefined,
+    } as typeof env);
 
     expect(response.status).toBe(200);
     const data: FeedSkeletonResponse = await response.json();

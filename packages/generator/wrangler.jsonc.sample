@@ -14,6 +14,10 @@
         /* Build-time flag: false disables /docs, /redocs, /openapi.json route registration. */
         "__OPENAPI_DOCS_ENABLED__": "false"
       },
+      "vars": {
+        "FEEDGEN_AUTH_REQUIRED": "disabled",
+        "DID_CACHE_TTL_SECONDS": "86400"
+      },
       "d1_databases": [
         {
           "binding": "DB",
@@ -41,6 +45,8 @@
       "vars": {
         "FEEDGEN_PUBLISHER_DID": "did:example:developer",
         "FEEDGEN_HOST": "dev.example.com",
+        "FEEDGEN_AUTH_REQUIRED": "disabled",
+        "DID_CACHE_TTL_SECONDS": "86400",
         "DEVELOPER_MODE": "enabled"
       }
     },
@@ -64,8 +70,12 @@
       "vars": {
         /* DID of your Bluesky account or alternative publisher */
         "FEEDGEN_PUBLISHER_DID": "did:example:publisher",
-        /* hostname of the feed generator service endpoint */
+        /* deployed worker host accessed from AppView */
         "FEEDGEN_HOST": "feed-generator.example.com",
+        /* Runtime flag: enable service JWT authentication for XRPC endpoints when set to "enabled". */
+        "FEEDGEN_AUTH_REQUIRED": "enabled",
+        /* DID resolver cache TTL in seconds. 86400 = 1 day. */
+        "DID_CACHE_TTL_SECONDS": "86400",
         /* Runtime flag: enables verbose debug logging in endpoints when set to "enabled". */
         "DEVELOPER_MODE": "disabled",
         /* Version from package.json (overridden by --var during deploy) */
