@@ -20,12 +20,12 @@
   "author": "Nus",
   "license": "MIT",
   "devDependencies": {
-    "@eslint/js": "^9.0.0",
+    "@eslint/js": "^10.0.1",
     "@vitest/coverage-istanbul": "^3.2.x",
-    "eslint": "^9.27.0",
+    "eslint": "^10.0.2",
     "globals": "^15.0.0",
     "prettier": "^3.8.1",
-    "typescript-eslint": "^8.0.0",
+    "typescript-eslint": "^8.56.1",
     "vitest": "^3.2.x",
     "wrangler": "catalog:"
   },
