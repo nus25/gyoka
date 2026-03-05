@@ -10,7 +10,7 @@ catalog:
   "@cloudflare/vitest-pool-workers": 0.12.7
   "@cloudflare/workers-types": 4.20260124.0
 
-catalogMode: strict
+catalogMode: manual
 cleanupUnusedCatalogs: true
 
 onlyBuiltDependencies:
