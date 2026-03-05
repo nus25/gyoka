@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { sanitizeAtcuteValidationResponse } from '../src/xrpcRouter';
 import { createLogger } from 'shared/src/logger';
+import { describe, it, expect, vi } from 'vitest';
+
+import { sanitizeAtcuteValidationResponse } from '../src/xrpcRouter';
 
 describe('Error cases', () => {
   it('Given status is not 400 When sanitizeAtcuteValidationResponse is called Then returns original response', async () => {

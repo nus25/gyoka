@@ -1,13 +1,13 @@
-import { type Nsid } from '@atcute/lexicons';
 import { normalizeWebDid } from '@atcute/identity';
-import { AuthRequiredError } from '@atcute/xrpc-server';
-import { ServiceJwtVerifier, type VerifiedJwt } from '@atcute/xrpc-server/auth';
-import { Logger } from 'shared/src/logger';
 import {
   CompositeDidDocumentResolver,
   PlcDidDocumentResolver,
   WebDidDocumentResolver,
 } from '@atcute/identity-resolver';
+import { type Nsid } from '@atcute/lexicons';
+import { AuthRequiredError } from '@atcute/xrpc-server';
+import { ServiceJwtVerifier, type VerifiedJwt } from '@atcute/xrpc-server/auth';
+import { Logger } from 'shared/src/logger';
 
 import { createDidResolverFetch } from './didResolverFetch';
 

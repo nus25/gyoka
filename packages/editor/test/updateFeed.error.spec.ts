@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { DEFAULT_FEED_URI, ENDPOINT_PATH, seedDefaultFeed, updateFeed } from './updateFeed.shared';
 
 describe(ENDPOINT_PATH, () => {

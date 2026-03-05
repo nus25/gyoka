@@ -1,5 +1,6 @@
 import { OpenAPIRoute } from 'chanfana';
 import * as z from 'zod';
+
 import { createErrorResponse } from './errors';
 
 export type ValidationErrorDetail = {

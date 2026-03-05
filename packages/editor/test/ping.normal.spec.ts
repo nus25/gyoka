@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { ENDPOINT_PATH, ping, pingWithAuth } from './ping.shared';
 
 describe(ENDPOINT_PATH, () => {

@@ -1,6 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-
 import { DOCUMENT_TYPES } from 'shared/src/constants';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { requestDocument, resetDocuments } from './getDocument.shared';
 

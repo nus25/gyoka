@@ -1,6 +1,6 @@
+import { XRPCError } from '@atcute/xrpc-server';
 import { createErrorResponse } from 'shared/src/errors/core';
 import { GyokaBaseError } from 'shared/src/errors/core';
-import { XRPCError } from '@atcute/xrpc-server';
 import { Logger } from 'shared/src/logger';
 
 export function handleAppError(err: unknown, devMode: boolean, logger: Logger): Response {

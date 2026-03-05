@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { assertErrorResponse } from './testUtils';
+
 import {
   ENDPOINT_PATH,
   assertValidResponse,
@@ -14,6 +14,7 @@ import {
   resetBatchRemoveTables,
   verifyPostExists,
 } from './batchRemovePosts.shared';
+import { assertErrorResponse } from './testUtils';
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {

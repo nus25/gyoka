@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import * as z from 'zod';
 
-import { BaseOpenAPIRoute } from '../src/routes';
 import { ErrorResponse } from '../src/errors';
+import { BaseOpenAPIRoute } from '../src/routes';
 
 class TestRoute extends BaseOpenAPIRoute {
   constructor() {

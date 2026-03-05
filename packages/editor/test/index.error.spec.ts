@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { fetchPath } from './index.shared';
 
 describe('configuration error test', () => {

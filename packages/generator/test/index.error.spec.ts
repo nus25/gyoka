@@ -1,9 +1,9 @@
 import { env } from 'cloudflare:test';
+import { createLogger } from 'shared/src/logger';
 import { describe, expect, it, vi } from 'vitest';
 
-import { requestPath, getRequest } from './index.shared';
 import { createXrpcRouter } from '../src/xrpcRouter';
-import { createLogger } from 'shared/src/logger';
+import { requestPath, getRequest } from './index.shared';
 
 const DESCRIBE_ENDPOINT = '/xrpc/app.bsky.feed.describeFeedGenerator';
 const SKELETON_ENDPOINT =

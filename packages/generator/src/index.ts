@@ -1,11 +1,12 @@
 import { isDid, isHandle } from '@atcute/lexicons/syntax';
-import { getDidDocument } from './endpoints/getDidDocument';
-import { getDocument } from './endpoints/getDocument';
+import { env as workerEnv } from 'cloudflare:workers';
 import { InternalServerError } from 'shared/src/errors/core';
 import { createLogger } from 'shared/src/logger';
-import { env as workerEnv } from 'cloudflare:workers';
-import { createXrpcRouter, sanitizeAtcuteValidationResponse } from './xrpcRouter';
+
+import { getDidDocument } from './endpoints/getDidDocument';
+import { getDocument } from './endpoints/getDocument';
 import { handleAppError } from './errorHandler';
+import { createXrpcRouter, sanitizeAtcuteValidationResponse } from './xrpcRouter';
 
 const logger = createLogger({
   service: 'generator',

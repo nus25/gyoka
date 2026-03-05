@@ -1,4 +1,5 @@
 import { env } from 'cloudflare:test';
+
 import { clearTables, requestJson, expectJsonResponse } from './testUtils';
 
 export const ENDPOINT_PATH = '/api/feed/unregisterFeed';

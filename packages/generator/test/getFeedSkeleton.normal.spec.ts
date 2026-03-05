@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { extractLanguageCodes } from '../src/endpoints/app/bsky/feed/getFeedSkeleton';
 
+import { extractLanguageCodes } from '../src/endpoints/app/bsky/feed/getFeedSkeleton';
 import {
   ACTIVE_FEED_URI,
   FeedSkeletonResponse,

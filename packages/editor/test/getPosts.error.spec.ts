@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { assertErrorResponse } from './testUtils';
+
 import {
   ENDPOINT_PATH,
   dummyFeed,
@@ -8,6 +8,7 @@ import {
   insertFeed,
   resetGetPostsTables,
 } from './getPosts.shared';
+import { assertErrorResponse } from './testUtils';
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {

@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
-import { handleAppError } from '../src/errorHandler';
 import { XRPCError } from '@atcute/xrpc-server';
 import { createLogger } from 'shared/src/logger';
+import { describe, it, expect, vi } from 'vitest';
+
+import { handleAppError } from '../src/errorHandler';
 
 describe('Error case', () => {
   it('Given XRPCError with status 500 and devMode false When handleAppError is called Then logs error with stack', () => {

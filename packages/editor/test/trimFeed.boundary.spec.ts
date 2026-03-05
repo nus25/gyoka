@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import {
   ENDPOINT_PATH,
   assertTrimFeedResponse,

@@ -1,14 +1,14 @@
 import { contentJson } from 'chanfana';
-import * as z from 'zod';
-import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
   BadRequestError,
   InternalServerError,
   UnknownFeedError,
   UnauthorizedError,
 } from 'shared/src/errors';
-import { feedUri } from 'shared/src/validators';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { AppContext } from 'shared/src/types';
+import { feedUri } from 'shared/src/validators';
+import * as z from 'zod';
 
 const SQL_DELETE_FEED = 'DELETE FROM feeds WHERE feed_uri = ?';
 const SQL_DELETE_POSTS =

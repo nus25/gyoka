@@ -1,4 +1,5 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+
 import app from '../src/index';
 
 export const BASE_URL = 'http://localhost:8787';

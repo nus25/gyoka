@@ -1,8 +1,9 @@
-import { describe, it, vi, expect } from 'vitest';
-import { createRequireAuth } from '../../src/auth/createRequireAuth';
-import { createLogger } from 'shared/src/logger';
-import { createServiceJwt, CreateServiceJwtOptions } from '@atcute/xrpc-server/auth';
 import { Secp256k1PrivateKeyExportable } from '@atcute/crypto';
+import { createServiceJwt, CreateServiceJwtOptions } from '@atcute/xrpc-server/auth';
+import { createLogger } from 'shared/src/logger';
+import { describe, it, vi, expect } from 'vitest';
+
+import { createRequireAuth } from '../../src/auth/createRequireAuth';
 import { createDidDocumentFetch } from './createRequireAuth.shared';
 
 describe('Success case', () => {

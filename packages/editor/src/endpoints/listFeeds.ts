@@ -1,8 +1,8 @@
-import { BaseOpenAPIRoute } from 'shared/src/routes';
-import * as z from 'zod';
-import { feedUri } from 'shared/src/validators';
-import { AppContext } from 'shared/src/types';
 import { UnauthorizedError, InternalServerError } from 'shared/src/errors';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
+import { AppContext } from 'shared/src/types';
+import { feedUri } from 'shared/src/validators';
+import * as z from 'zod';
 
 const SQL_SELECT_FEED = 'SELECT * FROM feeds';
 

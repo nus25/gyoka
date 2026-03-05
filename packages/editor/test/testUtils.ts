@@ -1,6 +1,8 @@
+import type { ErrorResponse } from 'shared/src/types';
+
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { expect } from 'vitest';
-import type { ErrorResponse } from 'shared/src/types';
+
 import app from '../src/index';
 
 export const BASE_URL = 'http://localhost:8787';

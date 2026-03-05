@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { sanitizeAtcuteValidationResponse } from '../src/xrpcRouter';
 import { createLogger } from 'shared/src/logger';
+import { describe, it, expect, vi } from 'vitest';
+
+import { sanitizeAtcuteValidationResponse } from '../src/xrpcRouter';
 
 describe('Success cases', () => {
   it('Given status is 400, content-type is json, error is InvalidRequest, and issues is present When sanitizeAtcuteValidationResponse is called Then sanitizes response and logs issues', async () => {

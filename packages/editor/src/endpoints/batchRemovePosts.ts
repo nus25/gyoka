@@ -1,8 +1,4 @@
 import { contentJson } from 'chanfana';
-import * as z from 'zod';
-import { BaseOpenAPIRoute } from 'shared/src/routes';
-import { feedUri, postUri } from 'shared/src/validators';
-import { AppContext } from 'shared/src/types';
 import {
   UnauthorizedError,
   UnknownFeedError,
@@ -10,6 +6,10 @@ import {
   InternalServerError,
 } from 'shared/src/errors';
 import { createLogger } from 'shared/src/logger';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
+import { AppContext } from 'shared/src/types';
+import { feedUri, postUri } from 'shared/src/validators';
+import * as z from 'zod';
 
 const SQL_DELETE_POST = `
 DELETE FROM posts 

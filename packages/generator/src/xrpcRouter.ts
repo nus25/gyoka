@@ -1,10 +1,11 @@
-import { XRPCRouter } from '@atcute/xrpc-server';
 import { AppBskyFeedGetFeedSkeleton, AppBskyFeedDescribeFeedGenerator } from '@atcute/bluesky';
+import { XRPCRouter } from '@atcute/xrpc-server';
+import { Logger } from 'shared/src/logger';
+
 import { createRequireAuth } from './auth/createRequireAuth';
+import { resolveDidCacheTtlSeconds } from './auth/didResolverFetch';
 import { describeFeedGenerator } from './endpoints/app/bsky/feed/describeFeedGenerator';
 import { getFeedSkeleton } from './endpoints/app/bsky/feed/getFeedSkeleton';
-import { Logger } from 'shared/src/logger';
-import { resolveDidCacheTtlSeconds } from './auth/didResolverFetch';
 import { handleAppError } from './errorHandler';
 
 type InvalidRequestPayload = {

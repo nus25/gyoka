@@ -1,10 +1,10 @@
 import { contentJson } from 'chanfana';
-import * as z from 'zod';
-import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { DOCUMENT_TYPES } from 'shared/src/constants';
-import { AppContext } from 'shared/src/types';
 import { UnauthorizedError, BadRequestError, InternalServerError } from 'shared/src/errors';
 import { createLogger } from 'shared/src/logger';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
+import { AppContext } from 'shared/src/types';
+import * as z from 'zod';
 const SQL_UPDATE_DOCUMENT =
   'INSERT OR REPLACE INTO documents (type, url, content) VALUES (?, ?, ?)';
 const logger = createLogger({ service: 'editor' });

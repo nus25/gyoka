@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { DOCUMENT_TYPES } from 'shared/src/constants';
+import { describe, it, expect, beforeEach } from 'vitest';
+
 import {
   assertValidResponse,
   ENDPOINT_PATH,

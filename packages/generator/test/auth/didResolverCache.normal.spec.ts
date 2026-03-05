@@ -1,6 +1,7 @@
-import { describe, it, vi, expect } from 'vitest';
-import { createDidResolverFetch, resolveDidCacheTtlSeconds } from '../../src/auth/didResolverFetch';
 import { createLogger } from 'shared/src/logger';
+import { describe, it, vi, expect } from 'vitest';
+
+import { createDidResolverFetch, resolveDidCacheTtlSeconds } from '../../src/auth/didResolverFetch';
 
 describe('Success case', () => {
   it('Given a valid DID, when the resolver cache is accessed, then it should send a request with cf cache headers', async () => {

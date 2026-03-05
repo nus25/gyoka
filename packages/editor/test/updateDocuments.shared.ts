@@ -1,4 +1,5 @@
 import { DOCUMENT_TYPES } from 'shared/src/constants';
+
 import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 
 export const ENDPOINT_PATH = '/api/gyoka/updateDocument';

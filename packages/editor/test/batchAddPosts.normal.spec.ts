@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:test';
-import { describe, it, expect, beforeEach } from 'vitest';
 import { All_LANGS } from 'shared/src/constants';
+import { describe, it, expect, beforeEach } from 'vitest';
+
 import {
   ENDPOINT_PATH,
   assertValidResponse,
