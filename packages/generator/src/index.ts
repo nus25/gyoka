@@ -50,7 +50,7 @@ function assertRequiredConfiguration(env: Env): void {
 }
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     try {
       assertRequiredConfiguration(env);
 
