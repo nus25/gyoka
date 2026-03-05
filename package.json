@@ -1,8 +1,10 @@
 {
   "name": "gyoka",
   "version": "0.8.0",
-  "description": "simple feed generator for bluesky which works on cloudflare workers",
   "private": "true",
+  "description": "simple feed generator for bluesky which works on cloudflare workers",
+  "license": "MIT",
+  "author": "Nus",
   "scripts": {
     "editor": "pnpm -F gyoka-editor",
     "generator": "pnpm -F gyoka-generator",
@@ -12,19 +14,16 @@
     "d1-init:production": "pnpm editor d1-init:production",
     "d1-add-sample:local": "pnpm editor d1-add-sample:local",
     "test:all": "pnpm -r test run",
-    "fmt": "prettier --check . --write",
-    "fmt:check": "prettier --check .",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "fmt": "oxfmt .",
+    "fmt:check": "oxfmt --check .",
+    "lint": "oxlint . --type-aware",
+    "lint:fix": "oxlint . --type-aware --fix"
   },
-  "author": "Nus",
-  "license": "MIT",
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@vitest/coverage-istanbul": "^3.2.x",
-    "eslint": "^10.0.2",
-    "globals": "^17.4.0",
-    "prettier": "^3.8.1",
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "oxlint-tsgolint": "^0.16.0",
     "typescript-eslint": "^8.56.1",
     "vitest": "^3.2.x",
     "wrangler": "catalog:"
