@@ -160,4 +160,26 @@ describe('Success cases', () => {
 
     expect(result).toEqual(['en', 'fr', 'de', 'es', 'it', 'pt', 'ru', 'ja', 'ko', 'zh']);
   });
+
+  it('Given D1_USE_SESSION enabled When requesting skeleton Then D1 session is used for queries', async () => {
+    const feedId = await getFeedId(ACTIVE_FEED_URI);
+    const indexedAt = new Date();
+
+    await insertPost(feedId, {
+      id: 1,
+      uri: 'at://did:plc:testuser/app.bsky.feed.post/3jzfcijpj2z2a',
+      cid: 'cid1',
+      indexedAt: indexedAt.toISOString(),
+      langs: ['en'],
+    });
+
+    const response = await requestFeedSkeleton(`feed=${ACTIVE_FEED_URI}`, {}, {
+      ...env,
+      D1_USE_SESSION: 'enabled',
+    } as typeof env);
+
+    expect(response.status).toBe(200);
+    const data: FeedSkeletonResponse = await response.json();
+    expect(data.feed.length).toBe(1);
+  });
 });

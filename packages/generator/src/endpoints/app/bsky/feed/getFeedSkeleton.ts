@@ -166,7 +166,15 @@ export async function getFeedSkeleton({
     });
   }
 
-  const { success, results } = await env.DB.prepare(sqlTemplateSelectPost)
+  let db: D1Database | D1DatabaseSession;
+  if (env.D1_USE_SESSION == 'enabled') {
+    db = env.DB.withSession();
+  } else {
+    db = env.DB;
+  }
+
+  const { success, results } = await db
+    .prepare(sqlTemplateSelectPost)
     .bind(
       feed,
       cursor || null,
@@ -183,7 +191,7 @@ export async function getFeedSkeleton({
   }
 
   if (results.length === 0) {
-    const feedExistsResult = await env.DB.prepare(SQL_SELECT_FEED_EXISTS).bind(feed).all();
+    const feedExistsResult = await db.prepare(SQL_SELECT_FEED_EXISTS).bind(feed).all();
     if (!feedExistsResult.success) {
       throw new InternalServerError('Failed to verify feed existence');
     }
