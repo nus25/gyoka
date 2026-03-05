@@ -1,0 +1,11 @@
+{
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file", // tell oxfmt to format the whole file, not only the modified lines
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "oxc.trace.server": "verbose",
+  "oxc.typeAware": true,
+  "oxc.fmt.configPath": "../.oxfmtrc.json",
+  "oxc.configPath": "../.oxlintrc.json"
+}
