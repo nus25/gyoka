@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "chanfana": "3.0.0",
-    "hono": "^4.11.7",
-    "@hono/zod-openapi": "^1.2.0",
+    "hono": "^4.12.5",
+    "@hono/zod-openapi": "^1.2.2",
     "zod": "^4.3.5"
   },
   "devDependencies": {
