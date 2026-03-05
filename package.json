@@ -14,10 +14,10 @@
     "d1-init:production": "pnpm editor d1-init:production",
     "d1-add-sample:local": "pnpm editor d1-add-sample:local",
     "test:all": "pnpm -r test run",
-    "fmt": "oxfmt .",
-    "fmt:check": "oxfmt --check .",
-    "lint": "oxlint . --type-aware",
-    "lint:fix": "oxlint . --type-aware --fix"
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware"
   },
   "devDependencies": {
     "@vitest/coverage-istanbul": "^3.2.x",
