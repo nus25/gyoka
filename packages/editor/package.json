@@ -5,7 +5,7 @@
   "author": "Nus",
   "scripts": {
     "postinstall": "node ../shared/scripts/copy-config.js",
-    "deploy": "echo VERSION=$(node -p \"require('./package.json').version\") GIT_SHA=$(git rev-parse --short HEAD) && wrangler deploy --env production --var VERSION:$(node -p \"require('./package.json').version\") --var GIT_SHA:$(git rev-parse --short HEAD)",
+    "deploy": "echo VERSION=$(node -p \"require('./package.json').version\") GIT_SHA=$(git rev-parse --short HEAD) && wrangler deploy --env production --tag ver:$(node -p \"require('./package.json').version\") --message GIT_SHA:$(git rev-parse --short HEAD)",
     "dev": "wrangler dev --persist-to=../../data --env dev",
     "cf-typegen": "wrangler types --strict-vars=false --env production",
     "test": "vitest",
