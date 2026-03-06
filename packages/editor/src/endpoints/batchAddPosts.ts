@@ -15,7 +15,7 @@ import * as z from 'zod';
 const logger = createLogger({ service: 'editor' });
 
 const SQL_INSERT_POST = `
-INSERT INTO posts (feed_id, did, uri, cid, indexed_at, feed_context, reason) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+INSERT INTO posts (feed_id, uri, cid, indexed_at, feed_context, reason) VALUES (?, ?, ?, ?, ?, ?)`;
 const SQL_INSERT_POST_LANG = `
 INSERT INTO post_languages (post_id, language) SELECT post_id, ? FROM posts WHERE feed_id = ? AND cid = ? AND indexed_at = ? LIMIT 1`;
 
@@ -61,7 +61,6 @@ type PostReason =
 interface ProcessedPost {
   uri: string;
   cid: string;
-  did: string;
   languages: string[];
   indexedAt: string;
   feedContext?: string;
@@ -190,15 +189,11 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
       }
     }
 
-    // Extract DID from post.uri
-    const did = post.uri.split('/')[2];
-
     return {
       success: true,
       post: {
         uri: post.uri,
         cid: post.cid,
-        did,
         languages: languageCodes,
         indexedAt,
         feedContext: post.feedContext,
@@ -338,7 +333,6 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
               .prepare(SQL_INSERT_POST)
               .bind(
                 feed_id,
-                processedPost.did,
                 processedPost.uri,
                 processedPost.cid,
                 processedPost.indexedAt,

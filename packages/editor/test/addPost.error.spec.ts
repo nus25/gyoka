@@ -94,7 +94,8 @@ describe(ENDPOINT_PATH, () => {
         DB: {
           prepare: () => ({
             bind: (...bindArgs: unknown[]) => {
-              if (bindArgs.length === 7) {
+              if (bindArgs.length === 6) {
+                // 6: uri, cid, feed_id, indexed_at, reason, feed_context
                 return {
                   all: async () => ({ success: false, results: [] }),
                 };
@@ -119,7 +120,8 @@ describe(ENDPOINT_PATH, () => {
         DB: {
           prepare: () => ({
             bind: (...bindArgs: unknown[]) => {
-              if (bindArgs.length === 7) {
+              if (bindArgs.length === 6) {
+                // 6: uri, cid, feed_id, indexed_at, reason, feed_context
                 return {
                   all: async () => ({ success: true, results: [{ post_id: 1 }] }),
                 };

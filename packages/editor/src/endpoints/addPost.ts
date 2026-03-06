@@ -13,8 +13,8 @@ import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
 import * as z from 'zod';
 
 const SQL_INSERT_POST = `
-INSERT INTO posts (feed_id, did, uri, cid, indexed_at, feed_context, reason)
-SELECT feed_id, ?, ?, ?, ?, ?, ?
+INSERT INTO posts (feed_id, uri, cid, indexed_at, feed_context, reason)
+SELECT feed_id, ?, ?, ?, ?, ?
 FROM feeds
 WHERE feed_uri = ?
 RETURNING post_id`;
@@ -160,13 +160,10 @@ export class AddPost extends BaseOpenAPIRoute {
     }
 
     try {
-      // extract DID from post.uri for search performance
-      const did = post.uri.split('/')[2];
       // Insert post with feed existence check in single query using RETURNING
       const { success: insertSuccess, results } = await db
         .prepare(SQL_INSERT_POST)
         .bind(
-          did,
           post.uri,
           post.cid,
           post.indexedAt,

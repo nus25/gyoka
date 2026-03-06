@@ -89,13 +89,10 @@ export async function insertPost(
   post: { id: number; uri: string; cid: string; indexedAt: string; langs: string[] }
 ) {
   const db = env.DB;
-  const did = post.uri.split('/')[2];
 
   await db
-    .prepare(
-      'INSERT INTO posts (post_id, feed_id, did, uri, cid, indexed_at) VALUES (?, ?, ?, ?, ?, ?)'
-    )
-    .bind(post.id, feedId, did, post.uri, post.cid, post.indexedAt)
+    .prepare('INSERT INTO posts (post_id, feed_id, uri, cid, indexed_at) VALUES (?, ?, ?, ?, ?)')
+    .bind(post.id, feedId, post.uri, post.cid, post.indexedAt)
     .run();
 
   for (const lang of post.langs) {
@@ -109,8 +106,8 @@ export async function insertPost(
 export async function countPostsByAuthor(did: string): Promise<number> {
   const db = env.DB;
   const { results } = await db
-    .prepare('SELECT COUNT(*) as count FROM posts WHERE did = ?')
-    .bind(did)
+    .prepare('SELECT COUNT(*) as count FROM posts WHERE uri LIKE ?')
+    .bind(`at://${did}/%`)
     .all();
   return (results[0] as { count: number }).count;
 }

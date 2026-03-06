@@ -53,6 +53,7 @@ describe(ENDPOINT_PATH, () => {
       const { response, json } = await removePostByAuthor(dummyFeed.uri, author1Did);
       assertValidResponse(response);
       assertRemovePostByAuthorResponse(json);
+      console.log(json);
       expect(json.deletedCount).toBe(0);
 
       const totalCount = await countTotalPosts();

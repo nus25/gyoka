@@ -35,11 +35,10 @@ describe(ENDPOINT_PATH, () => {
       const db = env.DB;
       await db
         .prepare(
-          'INSERT INTO posts (cid, did, uri, indexed_at, feed_id) VALUES (?, ?, ?, ?, (SELECT feed_id FROM feeds WHERE feed_uri = ?))'
+          'INSERT INTO posts (cid, uri, indexed_at, feed_id) VALUES (?, ?, ?, (SELECT feed_id FROM feeds WHERE feed_uri = ?))'
         )
         .bind(
           'test-cid',
-          'did:plc:testuser',
           'at://did:plc:testuser/app.bsky.feed.post/post1',
           new Date().toISOString(),
           DEFAULT_FEED_URI

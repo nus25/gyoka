@@ -53,11 +53,10 @@ export async function insertPost(
   feedId: number,
   post: { id: number; uri: string; cid: string; indexedAt: string; langs: string[] }
 ) {
-  const did = post.uri.split('/')[2];
   await env.DB.prepare(
-    'INSERT INTO posts (post_id, feed_id, did, uri, cid, indexed_at) VALUES (?, ?, ?, ?, ?, ?)'
+    'INSERT INTO posts (post_id, feed_id, uri, cid, indexed_at) VALUES (?, ?, ?, ?, ?)'
   )
-    .bind(post.id, feedId, did, post.uri, post.cid, post.indexedAt)
+    .bind(post.id, feedId, post.uri, post.cid, post.indexedAt)
     .run();
 
   for (const lang of post.langs) {
