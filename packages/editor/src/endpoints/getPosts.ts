@@ -122,7 +122,7 @@ export class GetPosts extends BaseOpenAPIRoute {
 
     // Determine next cursor
     const nextCursor =
-      postsResults.length == limit
+      postsResults.length === limit
         ? `${new Date(postsResults[postsResults.length - 1].indexed_at as string).getTime()}::${
             postsResults[postsResults.length - 1].cid
           }`

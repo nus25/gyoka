@@ -3,12 +3,14 @@ import { InternalServerError } from 'shared/src/errors/core';
 
 // https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/describeFeedGenerator.json
 
-const SQL_SELECT_FEED = 'SELECT feed_uri FROM feeds WHERE is_active = 1';
+const SQL_SELECT_FEED_URI = 'SELECT feed_uri FROM feeds WHERE is_active = 1';
 const SQL_SELECT_DOCUMENT = 'SELECT type, url FROM documents';
 
 export async function describeFeedGenerator(env: Env): Promise<Response> {
   const db: D1Database = env.DB;
-  const { success: feedSuccess, results: feedResults } = await db.prepare(SQL_SELECT_FEED).all();
+  const { success: feedSuccess, results: feedResults } = await db
+    .prepare(SQL_SELECT_FEED_URI)
+    .all();
   if (!feedSuccess) {
     throw new InternalServerError('Failed to fetch feeds');
   }

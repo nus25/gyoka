@@ -167,7 +167,7 @@ export async function getFeedSkeleton({
   }
 
   let db: D1Database | D1DatabaseSession;
-  if (env.D1_USE_SESSION == 'enabled') {
+  if (env.D1_USE_SESSION === 'enabled') {
     db = env.DB.withSession();
   } else {
     db = env.DB;

@@ -6,7 +6,7 @@ import {
   UnauthorizedError,
 } from 'shared/src/errors';
 import { BaseOpenAPIRoute } from 'shared/src/routes';
-import { AppContext } from 'shared/src/types';
+import { AppContext, FeedRow } from 'shared/src/types';
 import { feedUri } from 'shared/src/validators';
 import * as z from 'zod';
 
@@ -50,7 +50,10 @@ export class UnregisterFeed extends BaseOpenAPIRoute {
     const { uri } = data.body;
 
     // Check if the feed exists
-    const { success: selectSuccess, results } = await db.prepare(SQL_SELECT_FEED).bind(uri).all();
+    const { success: selectSuccess, results } = await db
+      .prepare(SQL_SELECT_FEED)
+      .bind(uri)
+      .all<FeedRow>();
     if (!selectSuccess) {
       throw new InternalServerError('Failed to query the database');
     }
