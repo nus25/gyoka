@@ -14,6 +14,8 @@ The Gyoka-editor allows you to edit feed content using the following operations:
 These APIs can be tested through the Swagger UI at `/docs` endpoint.
 This document explains how to use each operation.
 
+Note: All AT URIs in requests must have a DID-based authority. Gyoka does not accept a handle-based authority.
+
 ## Adding a Post (addPost)
 
 To add a new post to the feed, use the `/api/feed/addPost` endpoint.
