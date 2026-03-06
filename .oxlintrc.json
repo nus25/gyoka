@@ -1,8 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "typescript"
-  ],
+  "plugins": ["typescript"],
   "categories": {
     "correctness": "off"
   },
@@ -46,9 +44,7 @@
   },
   "overrides": [
     {
-      "files": [
-        "**/*.{js,mjs,cjs,ts}"
-      ],
+      "files": ["**/*.{js,mjs,cjs,ts}"],
       "rules": {
         "constructor-super": "error",
         "eqeqeq": [
@@ -120,12 +116,7 @@
       }
     },
     {
-      "files": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.mts",
-        "**/*.cts"
-      ],
+      "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
       "rules": {
         "constructor-super": "off",
         "no-class-assign": "off",
@@ -148,17 +139,13 @@
       }
     },
     {
-      "files": [
-        "**/*.spec.ts"
-      ],
+      "files": ["**/*.spec.ts"],
       "rules": {
         "@typescript-eslint/no-explicit-any": "off"
       }
     },
     {
-      "files": [
-        "**/scripts/**/*.{js,mjs,cjs}"
-      ],
+      "files": ["**/scripts/**/*.{js,mjs,cjs}"],
       "rules": {
         "@typescript-eslint/no-require-imports": "off"
       }
