@@ -46,7 +46,7 @@ To add a new post to the feed, use the `/api/feed/addPost` endpoint.
   - `cid`: The CID of the post (required)
   - `languages`: Array of language codes.This is used for language filter in generator if `langFilter` of the feed is `true` (optional)
   - `indexedAt`: The timestamp when the post was indexed. Gyoka sorts feed posts in descending order by this timestamp (optional, defaults to the current time if not specified)
-  - `feedContext`: This is defined a part of feed interactions API (See [Bluesky API documentation](https://docs.bsky.app/docs/api/app-bsky-feed-get-feed-skeleton#responses)). At this time, you don't need to set this value.
+  - `feedContext`: This is defined a part of feed interactions API (See [Bluesky API documentation](https://docs.bsky.app/docs/api/app-bsky-feed-get-feed-skeleton#responses)). At this time, Gyoka don't support feed interactions although this value is included in getFeedSkeleton response.
   - `reason`: When a post is a repost, you can specify the repost URI to display it as a repost in the feed (optional)
 
 ### Response Example
