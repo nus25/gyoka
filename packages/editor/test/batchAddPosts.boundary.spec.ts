@@ -77,5 +77,19 @@ describe(ENDPOINT_PATH, () => {
       const { results: posts } = await db.prepare('SELECT * FROM posts').all();
       expect(posts.length).toBe(25);
     });
+
+    it('Given no posts When batch add is called Then it returns 400', async () => {
+      const entries = [
+        {
+          feed: dummyFeed1.uri,
+          posts: [],
+        },
+      ];
+
+      const { response, json } = await batchAddPosts(entries);
+      expect(response.status).toBe(400);
+      expect(json.error).toBe('BadRequest');
+      expect(json.message).toContain('Too small');
+    });
   });
 });
