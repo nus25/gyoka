@@ -1,6 +1,6 @@
 {
   "openapi": "3.0.3",
-  "info": { "title": "Gyoka Editor API", "version": "1.2.1" },
+  "info": { "title": "Gyoka Editor API", "version": "1.2.2" },
   "security": [{ "ApiKeyAuth": [] }],
   "components": {
     "securitySchemes": { "ApiKeyAuth": { "type": "apiKey", "in": "header", "name": "X-API-Key" } },
@@ -1444,7 +1444,13 @@
                             "format": "cid",
                             "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
                           },
-                          "langs": { "type": "array", "items": { "type": "string" } },
+                          "languages": { "type": "array", "items": { "type": "string" } },
+                          "langs": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "deprecated": true,
+                            "description": "Deprecated alias of languages. Use languages instead."
+                          },
                           "indexedAt": { "type": "string", "format": "date-time" },
                           "reason": {
                             "type": "object",
@@ -1459,7 +1465,7 @@
                           },
                           "feedContext": { "type": "string" }
                         },
-                        "required": ["uri", "cid", "langs", "indexedAt"]
+                        "required": ["uri", "cid", "languages", "indexedAt"]
                       }
                     },
                     "cursor": { "type": "string" }
