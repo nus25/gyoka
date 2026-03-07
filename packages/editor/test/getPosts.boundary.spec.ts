@@ -23,7 +23,7 @@ describe(ENDPOINT_PATH, () => {
         uri: `at://did:plc:testuser/app.bsky.post/test-${i}`,
         cid: `cid-${i}`,
         indexedAt: new Date(2024, 0, i + 1).toISOString(),
-        langs: ['en'],
+        languages: ['en'],
       }));
 
       for (const post of posts) {

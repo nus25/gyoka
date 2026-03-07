@@ -14,6 +14,32 @@ import * as z from 'zod';
 
 const logger = createLogger({ service: 'editor' });
 
+const PRIMARY_LANGUAGE_TAG_PATTERN = /^[a-z]{2,3}$/;
+
+function normalizeLanguages(languages?: string[] | null): string[] {
+  const normalized = (languages ?? [])
+    .map((lang) => lang.trim().toLowerCase())
+    .map((lang) => lang.split('-')[0])
+    .filter((lang) => lang.length > 0);
+
+  if (normalized.includes(All_LANGS)) {
+    return [All_LANGS];
+  }
+
+  if (normalized.length === 0) {
+    return [All_LANGS];
+  }
+
+  const deduped = [...new Set(normalized)];
+  if (deduped.some((code) => !(code === All_LANGS || PRIMARY_LANGUAGE_TAG_PATTERN.test(code)))) {
+    throw new BadRequestError(
+      'All primary language tags must be exactly two or three lowercase alphabetic characters'
+    );
+  }
+
+  return deduped;
+}
+
 const SQL_INSERT_POST = `
 INSERT INTO posts (feed_id, uri, cid, indexed_at, feed_context, reason) VALUES (?, ?, ?, ?, ?, ?)`;
 const SQL_INSERT_POST_LANG = `
@@ -135,28 +161,16 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
     entryIndex: number,
     postIndex: number
   ): ValidationResult {
-    // Process languages
-    if (!post.languages) {
-      post.languages = [All_LANGS];
-    }
-    const languageCodes: string[] = Array.from(
-      new Set(
-        (post.languages as string[])
-          .map((lang) => lang.split('-')[0])
-          .map((lang) => lang.toLowerCase())
-          .filter((lang) => lang)
-      )
-    );
-
-    if (languageCodes.length === 0) {
-      return { success: false, error: 'At least one valid language code is required' };
-    }
-
-    if (languageCodes.some((code: string) => !(code === '*' || /^[a-z]{2,3}$/.test(code)))) {
+    let languageCodes: string[];
+    try {
+      languageCodes = normalizeLanguages(post.languages);
+    } catch (error) {
       return {
         success: false,
         error:
-          'All primary language tags must be exactly two or three lowercase alphabetic characters',
+          error instanceof Error
+            ? error.message
+            : 'All primary language tags must be exactly two or three lowercase alphabetic characters',
       };
     }
 

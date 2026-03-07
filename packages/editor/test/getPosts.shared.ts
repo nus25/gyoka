@@ -12,10 +12,12 @@ export const dummyFeed = {
 };
 
 export interface GetPostsResponse {
+  feed: string;
   posts: Array<{
     uri: string;
     cid: string;
-    langs: string[];
+    languages: string[];
+    langs?: string[];
     indexedAt: string;
   }>;
   cursor?: string;
@@ -24,7 +26,7 @@ export interface GetPostsResponse {
 export function assertGetPostsResponse(
   response: GetPostsResponse | ErrorResponse
 ): asserts response is GetPostsResponse {
-  if (!('posts' in response)) {
+  if (!('feed' in response) || !('posts' in response)) {
     throw new Error('Response does not have posts');
   }
 }
@@ -60,16 +62,24 @@ export async function insertFeed(feed: { uri: string; is_active: number }) {
 
 export async function insertPost(
   feedId: number,
-  post: { id: number; uri: string; cid: string; indexedAt: string; langs: string[] }
+  post: {
+    id: number;
+    uri: string;
+    cid: string;
+    indexedAt: string;
+    languages?: string[];
+    langs?: string[];
+  }
 ) {
   const db = env.DB;
+  const languages = post.languages ?? post.langs ?? ['*'];
 
   await db
     .prepare('INSERT INTO posts (post_id, feed_id, uri, cid, indexed_at) VALUES (?, ?, ?, ?, ?)')
     .bind(post.id, feedId, post.uri, post.cid, post.indexedAt)
     .run();
 
-  for (const lang of post.langs) {
+  for (const lang of languages) {
     await db
       .prepare('INSERT INTO post_languages (post_id, language) VALUES (?, ?)')
       .bind(post.id, lang)

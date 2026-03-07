@@ -94,7 +94,9 @@ describe(ENDPOINT_PATH, () => {
       expect(json.results![0].results[0].uri).toBe(dummyPost1.uri);
       expect(json.results![0].results[1].status).toBe('error');
       expect(json.results![0].results[1].uri).toBe(invalidPost.uri);
-      expect(json.results![0].results[1].error).toContain('lowercase alphabetic characters');
+      expect(json.results![0].results[1].error).toContain(
+        'two or three lowercase alphabetic characters'
+      );
       expect(json.results![0].results[2].status).toBe('added');
       expect(json.results![0].results[2].uri).toBe(dummyPost2.uri);
 
@@ -150,7 +152,7 @@ describe(ENDPOINT_PATH, () => {
       expect(json.results![0].results[0].error).toContain('needs repost field');
     });
 
-    it('Given language list becomes empty after normalization When batch add is called Then the post returns an error', async () => {
+    it('Given language list becomes empty after normalization When batch add is called Then wildcard language is applied', async () => {
       await insertFeed(dummyFeed1);
 
       const postWithEmptyLanguage = {
@@ -168,10 +170,18 @@ describe(ENDPOINT_PATH, () => {
       const { response, json } = await batchAddPosts(entries);
       assertValidResponse(response);
 
-      expect(json.results![0].results[0].status).toBe('error');
-      expect(json.results![0].results[0].error).toBe(
-        'At least one valid language code is required'
-      );
+      expect(json.results![0].results[0].status).toBe('added');
+
+      const db = env.DB;
+      const { results: posts } = await db
+        .prepare('SELECT * FROM posts WHERE uri = ?')
+        .bind(dummyPost1.uri)
+        .all();
+      const { results: languages } = await db
+        .prepare('SELECT language FROM post_languages WHERE post_id = ?')
+        .bind(posts[0].post_id)
+        .all();
+      expect(languages).toEqual([{ language: '*' }]);
     });
 
     it('Given posts array is empty When batch add is called Then it returns 400', async () => {

@@ -123,6 +123,37 @@ describe(ENDPOINT_PATH, () => {
       expect(languages.map((l) => l.language).sort()).toEqual(['en', 'ja']);
     });
 
+    it('Given wildcard and specific languages are mixed When batch add is called Then wildcard takes precedence', async () => {
+      await insertFeed(dummyFeed1);
+
+      const entries = [
+        {
+          feed: dummyFeed1.uri,
+          posts: [
+            {
+              ...dummyPost1,
+              languages: ['*', 'en'],
+            },
+          ],
+        },
+      ];
+
+      const { response, json } = await batchAddPosts(entries);
+      assertValidResponse(response);
+      expect(json.results![0].results[0].status).toBe('added');
+
+      const db = env.DB;
+      const { results: posts } = await db
+        .prepare('SELECT * FROM posts WHERE uri = ?')
+        .bind(dummyPost1.uri)
+        .all();
+      const { results: languages } = await db
+        .prepare('SELECT language FROM post_languages WHERE post_id = ?')
+        .bind(posts[0].post_id)
+        .all();
+      expect(languages).toEqual([{ language: All_LANGS }]);
+    });
+
     it('Given duplicate posts across entries When batch add is called Then each entry still returns a result', async () => {
       await insertFeed(dummyFeed1);
 

@@ -24,7 +24,7 @@ describe(ENDPOINT_PATH, () => {
         uri: `at://did:plc:testuser/app.bsky.post/test-${i}`,
         cid: `cid-${i}`,
         indexedAt: new Date(2024, 0, i + 1).toISOString(),
-        langs: ['en'],
+        languages: ['en'],
       }));
 
       for (const post of posts) {
@@ -34,8 +34,11 @@ describe(ENDPOINT_PATH, () => {
       const { response, json } = await getPosts(dummyFeed.uri);
       assertValidResponse(response);
       assertGetPostsResponse(json);
+      expect(json.feed).toBe(dummyFeed.uri);
       expect(json.posts).toHaveLength(5);
       expect(json.posts[0].uri).toBe(posts[4].uri);
+      expect(json.posts[0].languages).toEqual(['en']);
+      expect(json.posts[0].langs).toEqual(['en']);
     });
 
     it('Given enough posts for multiple pages When cursor pagination is used Then pages are returned in correct order', async () => {
@@ -45,7 +48,7 @@ describe(ENDPOINT_PATH, () => {
         uri: `at://did:plc:testuser/app.bsky.post/test-${i}`,
         cid: `cid-${i}`,
         indexedAt: new Date(2024, 0, i + 1).toISOString(),
-        langs: ['en'],
+        languages: ['en'],
       }));
 
       for (const post of posts) {
@@ -59,6 +62,7 @@ describe(ENDPOINT_PATH, () => {
 
       const { json: secondPage } = await getPosts(dummyFeed.uri, 6, firstPage.cursor);
       assertGetPostsResponse(secondPage);
+      expect(secondPage.feed).toBe(dummyFeed.uri);
       expect(secondPage.posts).toHaveLength(5);
       expect(secondPage.cursor).toBeUndefined();
 
@@ -71,6 +75,7 @@ describe(ENDPOINT_PATH, () => {
       const { response, json } = await getPosts(dummyFeed.uri);
       assertValidResponse(response);
       assertGetPostsResponse(json);
+      expect(json.feed).toBe(dummyFeed.uri);
       expect(json.posts).toEqual([]);
       expect(json.cursor).toBeUndefined();
     });
@@ -82,7 +87,7 @@ describe(ENDPOINT_PATH, () => {
         uri: 'at://did:plc:testuser/app.bsky.post/test',
         cid: 'test-cid',
         indexedAt: new Date().toISOString(),
-        langs: ['en', 'ja', 'fr'],
+        languages: ['en', 'ja', 'fr'],
       };
 
       await insertPost(feedId, post);
@@ -90,7 +95,24 @@ describe(ENDPOINT_PATH, () => {
       const { json } = await getPosts(dummyFeed.uri);
       assertGetPostsResponse(json);
       expect(json.posts).toHaveLength(1);
+      expect(json.posts[0].languages).toEqual(expect.arrayContaining(['en', 'ja', 'fr']));
       expect(json.posts[0].langs).toEqual(expect.arrayContaining(['en', 'ja', 'fr']));
+    });
+
+    it('Given post has wildcard language When get posts is called Then wildcard is returned as array', async () => {
+      const feedId = await insertFeed(dummyFeed);
+      await insertPost(feedId, {
+        id: 10,
+        uri: 'at://did:plc:testuser/app.bsky.post/wildcard',
+        cid: 'wildcard-cid',
+        indexedAt: new Date().toISOString(),
+        languages: ['*'],
+      });
+
+      const { json } = await getPosts(dummyFeed.uri);
+      assertGetPostsResponse(json);
+      expect(json.posts[0].languages).toEqual(['*']);
+      expect(json.posts[0].langs).toEqual(['*']);
     });
 
     it('Given developer mode is toggled on and off When get posts is called Then logging behavior is toggled', async () => {

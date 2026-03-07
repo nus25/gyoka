@@ -62,6 +62,7 @@ describe(ENDPOINT_PATH, () => {
         post: {
           uri: minimalPost.uri,
           cid: minimalPost.cid,
+          languages: [All_LANGS],
           indexedAt: expect.any(String),
         },
       });
@@ -103,6 +104,19 @@ describe(ENDPOINT_PATH, () => {
         .all();
       expect(languages.length).toBe(3);
       expect(languages.map((l) => l.language).sort()).toEqual(['en', 'ja', 'tlh']);
+    });
+
+    it('Given wildcard and specific languages are mixed When add post is called Then wildcard takes precedence', async () => {
+      await insertFeed(dummyFeed);
+
+      const postWithWildcardAndSpecific = {
+        ...dummyPost,
+        languages: ['*', 'en'],
+      };
+
+      const { response, json } = await addPost(dummyFeed.uri, postWithWildcardAndSpecific);
+      assertValidResponse(response);
+      expect(json.post?.languages).toEqual([All_LANGS]);
     });
 
     it('Given feedContext is provided When add post is called Then feedContext is persisted', async () => {

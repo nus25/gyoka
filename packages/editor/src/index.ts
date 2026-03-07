@@ -20,7 +20,7 @@ import { UnregisterFeed } from './endpoints/unregisterFeed';
 import { UpdateDocument } from './endpoints/updateDocument';
 import { UpdateFeed } from './endpoints/updateFeed';
 
-const API_VERSION = '1.2.1';
+const API_VERSION = '1.2.2';
 const OPENAPI_DOCS_ENABLED = __OPENAPI_DOCS_ENABLED__;
 const logger = createLogger({ service: 'editor' });
 

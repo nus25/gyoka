@@ -50,7 +50,11 @@ export class GetPosts extends BaseOpenAPIRoute {
                 z.object({
                   uri: postUri,
                   cid: cid,
-                  langs: z.array(z.string()),
+                  languages: z.array(z.string()),
+                  langs: z.array(z.string()).optional().openapi({
+                    deprecated: true,
+                    description: 'Deprecated alias of languages. Use languages instead.',
+                  }),
                   indexedAt: z.iso.datetime(),
                   reason: z
                     .object({
@@ -129,14 +133,25 @@ export class GetPosts extends BaseOpenAPIRoute {
         : undefined;
 
     return Response.json({
-      posts: postsResults.map((post) => ({
-        uri: post.uri,
-        cid: post.cid,
-        langs: post.langs !== '*' ? (post.langs as string).split(',') : undefined,
-        indexedAt: post.indexed_at,
-        reason: post.reason ? JSON.parse(post.reason as string) : undefined, // Decode JSON string to object
-        feedContext: post.feed_context ?? undefined,
-      })),
+      feed,
+      posts: postsResults.map((post) => {
+        // Normalize DB values to API contract: wildcard is always returned as ['*'].
+        const values = ((post.langs as string) || '')
+          .split(',')
+          .map((lang) => lang.trim().toLowerCase())
+          .filter((lang) => lang.length > 0);
+        const normalizedLanguages = values.includes('*') || values.length === 0 ? ['*'] : values;
+
+        return {
+          uri: post.uri,
+          cid: post.cid,
+          languages: normalizedLanguages,
+          langs: normalizedLanguages,
+          indexedAt: post.indexed_at,
+          reason: post.reason ? JSON.parse(post.reason as string) : undefined, // Decode JSON string to object
+          feedContext: post.feed_context ?? undefined,
+        };
+      }),
       cursor: nextCursor,
     });
   }

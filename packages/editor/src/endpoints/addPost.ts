@@ -22,6 +22,32 @@ const SQL_INSERT_POST_LANG = `
 INSERT INTO post_languages (post_id, language) VALUES (?, ?)`;
 const logger = createLogger({ service: 'editor' });
 
+const PRIMARY_LANGUAGE_TAG_PATTERN = /^[a-z]{2,3}$/;
+
+function normalizeLanguages(languages?: string[] | null): string[] {
+  const normalized = (languages ?? [])
+    .map((lang) => lang.trim().toLowerCase())
+    .map((lang) => lang.split('-')[0])
+    .filter((lang) => lang.length > 0);
+
+  if (normalized.includes(All_LANGS)) {
+    return [All_LANGS];
+  }
+
+  if (normalized.length === 0) {
+    return [All_LANGS];
+  }
+
+  const deduped = [...new Set(normalized)];
+  if (deduped.some((code) => !(code === All_LANGS || PRIMARY_LANGUAGE_TAG_PATTERN.test(code)))) {
+    throw new BadRequestError(
+      'All primary language tags must be exactly two or three lowercase alphabetic characters (e.g., "en", "jp").'
+    );
+  }
+
+  return deduped;
+}
+
 export class AddPost extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
@@ -108,26 +134,7 @@ export class AddPost extends BaseOpenAPIRoute {
     const db: D1Database = c.env.DB;
     const data = await this.getValidatedData<typeof this.schema>();
     const { feed: feed_uri, post } = data.body;
-    if (!post.languages) {
-      // set languages to '*' if not provided
-      post.languages = [All_LANGS];
-    }
-    const languageCodes = [
-      ...new Set(
-        post.languages
-          .map((lang) => lang.split('-')[0]) // Extract language code (e.g., "en" from "en-US")
-          .map((lang) => lang.toLowerCase())
-          .filter((lang) => lang)
-      ),
-    ];
-
-    if (languageCodes.some((code) => !(code === '*' || /^[a-z]{2,3}$/.test(code)))) {
-      throw new BadRequestError(
-        'All primary language tags must be exactly two or three lowercase alphabetic characters (e.g., "en", "jp").'
-      );
-    }
-
-    post.languages = languageCodes;
+    post.languages = normalizeLanguages(post.languages);
 
     if (!post.indexedAt) {
       // set indexedAt to current date as default.
@@ -204,7 +211,7 @@ export class AddPost extends BaseOpenAPIRoute {
       post: {
         uri: post.uri,
         cid: post.cid,
-        languages: post.languages[0] !== All_LANGS ? post.languages : undefined,
+        languages: post.languages,
         indexedAt: post.indexedAt,
         feedContext: post.feedContext,
         reason: reason ?? undefined,
