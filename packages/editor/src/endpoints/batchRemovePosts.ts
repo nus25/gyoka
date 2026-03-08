@@ -44,6 +44,30 @@ type EntryResult = {
 };
 
 const logger = createLogger({ service: 'editor', minLevel: 'debug' });
+const DEFAULT_MAX_BATCH_POSTS = 25;
+
+function resolveMaxBatchPosts(rawValue: string | undefined): number {
+  if (!rawValue) {
+    logger.warn('config.resolve.max.batch.posts.failed', {
+      fallbackValue: DEFAULT_MAX_BATCH_POSTS,
+      rawValue: null,
+      reason: 'missing',
+    });
+    return DEFAULT_MAX_BATCH_POSTS;
+  }
+
+  const parsed = Number(rawValue);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    logger.warn('config.resolve.max.batch.posts.failed', {
+      fallbackValue: DEFAULT_MAX_BATCH_POSTS,
+      rawValue,
+      reason: 'invalid',
+    });
+    return DEFAULT_MAX_BATCH_POSTS;
+  }
+
+  return parsed;
+}
 
 export class BatchRemovePosts extends BaseOpenAPIRoute {
   schema = {
@@ -97,8 +121,8 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
     const data = await this.getValidatedData<typeof this.schema>();
     const { entries } = data.body;
 
-    // Get max batch posts from environment variable or default to 25
-    const maxBatchPosts = parseInt(c.env.MAX_BATCH_POSTS || '25', 10);
+    // Use a safe default when MAX_BATCH_POSTS is missing or invalid.
+    const maxBatchPosts = resolveMaxBatchPosts(c.env.MAX_BATCH_POSTS);
 
     // Validate max total posts limit per request
     const totalPosts = entries.reduce((sum, entry) => sum + entry.posts.length, 0);
