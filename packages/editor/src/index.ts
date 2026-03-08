@@ -65,22 +65,24 @@ app.use('/api/*', async (c: AppContext, next) => {
 });
 // api key auth
 app.use('/api/*', async (c, next) => {
-  if (c.env.GYOKA_API_KEY) {
-    //see: https://developers.cloudflare.com/workers/examples/protect-against-timing-attacks/
-    const apiKey = c.req.header('X-API-Key');
-    const userValue = textEncoder.encode(apiKey ?? '');
-    const secretValue = textEncoder.encode(c.env.GYOKA_API_KEY);
-    const lengthsMatch = userValue.byteLength === secretValue.byteLength;
-    const isEqual = lengthsMatch
-      ? crypto.subtle.timingSafeEqual(userValue, secretValue)
-      : !crypto.subtle.timingSafeEqual(userValue, userValue);
+  if (!c.env.GYOKA_API_KEY) {
+    throw new InternalServerError('Missing authentication configuration');
+  }
 
-    if (!apiKey || !isEqual) {
-      return c.json(
-        { error: 'Unauthorized', message: 'Authentication credentials were missing or invalid.' },
-        401
-      );
-    }
+  //see: https://developers.cloudflare.com/workers/examples/protect-against-timing-attacks/
+  const apiKey = c.req.header('X-API-Key');
+  const userValue = textEncoder.encode(apiKey ?? '');
+  const secretValue = textEncoder.encode(c.env.GYOKA_API_KEY);
+  const lengthsMatch = userValue.byteLength === secretValue.byteLength;
+  const isEqual = lengthsMatch
+    ? crypto.subtle.timingSafeEqual(userValue, secretValue)
+    : !crypto.subtle.timingSafeEqual(userValue, userValue);
+
+  if (!apiKey || !isEqual) {
+    return c.json(
+      { error: 'Unauthorized', message: 'Authentication credentials were missing or invalid.' },
+      401
+    );
   }
   await next();
 });

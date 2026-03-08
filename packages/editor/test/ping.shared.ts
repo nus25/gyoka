@@ -1,14 +1,26 @@
 import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 
 import app from '../src/index';
+import { TEST_API_KEY } from './testUtils';
 
 export const BASE_URL = 'http://localhost:8787';
 export const ENDPOINT_PATH = '/api/gyoka/ping';
 
 export async function ping() {
-  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`);
+  const request = new Request(`${BASE_URL}${ENDPOINT_PATH}`, {
+    headers: {
+      'X-API-Key': TEST_API_KEY,
+    },
+  });
   const ctx = createExecutionContext();
-  const response = await app.fetch(request, env, ctx);
+  const response = await app.fetch(
+    request,
+    {
+      ...env,
+      GYOKA_API_KEY: TEST_API_KEY,
+    },
+    ctx
+  );
   await waitOnExecutionContext(ctx);
   return {
     response,

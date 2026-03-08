@@ -4,7 +4,7 @@ import { ENDPOINT_PATH, ping, pingWithAuth } from './ping.shared';
 
 describe(ENDPOINT_PATH, () => {
   describe('Success cases', () => {
-    it('Given no auth requirement When ping is called Then pong message is returned', async () => {
+    it('Given API key auth is configured and default valid key is provided When ping is called Then pong message is returned', async () => {
       const { response, json } = await ping();
       expect(response.status).toBe(200);
       expect(response.headers.get('Content-Type')).toBe('application/json');
