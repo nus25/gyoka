@@ -1,7 +1,8 @@
 {
   "name": "shared",
-  "version": "0.8.0",
-  "main": "./src/index.ts",
+  "version": "0.9.0",
+  "license": "MIT",
+  "author": "Nus",
   "scripts": {
     "test": "vitest",
     "coverage": "vitest run --coverage"
@@ -17,7 +18,5 @@
     "@cloudflare/vitest-pool-workers": "catalog:",
     "@cloudflare/workers-types": "catalog:"
   },
-  "packageManager": "pnpm@10.28.2",
-  "author": "Nus",
-  "license": "MIT"
+  "packageManager": "pnpm@10.28.2"
 }

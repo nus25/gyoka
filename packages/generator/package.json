@@ -1,6 +1,8 @@
 {
   "name": "gyoka-generator",
-  "version": "0.8.0",
+  "version": "0.9.0",
+  "license": "MIT",
+  "author": "Nus",
   "scripts": {
     "postinstall": "node ../shared/scripts/copy-config.js",
     "deploy": "echo VERSION=$(node -p \"require('./package.json').version\") GIT_SHA=$(git rev-parse --short HEAD) && wrangler deploy --env production --tag ver:$(node -p \"require('./package.json').version\") --message GIT_SHA:$(git rev-parse --short HEAD)",
@@ -25,7 +27,5 @@
     "wrangler": "catalog:",
     "@atcute/crypto": "^2.3.0"
   },
-  "packageManager": "pnpm@10.28.2",
-  "author": "Nus",
-  "license": "MIT"
+  "packageManager": "pnpm@10.28.2"
 }
