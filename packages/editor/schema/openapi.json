@@ -1613,8 +1613,8 @@
                 "type": "object",
                 "properties": {
                   "type": { "type": "string", "enum": ["tos", "privacy_policy"] },
-                  "url": { "type": "string", "nullable": true, "format": "uri" },
-                  "content": { "type": "string", "nullable": true }
+                  "url": { "type": "string", "nullable": true, "maxLength": 2048, "format": "uri" },
+                  "content": { "type": "string", "nullable": true, "maxLength": 32768 }
                 },
                 "required": ["type"]
               }
