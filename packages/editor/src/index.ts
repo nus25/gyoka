@@ -1,6 +1,5 @@
 import { fromHono } from 'chanfana';
 import { Hono } from 'hono';
-import { cors } from 'hono/cors';
 import { etag } from 'hono/etag';
 import { GyokaBaseError, InternalServerError, createErrorResponse } from 'shared/src/errors';
 import { createLogger } from 'shared/src/logger';
@@ -49,13 +48,6 @@ openapi.registry.registerComponent('securitySchemes', 'ApiKeyAuth', {
 });
 
 app.use('*', etag());
-app.use(
-  '*',
-  cors({
-    origin: '*',
-    allowMethods: ['GET', 'POST'],
-  })
-);
 // configuration check for each endpoint
 app.use('/api/*', async (c: AppContext, next) => {
   if (!c.env.DB) {
