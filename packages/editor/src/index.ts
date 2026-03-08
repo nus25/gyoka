@@ -23,6 +23,7 @@ import { UpdateFeed } from './endpoints/updateFeed';
 const API_VERSION = '1.2.2';
 const OPENAPI_DOCS_ENABLED = __OPENAPI_DOCS_ENABLED__;
 const logger = createLogger({ service: 'editor' });
+const textEncoder = new TextEncoder();
 
 // Start a Hono app
 const app = new Hono<{ Bindings: EnvWithSecret }>();
@@ -65,8 +66,16 @@ app.use('/api/*', async (c: AppContext, next) => {
 // api key auth
 app.use('/api/*', async (c, next) => {
   if (c.env.GYOKA_API_KEY) {
+    //see: https://developers.cloudflare.com/workers/examples/protect-against-timing-attacks/
     const apiKey = c.req.header('X-API-Key');
-    if (!apiKey || apiKey !== c.env.GYOKA_API_KEY) {
+    const userValue = textEncoder.encode(apiKey ?? '');
+    const secretValue = textEncoder.encode(c.env.GYOKA_API_KEY);
+    const lengthsMatch = userValue.byteLength === secretValue.byteLength;
+    const isEqual = lengthsMatch
+      ? crypto.subtle.timingSafeEqual(userValue, secretValue)
+      : !crypto.subtle.timingSafeEqual(userValue, userValue);
+
+    if (!apiKey || !isEqual) {
       return c.json(
         { error: 'Unauthorized', message: 'Authentication credentials were missing or invalid.' },
         401

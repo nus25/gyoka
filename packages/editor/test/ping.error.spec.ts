@@ -28,5 +28,18 @@ describe(ENDPOINT_PATH, () => {
         message: 'Authentication credentials were missing or invalid.',
       });
     });
+
+    it('Given API key auth is enabled and header key length differs When ping is called Then unauthorized is returned', async () => {
+      const { response, json } = await pingWithAuth({
+        apiKeySetting: 'secret-key',
+        headerApiKey: 'x',
+      });
+
+      expect(response.status).toBe(401);
+      expect(json).toEqual({
+        error: 'Unauthorized',
+        message: 'Authentication credentials were missing or invalid.',
+      });
+    });
   });
 });
