@@ -7,6 +7,8 @@ import { AppContext } from 'shared/src/types';
 import * as z from 'zod';
 const SQL_UPDATE_DOCUMENT =
   'INSERT OR REPLACE INTO documents (type, url, content) VALUES (?, ?, ?)';
+const MAX_DOCUMENT_URL_LENGTH = 2048; // 2k bytes
+const MAX_DOCUMENT_CONTENT_LENGTH = 32768; // 32k bytes
 const logger = createLogger({ service: 'editor' });
 
 export class UpdateDocument extends BaseOpenAPIRoute {
@@ -17,8 +19,8 @@ export class UpdateDocument extends BaseOpenAPIRoute {
       body: contentJson(
         z.object({
           type: z.enum([DOCUMENT_TYPES.TOS, DOCUMENT_TYPES.PRIVACY_POLICY]),
-          url: z.url().nullable().optional(),
-          content: z.string().nullable().optional(),
+          url: z.url().max(MAX_DOCUMENT_URL_LENGTH).nullable().optional(),
+          content: z.string().max(MAX_DOCUMENT_CONTENT_LENGTH).nullable().optional(),
         })
       ),
     },

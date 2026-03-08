@@ -5,6 +5,15 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ENDPOINT_PATH, resetDocumentsTable, updateDocument } from './updateDocuments.shared';
 
 describe(ENDPOINT_PATH, () => {
+  const MAX_URL_LENGTH = 2048;
+  const MAX_CONTENT_LENGTH = 32768;
+
+  function createValidUrlWithLength(targetLength: number): string {
+    const prefix = 'https://example.com/';
+    const suffixLength = targetLength - prefix.length;
+    return `${prefix}${'a'.repeat(suffixLength)}`;
+  }
+
   beforeEach(async () => {
     await resetDocumentsTable();
   });
@@ -23,6 +32,26 @@ describe(ENDPOINT_PATH, () => {
       const request = {
         type: 'tos',
         url: 'invalid',
+      };
+
+      const { response } = await updateDocument(request);
+      expect(response.status).toBe(400);
+    });
+
+    it('Given URL exceeds maximum length When update document is called Then it returns bad request', async () => {
+      const request = {
+        type: DOCUMENT_TYPES.TOS,
+        url: createValidUrlWithLength(MAX_URL_LENGTH + 1),
+      };
+
+      const { response } = await updateDocument(request);
+      expect(response.status).toBe(400);
+    });
+
+    it('Given content exceeds maximum length When update document is called Then it returns bad request', async () => {
+      const request = {
+        type: DOCUMENT_TYPES.TOS,
+        content: 'a'.repeat(MAX_CONTENT_LENGTH + 1),
       };
 
       const { response } = await updateDocument(request);
