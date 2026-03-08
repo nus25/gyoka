@@ -1,10 +1,25 @@
 # Gyoka
 
-Gyoka is a stock-post-style feed generator for Bluesky on Cloudflare Workers.
+Gyoka is a edge server for Bluesky custom feed generators, running on Cloudflare Workers.
+It serves feed skeletons to Bluesky/AppView and provides an API to manage the post list for each feed.
 
-- `gyoka-generator`: public feed endpoint for Bluesky/AppView
-- `gyoka-editor`: private API for feed/post management
-- `shared`: common validators, types, constants, migrations
+To populate feeds, you need a separate post-collection component that discovers relevant posts
+via Firehose, Jetstream, or other means, and registers or removes them through the editor API.
+
+- `gyoka-generator`: public feed skeleton endpoint for Bluesky/AppView
+- `gyoka-editor`: private API for managing feeds and posts
+
+## Why Gyoka?
+
+- **Edge-native**: Runs on Cloudflare Workers worldwide — low latency response to Bluesky/AppView requests.
+- **Decoupled by design**: Post collection is fully separated from feed serving.
+  AppView sees only the generator endpoint; collectors and their logic are hidden
+  behind the private editor API.
+- **Multiple feeds, single deployment**: Manage any number of feeds from one worker instance.
+- **AT Protocol ready**: DID document of feed generator, feed skeleton pagination, and Service JWT
+  verification are supported.
+- **Rich management API**: Batch add/remove, per-author removal, feed trimming,
+  and active/inactive toggling via the editor REST API.
 
 ## Repository structure
 
@@ -62,6 +77,10 @@ Gyoka is a stock-post-style feed generator for Bluesky on Cloudflare Workers.
    pnpm generator run deploy
    ```
 
+7. Create and manage feeds.
+   - How to create feeds: [docs/create-feed.md](docs/create-feed.md)
+   - How to edit feeds: [docs/edit-feed.md](docs/edit-feed.md)
+
 ## Local development
 
 1. Initialize local D1 and optional sample data.
@@ -84,8 +103,7 @@ Gyoka is a stock-post-style feed generator for Bluesky on Cloudflare Workers.
 
 ## Test
 
-- Workspace all tests: `pnpm test run`
-- Root alias for all tests: `pnpm test:all`
+- Workspace all tests: `pnpm test:all`
 - Package-specific examples:
   - `pnpm generator test run`
   - `pnpm editor test run`
