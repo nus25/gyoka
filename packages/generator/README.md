@@ -25,6 +25,10 @@ Public feed generator worker for Bluesky AT Protocol.
 - `DEVELOPER_MODE`
   - `enabled`: include stack traces in logs/responses where applicable
   - `disabled`: production-safe logging
+- `D1_USE_SESSION`
+  - **Experimental**: enable D1 session in `getFeedSkeleton` endpoint for D1 read replication (beta).
+  - `enabled`: use D1 session API
+  - `disabled`: use standard D1 (default)
 
 ## Local development
 
