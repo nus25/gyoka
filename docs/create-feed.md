@@ -64,5 +64,6 @@ Response:
 
 ## Notes
 
-- API key is required for Gyoka-editor authentication (If configured)
+- API key (`X-API-Key`) is required for Gyoka-editor authentication
 - Each feed URI must be unique in Gyoka
+- Duplicate feed registration returns `409 Conflict`

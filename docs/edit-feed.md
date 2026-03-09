@@ -8,7 +8,7 @@ The Gyoka-editor allows you to edit feed content using the following operations:
 - Add multiple posts to multiple feeds in a single request (`/api/feed/batchAddPosts`)
 - Remove a post from a specified feed (`/api/feed/removePost`)
 - Remove multiple posts from multiple feeds in a single request (`/api/feed/batchRemovePosts`)
-- Remove posts from a aspecifed feed by a specified author (`/api/feed/removePostByAuthor`)
+- Remove posts from a specified feed by a specified author (`/api/feed/removePostByAuthor`)
 - Trim the feed to keep a specified number of posts (`/api/feed/trimPosts`)
 
 These APIs can be tested through the Swagger UI at `/docs` endpoint.
@@ -44,10 +44,15 @@ To add a new post to the feed, use the `/api/feed/addPost` endpoint.
 - `post`: Information about the post to be added
   - `uri`: The URI of the post (required)
   - `cid`: The CID of the post (required)
-  - `languages`: Array of language codes.This is used for language filter in generator if `langFilter` of the feed is `true` (optional)
+  - `languages`: Array of language codes. Used for language filtering when feed `langFilter` is `true` (optional).
+    - If omitted or empty, Gyoka stores `"*"`(all languages).
+    - Input is normalized to primary tags (e.g. `"en-US"` -> `"en"`, `"JA-JP"` -> `"ja"`).
+    - `"*"` takes precedence when mixed with specific language tags.
   - `indexedAt`: The timestamp when the post was indexed. Gyoka sorts feed posts in descending order by this timestamp (optional, defaults to the current time if not specified)
-  - `feedContext`: This is defined a part of feed interactions API (See [Bluesky API documentation](https://docs.bsky.app/docs/api/app-bsky-feed-get-feed-skeleton#responses)). At this time, Gyoka don't support feed interactions although this value is included in getFeedSkeleton response.
-  - `reason`: When a post is a repost, you can specify the repost URI to display it as a repost in the feed (optional)
+  - `feedContext`: Optional context string passed through to response clients (`max 2000` chars). See [Bluesky API documentation](https://docs.bsky.app/docs/api/app-bsky-feed-get-feed-skeleton#responses). This is for feed interactions, this is not used in gyoka at this time.
+  - `reason`: Optional reason object.
+    - `app.bsky.feed.defs#skeletonReasonRepost`: requires `repost`
+    - `app.bsky.feed.defs#skeletonReasonPin`: no additional fields required
 
 ### Response Example
 
@@ -121,7 +126,8 @@ up to a total of 25 posts across all feeds in a single request.
     - `cid`: The CID of the post (required)
     - `languages`: Array of language codes (optional)
     - `indexedAt`: The timestamp when the post was indexed (optional, defaults to current time if not specified)
-    - `reason`: When a post is a repost, you can specify the repost URI to display it as a repost in the feed (optional)
+    - `feedContext`: Optional context string (`max 2000` chars)
+    - `reason`: Optional reason object (`skeletonReasonRepost` with required `repost`, or `skeletonReasonPin`)
 
 ### Response Example
 
@@ -159,7 +165,7 @@ up to a total of 25 posts across all feeds in a single request.
 
 ### Notes
 
-- If more than 25 entries are included, the request will be rejected with a `400 BadRequest` error.
+- If the total number of posts in `entries` exceeds 25, the request will be rejected with a `400 BadRequest` error.
   By default, the maximum number of posts is 25, but you can change this limit by setting the environment variable `MAX_BATCH_POSTS`.  
   If you change this limit, please make sure to check the restrictions of Cloudflare workers.
 - Posts are added to each feed in the order provided.
@@ -198,11 +204,12 @@ To remove a post from the feed, use the `/api/feed/removePost` endpoint.
   "message": "Post removed successfully",
   "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
   "post": {
-    "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
-    "indexedAt": "2024-01-15T12:00:00Z"
+    "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post"
   }
 }
 ```
+
+If `indexedAt` is passed in the request, it is also included in `post` in the response.
 
 ## Removing multiple posts from multiple feeds (batchRemovePosts)
 
@@ -284,7 +291,7 @@ This endpoint allows you to specify several feed and post combinations at once, 
 
 ### Notes
 
-- If more than 25 entries are included, the request will be rejected with a `400 BadRequest` error.
+- If the total number of posts in `entries` exceeds 25, the request will be rejected with a `400 BadRequest` error.
   By default, the maximum number of posts is 25, but you can change this limit by setting the environment variable `MAX_BATCH_POSTS`.  
   If you change this limit, please make sure to check the restrictions of Cloudflare workers.
 - Posts are removed from each feed in the order provided.
@@ -346,7 +353,7 @@ To limit the number of posts in the feed, use the `/api/feed/trimPosts` endpoint
 
 ```json
 {
-  "message": "Posts trimmed successfully",
+  "message": "Posts trimed successfully",
   "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
   "deletedCount": 25
 }
@@ -361,9 +368,11 @@ The trim operation may cause a large number of database read and write operation
 All endpoints may return the following errors:
 
 - `400 BadRequest`: Invalid request parameters
-- `404 UnknownFeed`: The specified feed does not exist
-- `404 NotFound`: The specified post does not exist (for removePost)
+- `404 UnknownFeed`: The specified feed does not exist (e.g. `addPost`, `removePostByAuthor`, `trimPosts`)
+- `404 NotFound`: For `removePost` when the feed or post does not exist
 - `500 InternalServerError`: Server-side issues such as database query failures
+
+For `batchAddPosts` / `batchRemovePosts`, missing feed or missing post errors are returned per item in the `results` payload with HTTP `200` (partial success model), not as top-level `404`.
 
 Error Response Example:
 
