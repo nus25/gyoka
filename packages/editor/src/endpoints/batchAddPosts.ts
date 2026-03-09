@@ -1,11 +1,6 @@
 import { contentJson } from 'chanfana';
 import { All_LANGS } from 'shared/src/constants';
-import {
-  UnauthorizedError,
-  UnknownFeedError,
-  BadRequestError,
-  InternalServerError,
-} from 'shared/src/errors';
+import { UnauthorizedError, BadRequestError, InternalServerError } from 'shared/src/errors';
 import { createLogger } from 'shared/src/logger';
 import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { AppContext } from 'shared/src/types';
@@ -175,7 +170,6 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
         },
       },
       ...UnauthorizedError.schema(),
-      ...UnknownFeedError.schema(),
       ...BadRequestError.schema(),
       ...InternalServerError.schema(),
     },
