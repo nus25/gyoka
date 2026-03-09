@@ -970,24 +970,6 @@
               }
             }
           },
-          "404": {
-            "description": "Unknown Feed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": { "type": "string", "enum": ["UnknownFeed"] },
-                    "message": {
-                      "type": "string",
-                      "example": "Feed with URI {feedUri} does not exist."
-                    }
-                  },
-                  "required": ["error"]
-                }
-              }
-            }
-          },
           "500": {
             "description": "Internal Server Error",
             "content": {
@@ -1224,24 +1206,6 @@
                     "message": {
                       "type": "string",
                       "example": "Authentication credentials were missing or invalid."
-                    }
-                  },
-                  "required": ["error"]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Unknown Feed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": { "type": "string", "enum": ["UnknownFeed"] },
-                    "message": {
-                      "type": "string",
-                      "example": "Feed with URI {feedUri} does not exist."
                     }
                   },
                   "required": ["error"]
