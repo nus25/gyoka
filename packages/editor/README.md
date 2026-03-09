@@ -40,10 +40,10 @@ OpenAPI routes are available when `__OPENAPI_DOCS_ENABLED__` is `true`.
 
 - `DEVELOPER_MODE`
   - `enabled`: verbose debug behavior
-  - `disabled`: production-safe behavior
+  - `disabled`: production-safe behavior (default)
 - `MAX_BATCH_POSTS`
   - max posts accepted by `batchAddPosts`
-  - integer string (`>= 1`), example: `25`
+  - integer string (`>= 1`), default is `25`
 
 ## Local development
 
@@ -72,9 +72,20 @@ pnpm editor coverage
 ## Deploy
 
 1. Update production settings in `wrangler.jsonc`.
-   - Set `routes`/`workers_dev` for your domain
-   - Set `vars` (`DEVELOPER_MODE`, `MAX_BATCH_POSTS`, `VERSION`, `GIT_SHA`)
-   - Set production `d1_databases[0].database_id`
+
+- Set `routes`/`workers_dev` for your domain. See [types of routes](https://developers.cloudflare.com/workers/wrangler/configuration/#types-of-routes) for details.
+- Set production `vars`
+- Set the `database_id` returned by `pnpm d1-create`:
+
+  ```jsonc
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "gyoka-db",
+        "database_id": "xxxx-xxxx-xxxx-xxxx-xxxx"
+      }
+    ]
+  ```
 
 2. Set API key secret for production.
 
@@ -91,5 +102,6 @@ pnpm editor run deploy
 ## Related docs
 
 - root onboarding: [../../README.md](../../README.md)
+- feed creating flow: [../../docs/create-feed.md](../../docs/create-feed.md)
 - feed editing flow: [../../docs/edit-feed.md](../../docs/edit-feed.md)
 - generator API counterpart: [../generator/README.md](../generator/README.md)
