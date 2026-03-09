@@ -21,6 +21,24 @@ via Firehose, Jetstream, or other means, and registers or removes them through t
 - **Rich management API**: Batch add/remove, per-author removal, feed trimming,
   and active/inactive toggling via the editor REST API.
 
+## Features
+
+Gyoka supports:
+
+- Feed generator endpoints
+  - `/xrpc/app.bsky.feed.getFeedSkeleton`
+  - `/xrpc/app.bsky.feed.describeFeedGenerator`
+  - `/.well-known/did.json`
+  - `/doc` (for terms of service and privacy policy documents)
+- Language tag filtering on `/xrpc/app.bsky.feed.getFeedSkeleton` via request headers
+- JWT verification on `/xrpc/app.bsky.feed.getFeedSkeleton` with cached DID document resolution
+
+Gyoka does **not** support in this version:
+
+- Feed interactions
+  (`acceptsInteractions` in `app.bsky.feed.generator` record must be `false`)
+- Feed management via XRPC endpoints (the editor worker exposes an OpenAPI endpoints instead)
+
 ## Repository structure
 
 - `packages/generator`: [generator guide](packages/generator/README.md)
@@ -48,7 +66,12 @@ via Firehose, Jetstream, or other means, and registers or removes them through t
 
    ```sh
    pnpm d1-create
+
+   # or with location
+   pnpm d1-create --location wnam
    ```
+
+   Add the `--location` option to create the D1 database in a specific location. See [wrangler D1 create](https://developers.cloudflare.com/workers/wrangler/commands/#d1-create) document.
 
 3. Configure production settings.
    - Set production `database_id` in:
