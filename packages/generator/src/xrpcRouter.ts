@@ -70,7 +70,7 @@ export function createXrpcRouter(
   envMap: WeakMap<Request, Env>,
   logger: Logger
 ): XRPCRouter {
-  const requiredAuth = workerEnv.FEEDGEN_AUTH_REQUIRED === 'enabled';
+  const requiredAuth = workerEnv.FEEDGEN_AUTH_REQUIRED !== 'disabled';
   const ttlSeconds = resolveDidCacheTtlSeconds(workerEnv.DID_CACHE_TTL_SECONDS);
   const requireAuth = createRequireAuth(requiredAuth, workerEnv.FEEDGEN_HOST, ttlSeconds, logger);
   const router = new XRPCRouter({

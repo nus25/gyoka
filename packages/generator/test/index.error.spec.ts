@@ -154,4 +154,25 @@ describe('Error cases', () => {
     const responseDescribe = await router.fetch(getRequest(DESCRIBE_ENDPOINT));
     await validate(responseDescribe);
   });
+
+  it('Given FEEDGEN_AUTH_REQUIRED is unset and missing authorization header When describing generator Then it returns 401', async () => {
+    const mockEnv = {
+      ...env,
+      FEEDGEN_AUTH_REQUIRED: undefined,
+    } as unknown as Env;
+
+    const router = createXrpcRouter(
+      mockEnv,
+      new WeakMap<Request, Env>(),
+      createLogger({ service: 'generator-test', minLevel: 'debug' })
+    );
+
+    const responseDescribe = await router.fetch(getRequest(DESCRIBE_ENDPOINT));
+
+    expect(responseDescribe.status).toBe(401);
+    expect(await responseDescribe.json()).toEqual({
+      error: 'AuthenticationRequired',
+      message: 'missing authorization header',
+    });
+  });
 });

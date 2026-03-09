@@ -16,7 +16,7 @@ Public feed generator worker for Bluesky AT Protocol.
 - `FEEDGEN_HOST`
   - Must be a valid host/handle string (example: `feed-generator.example.com`)
 - `FEEDGEN_AUTH_REQUIRED`
-  - `enabled`: require service JWT for generator XRPC endpoints
+  - `enabled`: require service JWT for generator XRPC endpoints (default)
   - `disabled`: skip JWT verification
 - `DID_CACHE_TTL_SECONDS`
   - DID resolver cache TTL in seconds
