@@ -15,6 +15,7 @@ Public feed generator worker for Bluesky AT Protocol.
   - Must be a valid DID string (example: `did:plc:...`)
 - `FEEDGEN_HOST`
   - Must be a valid host/handle string (example: `feed-generator.example.com`)
+    - This value must match the route of the deployed worker accessed from the appView.
 - `FEEDGEN_AUTH_REQUIRED`
   - `enabled`: require service JWT for generator XRPC endpoints (default)
   - `disabled`: skip JWT verification
@@ -24,7 +25,7 @@ Public feed generator worker for Bluesky AT Protocol.
   - invalid values fallback to default
 - `DEVELOPER_MODE`
   - `enabled`: include stack traces in logs/responses where applicable
-  - `disabled`: production-safe logging
+  - `disabled`: production-safe logging (default)
 - `D1_USE_SESSION`
   - **Experimental**: enable D1 session in `getFeedSkeleton` endpoint for D1 read replication (beta).
   - `enabled`: use D1 session API
