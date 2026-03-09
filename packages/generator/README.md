@@ -50,9 +50,20 @@ pnpm generator coverage
 ## Deploy
 
 1. Update production settings in `wrangler.jsonc`.
-   - Set `routes`/`workers_dev` for your domain
-   - Set production `vars`
-   - Set production `d1_databases[0].database_id`
+
+- Set `routes`/`workers_dev` for your domain. See [types of routes](https://developers.cloudflare.com/workers/wrangler/configuration/#types-of-routes) for details.
+- Set production `vars`
+- Set the `database_id` returned by `pnpm d1-create`:
+
+  ```jsonc
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "gyoka-db",
+        "database_id": "xxxx-xxxx-xxxx-xxxx-xxxx"
+      }
+    ]
+  ```
 
 2. Deploy from repository root.
 
