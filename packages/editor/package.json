@@ -12,7 +12,8 @@
     "coverage": "vitest run --coverage",
     "d1-init:local": "wrangler d1 execute gyoka-db --local --file=../shared/migrations/0000_initial.sql --persist-to=../../data --env=dev",
     "d1-init:production": "wrangler d1 execute gyoka-db --remote --file=../shared/migrations/0000_initial.sql --env=production",
-    "d1-add-sample:local": "wrangler d1 execute gyoka-db --local --file=../shared/migrations/0001_dummydata.sql --persist-to=../../data --env=dev"
+    "d1-add-sample:local": "wrangler d1 execute gyoka-db --local --file=../shared/migrations/0001_dummydata.sql --persist-to=../../data --env=dev",
+    "gyoka-api-key:put": "wrangler versions secret put GYOKA_API_KEY --env production"
   },
   "dependencies": {
     "chanfana": "3.0.0",

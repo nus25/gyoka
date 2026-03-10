@@ -87,17 +87,17 @@ Gyoka does **not** support in this version:
    pnpm d1-init:production
    ```
 
-5. Set editor API key secret for production.
-
-   ```sh
-   pnpm --dir packages/editor wrangler secret put GYOKA_API_KEY --env production
-   ```
-
-6. Deploy both workers.
+5. Deploy both workers.
 
    ```sh
    pnpm editor run deploy
    pnpm generator run deploy
+   ```
+
+6. Set editor API key secret for production.
+
+   ```sh
+   pnpm editor gyoka-api-key:put
    ```
 
 7. Create and manage feeds.
