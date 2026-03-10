@@ -10,10 +10,6 @@
   "minify": true,
   "env": {
     "test": {
-      "define": {
-        /* Build-time flag: false disables /docs, /redocs, /openapi.json route registration. */
-        "__OPENAPI_DOCS_ENABLED__": "false"
-      },
       "vars": {
         "FEEDGEN_AUTH_REQUIRED": "disabled",
         "DID_CACHE_TTL_SECONDS": "86400"
@@ -38,10 +34,6 @@
        * Environment Variables
        * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
        */
-      "define": {
-        /* Build-time flag: set true for local debugging of docs and schema endpoints. */
-        "__OPENAPI_DOCS_ENABLED__": "true"
-      },
       "vars": {
         "FEEDGEN_PUBLISHER_DID": "did:example:developer",
         "FEEDGEN_HOST": "dev.example.com",
@@ -62,10 +54,6 @@
       "observability": {
         "enabled": true,
         "head_sampling_rate": 1.0
-      },
-      "define": {
-        /* Build-time flag: keep false in production for best runtime performance. */
-        "__OPENAPI_DOCS_ENABLED__": "false"
       },
       "vars": {
         /* DID of your Bluesky account or alternative publisher */
