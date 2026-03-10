@@ -113,15 +113,21 @@ Gyoka does **not** support in this version:
    pnpm d1-add-sample:local
    ```
 
-2. Start workers.
+2. Add API KEY for local dev
+
+   ```sh
+   echo 'GYOKA_API_KEY=[KEY_FOR_DEV]' > packages/editor/.dev.vars
+   ```
+
+3. Start workers.
 
    ```sh
    pnpm editor dev
    pnpm generator dev
    ```
 
-3. Open endpoints.
-   - generator DID document: `http://localhost:8787/.well-known/did.json`
+4. Open endpoints.
+   - generator DID document: `http://localhost:8788/.well-known/did.json`
    - editor OpenAPI docs (dev): `http://localhost:8787/docs`
 
 ## Test
