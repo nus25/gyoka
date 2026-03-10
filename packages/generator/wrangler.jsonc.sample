@@ -72,7 +72,7 @@
         "FEEDGEN_PUBLISHER_DID": "did:example:publisher",
         /* deployed worker host accessed from AppView */
         "FEEDGEN_HOST": "feed-generator.example.com",
-        /* Runtime flag: enable service JWT authentication for XRPC endpoints when set to "enabled". */
+        /* Runtime flag: enable service JWT authentication for XRPC endpoints */
         "FEEDGEN_AUTH_REQUIRED": "enabled",
         /* DID resolver cache TTL in seconds. 86400 = 1 day. */
         "DID_CACHE_TTL_SECONDS": "86400",
