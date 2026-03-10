@@ -56,7 +56,7 @@ Gyoka does **not** support in this version:
 
 ## Quick start (deploy to production)
 
-1. Install dependencies.
+1. Clone this repository and install dependencies.
 
    ```sh
    pnpm install
