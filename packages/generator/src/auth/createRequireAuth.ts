@@ -11,6 +11,8 @@ import { Logger } from 'shared/src/logger';
 
 import { createDidResolverFetch } from './didResolverFetch';
 
+const authErrorMessage = 'Missing or invalid authentication credentials';
+
 export function createRequireAuth(
   requiedAuth: boolean,
   host: string,
@@ -42,10 +44,10 @@ export function createRequireAuth(
 
     const auth = request.headers.get('authorization');
     if (auth === null) {
-      throw new AuthRequiredError({ description: 'missing authorization header' });
+      throw new AuthRequiredError({ description: authErrorMessage });
     }
     if (!auth.startsWith('Bearer ')) {
-      throw new AuthRequiredError({ description: 'invalid authorization scheme' });
+      throw new AuthRequiredError({ description: authErrorMessage });
     }
 
     const jwtString = auth.slice('Bearer '.length).trim();
@@ -53,7 +55,7 @@ export function createRequireAuth(
     const result = await jwtVerifier.verify(jwtString, { lxm });
     if (!result.ok) {
       if ('error' in result) {
-        throw new AuthRequiredError(result.error);
+        throw new AuthRequiredError({ description: authErrorMessage });
       }
       // this case should not happen
       /* istanbul ignore next -- @preserve*/

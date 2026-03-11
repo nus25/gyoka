@@ -136,7 +136,7 @@ describe('Error cases', () => {
       expect(response.status).toBe(401);
       expect(await response.json()).toEqual({
         error: 'AuthenticationRequired',
-        message: 'missing authorization header',
+        message: 'Missing or invalid authentication credentials',
       });
 
       expect(warnSpy).toHaveBeenCalledTimes(1);
@@ -172,7 +172,7 @@ describe('Error cases', () => {
     expect(responseDescribe.status).toBe(401);
     expect(await responseDescribe.json()).toEqual({
       error: 'AuthenticationRequired',
-      message: 'missing authorization header',
+      message: 'Missing or invalid authentication credentials',
     });
   });
 });

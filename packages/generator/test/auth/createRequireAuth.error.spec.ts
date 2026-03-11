@@ -7,27 +7,27 @@ import { createRequireAuth } from '../../src/auth/createRequireAuth';
 import { createDidDocumentFetch } from './createRequireAuth.shared';
 
 describe('Error case', () => {
-  it('Given requiredAuth=true, When no authorization header Then throws missing authorization header', async () => {
+  it('Given requiredAuth=true, When no authorization header Then returns AuthRequiredError', async () => {
     const logger = createLogger({ service: 'test', minLevel: 'debug' });
     const requireAuth = createRequireAuth(true, 'com.example.host', 60, logger);
     const req = new Request('http://localhost');
     await expect(requireAuth(req, 'com.example.test')).rejects.toMatchObject({
-      message: expect.stringContaining('missing authorization header'),
+      message: expect.stringContaining('Missing or invalid authentication credentials'),
     });
   });
 
-  it('Given requiredAuth=true, When authorization header is not Bearer Then throws invalid authorization scheme', async () => {
+  it('Given requiredAuth=true, When authorization header is not Bearer Then returns AuthRequiredError', async () => {
     const logger = createLogger({ service: 'test', minLevel: 'debug' });
     const requireAuth = createRequireAuth(true, 'com.example.host', 60, logger);
     const req = new Request('http://localhost', {
       headers: { Authorization: 'Basic abcdef' },
     });
     await expect(requireAuth(req, 'com.example.test')).rejects.toMatchObject({
-      message: expect.stringContaining('invalid authorization scheme'),
+      message: expect.stringContaining('Missing or invalid authentication credentials'),
     });
   });
 
-  it('Given requiredAuth=true, Bearer token, but Invalid JWT When called Then throws AuthRequiredError', async () => {
+  it('Given requiredAuth=true, Bearer token, but Invalid JWT When called Then returns AuthRequiredError', async () => {
     const logger = createLogger({ service: 'test', minLevel: 'debug' });
     const requireAuth = createRequireAuth(true, 'com.example.host', 60, logger);
     const keypair = await Secp256k1PrivateKeyExportable.createKeypair();
@@ -48,11 +48,13 @@ describe('Error case', () => {
     const req = new Request('http://com.example.host', {
       headers: { Authorization: `Bearer ${token}` },
     });
-    await expect(requireAuth(req, 'com.example.test')).rejects.toBeDefined();
+    await expect(requireAuth(req, 'com.example.test')).rejects.toMatchObject({
+      message: expect.stringContaining('Missing or invalid authentication credentials'),
+    });
     fetchSpy.mockRestore();
   });
 
-  it('Given requiredAuth=true, Bearer token, but JWT with invalid aud/iss/lxm When called Then throws AuthRequiredError', async () => {
+  it('Given requiredAuth=true, Bearer token, but JWT with invalid aud/iss/lxm When called Then returns AuthRequiredError', async () => {
     const logger = createLogger({ service: 'test', minLevel: 'debug' });
     const requireAuth = createRequireAuth(true, 'com.example.host', 60, logger);
     const keypair = await Secp256k1PrivateKeyExportable.createKeypair();
@@ -77,7 +79,7 @@ describe('Error case', () => {
     fetchSpy.mockRestore();
   });
 
-  it('Given requiredAuth=true, valid Bearer token and network error When called  Then throws AuthRequiredError', async () => {
+  it('Given requiredAuth=true, valid Bearer token and network error When called  Then returns AuthRequiredError', async () => {
     const logger = createLogger({ service: 'test', minLevel: 'debug' });
     const requireAuth = createRequireAuth(true, 'com.example.host', 60, logger);
     const keypair = await Secp256k1PrivateKeyExportable.createKeypair();
