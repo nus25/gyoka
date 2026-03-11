@@ -4,13 +4,12 @@ Private management API worker for registering feeds and managing posts/documents
 
 ## Authentication
 
-- If `GYOKA_API_KEY` secret is configured, all `/api/*` endpoints require `X-API-Key` header.
-- For local development, set secret in `packages/editor/.dev.vars`.
-- For production, set secret with Wrangler:
+- All `/api/*` endpoints require `X-API-Key` header.
+- For local development, set secret `GYOKA_API_KEY` in `packages/editor/.dev.vars`.
+- For production, set secret with package script `gyoka-api-key:put`
 
-```sh
-pnpm --dir packages/editor wrangler secret put GYOKA_API_KEY --env production
-```
+> [!NOTE]
+> `X-API-Key` provides minimal authentication only. For production use, combining with an additional authentication layer such as [Cloudflare One](https://developers.cloudflare.com/cloudflare-one/) is strongly recommended.
 
 ## API endpoints
 

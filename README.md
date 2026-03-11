@@ -100,6 +100,9 @@ Gyoka does **not** support in this version:
    pnpm editor gyoka-api-key:put
    ```
 
+   > [!NOTE]
+   > `X-API-Key` provides minimal authentication only. For production use, combining with an additional authentication layer such as [Cloudflare One](https://developers.cloudflare.com/cloudflare-one/) is strongly recommended.
+
 7. Create and manage feeds.
    - How to create feeds: [docs/create-feed.md](docs/create-feed.md)
    - How to edit feeds: [docs/edit-feed.md](docs/edit-feed.md)
