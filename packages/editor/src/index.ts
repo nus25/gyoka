@@ -1,33 +1,37 @@
 import { fromHono } from 'chanfana';
 import { Hono } from 'hono';
 import { etag } from 'hono/etag';
-import { cors } from 'hono/cors';
-import { Ping } from './endpoints/ping';
-import { ListFeeds } from './endpoints/listFeeds';
-import { RegisterFeed } from './endpoints/registerFeed';
-import { UpdateFeed } from './endpoints/updateFeed';
-import { UnregisterFeed } from './endpoints/unregisterFeed';
+import { GyokaBaseError, InternalServerError, createErrorResponse } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
+import { AppContext } from 'shared/src/types';
+
 import { AddPost } from './endpoints/addPost';
 import { BatchAddPosts } from './endpoints/batchAddPosts';
-import { RemovePost } from './endpoints/removePost';
 import { BatchRemovePosts } from './endpoints/batchRemovePosts';
-import { RemovePostByAuthor } from './endpoints/removePostByAuthor';
 import { GetPosts } from './endpoints/getPosts';
+import { ListFeeds } from './endpoints/listFeeds';
+import { Ping } from './endpoints/ping';
+import { RegisterFeed } from './endpoints/registerFeed';
+import { RemovePost } from './endpoints/removePost';
+import { RemovePostByAuthor } from './endpoints/removePostByAuthor';
 import { TrimFeed } from './endpoints/trimFeed';
+import { UnregisterFeed } from './endpoints/unregisterFeed';
 import { UpdateDocument } from './endpoints/updateDocument';
-import { AppContext } from 'shared/src/types';
-import { GyokaBaseError, InternalServerError, createErrorResponse } from 'shared/src/errors';
-import process from 'node:process';
+import { UpdateFeed } from './endpoints/updateFeed';
 
-const API_VERSION = '1.2.1';
+const API_VERSION = '1.2.2';
+const OPENAPI_DOCS_ENABLED = __OPENAPI_DOCS_ENABLED__;
+const logger = createLogger({ service: 'editor' });
+const textEncoder = new TextEncoder();
 
 // Start a Hono app
 const app = new Hono<{ Bindings: EnvWithSecret }>();
+
 // Setup OpenAPI registry
 const openapi = fromHono(app, {
-  docs_url: process.env.SWAGGER_UI === 'enabled' ? '/docs' : null,
-  redoc_url: process.env.REDOC === 'enabled' ? '/redocs' : null,
-  openapi_url: process.env.OPENAPI_JSON === 'enabled' ? '/openapi.json' : null,
+  docs_url: OPENAPI_DOCS_ENABLED ? '/docs' : null,
+  redoc_url: OPENAPI_DOCS_ENABLED ? '/redocs' : null,
+  openapi_url: OPENAPI_DOCS_ENABLED ? '/openapi.json' : null,
   openapiVersion: '3',
   schema: {
     info: {
@@ -44,13 +48,6 @@ openapi.registry.registerComponent('securitySchemes', 'ApiKeyAuth', {
 });
 
 app.use('*', etag());
-app.use(
-  '*',
-  cors({
-    origin: '*',
-    allowMethods: ['GET', 'POST'],
-  })
-);
 // configuration check for each endpoint
 app.use('/api/*', async (c: AppContext, next) => {
   if (!c.env.DB) {
@@ -60,14 +57,24 @@ app.use('/api/*', async (c: AppContext, next) => {
 });
 // api key auth
 app.use('/api/*', async (c, next) => {
-  if (c.env.GYOKA_API_KEY) {
-    const apiKey = c.req.header('X-API-Key');
-    if (!apiKey || apiKey !== c.env.GYOKA_API_KEY) {
-      return c.json(
-        { error: 'Unauthorized', message: 'Authentication credentials were missing or invalid.' },
-        401
-      );
-    }
+  if (!c.env.GYOKA_API_KEY) {
+    throw new InternalServerError('Missing authentication configuration');
+  }
+
+  //see: https://developers.cloudflare.com/workers/examples/protect-against-timing-attacks/
+  const apiKey = c.req.header('X-API-Key');
+  const userValue = textEncoder.encode(apiKey ?? '');
+  const secretValue = textEncoder.encode(c.env.GYOKA_API_KEY);
+  const lengthsMatch = userValue.byteLength === secretValue.byteLength;
+  const isEqual = lengthsMatch
+    ? crypto.subtle.timingSafeEqual(userValue, secretValue)
+    : !crypto.subtle.timingSafeEqual(userValue, userValue);
+
+  if (!apiKey || !isEqual) {
+    return c.json(
+      { error: 'Unauthorized', message: 'Authentication credentials were missing or invalid.' },
+      401
+    );
   }
   await next();
 });
@@ -89,15 +96,25 @@ openapi.post('/api/gyoka/updateDocument', UpdateDocument);
 // Global error handler
 app.onError((err, c) => {
   if (err instanceof GyokaBaseError) {
-    console.error('API Exception:', err.message, err.status);
+    const level = err.status >= 500 ? 'error' : 'warn';
+    const details: Record<string, unknown> = {
+      errorCode: err.errorCode,
+      status: err.status,
+      message: err.message,
+    };
+
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.error(err.stack);
+      details.stack = err.stack;
     }
+
+    logger[level]('api.handle.exception.failed', details);
     return createErrorResponse(err.errorCode, err.message, err.status);
   }
 
   // For other errors, return a generic 500 response
-  console.error(err);
+  logger.error('api.handle.unexpected.failed', {
+    err,
+  });
   return createErrorResponse('InternalServerError', 'An unexpected error occurred.', 500);
 });
 

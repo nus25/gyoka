@@ -1,8 +1,8 @@
-import { BaseOpenAPIRoute } from 'shared/src/routes';
-import * as z from 'zod';
-import { feedUri } from 'shared/src/validators';
-import { AppContext } from 'shared/src/types';
 import { UnauthorizedError, InternalServerError } from 'shared/src/errors';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
+import { AppContext, FeedRow } from 'shared/src/types';
+import { feedUri } from 'shared/src/validators';
+import * as z from 'zod';
 
 const SQL_SELECT_FEED = 'SELECT * FROM feeds';
 
@@ -37,7 +37,9 @@ export class ListFeeds extends BaseOpenAPIRoute {
   async handle(c: AppContext): Promise<Response> {
     const db: D1Database = c.env.DB;
     // get feed info
-    const { success: feedSuccess, results: feedResults } = await db.prepare(SQL_SELECT_FEED).all();
+    const { success: feedSuccess, results: feedResults } = await db
+      .prepare(SQL_SELECT_FEED)
+      .all<FeedRow>();
     if (!feedSuccess) {
       throw new InternalServerError('Failed to fetch feeds');
     }
@@ -45,8 +47,8 @@ export class ListFeeds extends BaseOpenAPIRoute {
       feeds: [
         ...feedResults.map((feed) => ({
           uri: feed.feed_uri,
-          langFilter: feed.lang_filter == 1 ? true : false,
-          isActive: feed.is_active == 1 ? true : false,
+          langFilter: feed.lang_filter === 1,
+          isActive: feed.is_active === 1,
         })),
       ],
     };

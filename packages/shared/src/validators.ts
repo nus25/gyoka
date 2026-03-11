@@ -1,6 +1,6 @@
+import { extendZodWithOpenApi } from '@hono/zod-openapi';
 // zod validator for AT Protocol formats
 import * as z from 'zod';
-import { extendZodWithOpenApi } from '@hono/zod-openapi';
 
 extendZodWithOpenApi(z);
 

@@ -1,13 +1,14 @@
-import { BaseOpenAPIRoute } from 'shared/src/routes';
-import * as z from 'zod';
-import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
-import { AppContext } from 'shared/src/types';
 import {
   UnauthorizedError,
   UnknownFeedError,
   BadRequestError,
   InternalServerError,
 } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
+import { AppContext } from 'shared/src/types';
+import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
+import * as z from 'zod';
 
 // note: cidが一致すればlanguagesの結果は等しくなるのでパフォーマンスのためにindexed_atとfeed_idはJOINに使用しない。
 const SQL_SELECT_POSTS = `
@@ -25,6 +26,7 @@ WHERE p.feed_id = ?
 GROUP BY pl.post_id
 ORDER BY p.indexed_at DESC, p.cid DESC, p.post_id DESC
 LIMIT ?`;
+const logger = createLogger({ service: 'editor', minLevel: 'debug' });
 
 export class GetPosts extends BaseOpenAPIRoute {
   schema = {
@@ -48,7 +50,11 @@ export class GetPosts extends BaseOpenAPIRoute {
                 z.object({
                   uri: postUri,
                   cid: cid,
-                  langs: z.array(z.string()),
+                  languages: z.array(z.string()),
+                  langs: z.array(z.string()).optional().openapi({
+                    deprecated: true,
+                    description: 'Deprecated alias of languages. Use languages instead.',
+                  }),
                   indexedAt: z.iso.datetime(),
                   reason: z
                     .object({
@@ -78,7 +84,7 @@ export class GetPosts extends BaseOpenAPIRoute {
     let cursorIndexedAt: string | null = null;
     let cursorCid: string | null = null;
     if (cursor) {
-      const cursorParts = cursor ? cursor.split('::') : [];
+      const cursorParts = cursor.split('::');
       if (
         cursorParts.length !== 2 ||
         cursorParts.some((part) => part === '') ||
@@ -105,15 +111,10 @@ export class GetPosts extends BaseOpenAPIRoute {
     // Fetch posts
 
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('Generated query:', SQL_SELECT_POSTS);
-      console.log('Bindings:', [
-        feed_id,
-        cursor || null,
-        cursorIndexedAt,
-        cursorIndexedAt,
-        cursorCid,
-        limit,
-      ]);
+      logger.debug('db.query.posts.start', {
+        query: SQL_SELECT_POSTS,
+        bindings: [feed_id, cursor || null, cursorIndexedAt, cursorIndexedAt, cursorCid, limit],
+      });
     }
     const { success: postsSuccess, results: postsResults } = await db
       .prepare(SQL_SELECT_POSTS)
@@ -125,21 +126,32 @@ export class GetPosts extends BaseOpenAPIRoute {
 
     // Determine next cursor
     const nextCursor =
-      postsResults.length == limit
+      postsResults.length === limit
         ? `${new Date(postsResults[postsResults.length - 1].indexed_at as string).getTime()}::${
             postsResults[postsResults.length - 1].cid
           }`
         : undefined;
 
     return Response.json({
-      posts: postsResults.map((post) => ({
-        uri: post.uri,
-        cid: post.cid,
-        langs: post.langs !== '*' ? (post.langs as string).split(',') : undefined,
-        indexedAt: post.indexed_at,
-        reason: post.reason ? JSON.parse(post.reason as string) : undefined, // Decode JSON string to object
-        feedContext: post.feed_context ?? undefined,
-      })),
+      feed,
+      posts: postsResults.map((post) => {
+        // Normalize DB values to API contract: wildcard is always returned as ['*'].
+        const values = ((post.langs as string) || '')
+          .split(',')
+          .map((lang) => lang.trim().toLowerCase())
+          .filter((lang) => lang.length > 0);
+        const normalizedLanguages = values.includes('*') || values.length === 0 ? ['*'] : values;
+
+        return {
+          uri: post.uri,
+          cid: post.cid,
+          languages: normalizedLanguages,
+          langs: normalizedLanguages,
+          indexedAt: post.indexed_at,
+          reason: post.reason ? JSON.parse(post.reason as string) : undefined, // Decode JSON string to object
+          feedContext: post.feed_context ?? undefined,
+        };
+      }),
       cursor: nextCursor,
     });
   }

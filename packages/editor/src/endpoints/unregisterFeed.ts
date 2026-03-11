@@ -1,14 +1,14 @@
 import { contentJson } from 'chanfana';
-import * as z from 'zod';
-import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
   BadRequestError,
   InternalServerError,
   UnknownFeedError,
   UnauthorizedError,
 } from 'shared/src/errors';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
+import { AppContext, FeedRow } from 'shared/src/types';
 import { feedUri } from 'shared/src/validators';
-import { AppContext } from 'shared/src/types';
+import * as z from 'zod';
 
 const SQL_DELETE_FEED = 'DELETE FROM feeds WHERE feed_uri = ?';
 const SQL_DELETE_POSTS =
@@ -50,7 +50,10 @@ export class UnregisterFeed extends BaseOpenAPIRoute {
     const { uri } = data.body;
 
     // Check if the feed exists
-    const { success: selectSuccess, results } = await db.prepare(SQL_SELECT_FEED).bind(uri).all();
+    const { success: selectSuccess, results } = await db
+      .prepare(SQL_SELECT_FEED)
+      .bind(uri)
+      .all<FeedRow>();
     if (!selectSuccess) {
       throw new InternalServerError('Failed to query the database');
     }

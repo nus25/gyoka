@@ -1,18 +1,43 @@
 import { contentJson } from 'chanfana';
-import * as z from 'zod';
-import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { All_LANGS } from 'shared/src/constants';
-import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
+import { UnauthorizedError, BadRequestError, InternalServerError } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { AppContext } from 'shared/src/types';
-import {
-  UnauthorizedError,
-  UnknownFeedError,
-  BadRequestError,
-  InternalServerError,
-} from 'shared/src/errors';
+import { feedUri, postUri, repostUri, cid } from 'shared/src/validators';
+import * as z from 'zod';
+
+const logger = createLogger({ service: 'editor', minLevel: 'debug' });
+const DEFAULT_MAX_BATCH_POSTS = 25;
+
+const PRIMARY_LANGUAGE_TAG_PATTERN = /^[a-z]{2,3}$/;
+
+function normalizeLanguages(languages?: string[] | null): string[] {
+  const normalized = (languages ?? [])
+    .map((lang) => lang.trim().toLowerCase())
+    .map((lang) => lang.split('-')[0])
+    .filter((lang) => lang.length > 0);
+
+  if (normalized.includes(All_LANGS)) {
+    return [All_LANGS];
+  }
+
+  if (normalized.length === 0) {
+    return [All_LANGS];
+  }
+
+  const deduped = [...new Set(normalized)];
+  if (deduped.some((code) => !(code === All_LANGS || PRIMARY_LANGUAGE_TAG_PATTERN.test(code)))) {
+    throw new BadRequestError(
+      'All primary language tags must be exactly two or three lowercase alphabetic characters'
+    );
+  }
+
+  return deduped;
+}
 
 const SQL_INSERT_POST = `
-INSERT INTO posts (feed_id, did, uri, cid, indexed_at, feed_context, reason) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+INSERT INTO posts (feed_id, uri, cid, indexed_at, feed_context, reason) VALUES (?, ?, ?, ?, ?, ?)`;
 const SQL_INSERT_POST_LANG = `
 INSERT INTO post_languages (post_id, language) SELECT post_id, ? FROM posts WHERE feed_id = ? AND cid = ? AND indexed_at = ? LIMIT 1`;
 
@@ -44,14 +69,24 @@ const PostSchema = z
   })
   .openapi('BatchAddPostPostParam');
 
+type PostInput = z.infer<typeof PostSchema>;
+
+type PostReason =
+  | {
+      $type: 'app.bsky.feed.defs#skeletonReasonRepost';
+      repost: string;
+    }
+  | {
+      $type: 'app.bsky.feed.defs#skeletonReasonPin';
+    };
+
 interface ProcessedPost {
   uri: string;
   cid: string;
-  did: string;
   languages: string[];
   indexedAt: string;
   feedContext?: string;
-  reason: any;
+  reason: PostReason | null;
   originalIndex: number;
 }
 
@@ -70,6 +105,30 @@ type ValidationResult = SuccessResult | ErrorResult;
 function isErrorResult(result: ValidationResult): result is ErrorResult {
   return !result.success;
 }
+
+function resolveMaxBatchPosts(rawValue: string | undefined): number {
+  if (!rawValue) {
+    logger.warn('config.resolve.max.batch.posts.failed', {
+      fallbackValue: DEFAULT_MAX_BATCH_POSTS,
+      rawValue: null,
+      reason: 'missing',
+    });
+    return DEFAULT_MAX_BATCH_POSTS;
+  }
+
+  const parsed = Number(rawValue);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    logger.warn('config.resolve.max.batch.posts.failed', {
+      fallbackValue: DEFAULT_MAX_BATCH_POSTS,
+      rawValue,
+      reason: 'invalid',
+    });
+    return DEFAULT_MAX_BATCH_POSTS;
+  }
+
+  return parsed;
+}
+
 export class BatchAddPosts extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
@@ -111,39 +170,26 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
         },
       },
       ...UnauthorizedError.schema(),
-      ...UnknownFeedError.schema(),
       ...BadRequestError.schema(),
       ...InternalServerError.schema(),
     },
   };
 
   private validateAndProcessPost(
-    post: any,
+    post: PostInput,
     entryIndex: number,
     postIndex: number
   ): ValidationResult {
-    // Process languages
-    if (!post.languages) {
-      post.languages = [All_LANGS];
-    }
-    const languageCodes: string[] = Array.from(
-      new Set(
-        (post.languages as string[])
-          .map((lang) => lang.split('-')[0])
-          .map((lang) => lang.toLowerCase())
-          .filter((lang) => lang)
-      )
-    );
-
-    if (languageCodes.length === 0) {
-      return { success: false, error: 'At least one valid language code is required' };
-    }
-
-    if (languageCodes.some((code: string) => !(code === '*' || /^[a-z]{2,3}$/.test(code)))) {
+    let languageCodes: string[];
+    try {
+      languageCodes = normalizeLanguages(post.languages);
+    } catch (error) {
       return {
         success: false,
         error:
-          'All primary language tags must be exactly two or three lowercase alphabetic characters',
+          error instanceof Error
+            ? error.message
+            : 'All primary language tags must be exactly two or three lowercase alphabetic characters',
       };
     }
 
@@ -153,7 +199,7 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
       : new Date().toISOString();
 
     // Process reason object
-    let reason = null;
+    let reason: PostReason | null = null;
     if (post.reason) {
       switch (post.reason.$type) {
         case 'app.bsky.feed.defs#skeletonReasonRepost':
@@ -176,15 +222,11 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
       }
     }
 
-    // Extract DID from post.uri
-    const did = post.uri.split('/')[2];
-
     return {
       success: true,
       post: {
         uri: post.uri,
         cid: post.cid,
-        did,
         languages: languageCodes,
         indexedAt,
         feedContext: post.feedContext,
@@ -199,8 +241,8 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
     const data = await this.getValidatedData<typeof this.schema>();
     const { entries } = data.body;
 
-    // Get max batch posts from environment variable or default to 25
-    const maxBatchPosts = parseInt(c.env.MAX_BATCH_POSTS || '25', 10);
+    // Use a safe default when MAX_BATCH_POSTS is missing or invalid.
+    const maxBatchPosts = resolveMaxBatchPosts(c.env.MAX_BATCH_POSTS);
 
     // Validate max total posts limit per request
     const totalPosts = entries.reduce((sum, entry) => sum + entry.posts.length, 0);
@@ -215,7 +257,7 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
       string,
       {
         entryIndices: number[];
-        posts: Array<{ post: any; entryIndex: number; postIndex: number }>;
+        posts: Array<{ post: PostInput; entryIndex: number; postIndex: number }>;
       }
     >();
 
@@ -248,7 +290,9 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
           .all();
 
         if (!success) {
-          console.error('Failed to query the database');
+          logger.error('db.query.feeds.failed', {
+            feedCount: feedUris.length,
+          });
           throw new InternalServerError('Failed to query the database');
         }
 
@@ -265,7 +309,9 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
         }
       }
     } catch (error) {
-      console.error('Error querying feeds:', error);
+      logger.error('db.query.feeds.failed', {
+        error,
+      });
       throw new InternalServerError('Failed to query feeds');
     }
 
@@ -299,7 +345,7 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
       const postValidationErrors = new Map<number, string>();
 
       for (let i = 0; i < feedData.posts.length; i++) {
-        const { post, postIndex } = feedData.posts[i];
+        const { post } = feedData.posts[i];
         const result = this.validateAndProcessPost(post, feedData.posts[i].entryIndex, i);
 
         if (isErrorResult(result)) {
@@ -320,7 +366,6 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
               .prepare(SQL_INSERT_POST)
               .bind(
                 feed_id,
-                processedPost.did,
                 processedPost.uri,
                 processedPost.cid,
                 processedPost.indexedAt,
@@ -366,7 +411,7 @@ export class BatchAddPosts extends BaseOpenAPIRoute {
           }
         } catch (error) {
           // Handle batch insert errors (log raw message, sanitize response)
-          console.error('[BatchAddPosts] Error batch inserting posts', {
+          logger.error('db.batch_insert.posts.failed', {
             feed_uri,
             error,
           });

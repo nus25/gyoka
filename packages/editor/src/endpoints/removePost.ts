@@ -1,14 +1,15 @@
 import { contentJson } from 'chanfana';
-import * as z from 'zod';
-import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
   BadRequestError,
   InternalServerError,
   NotFoundError,
   UnauthorizedError,
 } from 'shared/src/errors';
-import { feedUri, postUri } from 'shared/src/validators';
+import { createLogger } from 'shared/src/logger';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { AppContext } from 'shared/src/types';
+import { feedUri, postUri } from 'shared/src/validators';
+import * as z from 'zod';
 
 const SQL_DELETE_POST = `
 DELETE FROM posts 
@@ -16,6 +17,7 @@ WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)
   AND uri = ? 
   AND (? IS NULL OR indexed_at = ?)`;
 const SQL_CHECK_FEED = 'SELECT feed_id FROM feeds WHERE feed_uri = ?';
+const logger = createLogger({ service: 'editor', minLevel: 'debug' });
 
 export class RemovePost extends BaseOpenAPIRoute {
   schema = {
@@ -65,7 +67,10 @@ export class RemovePost extends BaseOpenAPIRoute {
     // Delete the post from the database using subquery for feed_id
     const indexed_at = post.indexedAt ? new Date(post.indexedAt).toISOString() : null;
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('feed uri:', feed_uri, 'post:', post);
+      logger.debug('db.remove.post.start', {
+        feedUri: feed_uri,
+        post,
+      });
     }
     const deleteResult = await db
       .prepare(SQL_DELETE_POST)
@@ -88,9 +93,11 @@ export class RemovePost extends BaseOpenAPIRoute {
       if (feedResults.length === 0) {
         throw new NotFoundError(`Feed with URI ${feed_uri} does not exist.`);
       }
-      throw new NotFoundError(`Post not found feed:${feed_uri}, post:{uri:${post.uri} ${
-        post.indexedAt ? 'indexedAt:' + post.indexedAt : ''
-      }}`);
+      throw new NotFoundError(
+        `Post not found feed:${feed_uri}, post:{uri:${post.uri} ${
+          post.indexedAt ? 'indexedAt:' + post.indexedAt : ''
+        }}`
+      );
     }
 
     return Response.json({

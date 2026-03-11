@@ -6,11 +6,17 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "gyoka-generator",
   "main": "src/index.ts",
-  "compatibility_date": "2025-04-05",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_date": "2026-02-05",
   "minify": true,
+  "dev": {
+    "port": 8788
+  },
   "env": {
     "test": {
+      "vars": {
+        "FEEDGEN_AUTH_REQUIRED": "disabled",
+        "DID_CACHE_TTL_SECONDS": "86400"
+      },
       "d1_databases": [
         {
           "binding": "DB",
@@ -34,9 +40,8 @@
       "vars": {
         "FEEDGEN_PUBLISHER_DID": "did:example:developer",
         "FEEDGEN_HOST": "dev.example.com",
-        "SWAGGER_UI": "enabled",
-        "REDOC": "enabled",
-        "OPENAPI_JSON": "enabled",
+        "FEEDGEN_AUTH_REQUIRED": "disabled",
+        "DID_CACHE_TTL_SECONDS": "86400",
         "DEVELOPER_MODE": "enabled"
       }
     },
@@ -56,14 +61,15 @@
       "vars": {
         /* DID of your Bluesky account or alternative publisher */
         "FEEDGEN_PUBLISHER_DID": "did:example:publisher",
-        /* hostname of the feed generator service endpoint */
+        /* deployed worker host accessed from AppView */
         "FEEDGEN_HOST": "feed-generator.example.com",
-        /* Flag to enable the Swagger document at /docs */
-        "SWAGGER_UI": "disabled",
-        /* Flag to enable the ReDoc document at /redocs */
-        "REDOC": "disabled",
-        /* Flag to enable the OpenAPI JSON document at /openapi.json */
-        "OPENAPI_JSON": "disabled",
+        /* Runtime flag: enable service JWT authentication for XRPC endpoints */
+        "FEEDGEN_AUTH_REQUIRED": "enabled",
+        /* DID resolver cache TTL in seconds. 86400 = 1 day. */
+        "DID_CACHE_TTL_SECONDS": "86400",
+        /* Experimental: enable D1 session in getFeedSkeleton endpoint. This is for D1 read replication(beta). */
+        "D1_USE_SESSION": "disabled",
+        /* Runtime flag: enables verbose debug logging in endpoints when set to "enabled". */
         "DEVELOPER_MODE": "disabled",
         /* Version from package.json (overridden by --var during deploy) */
         "VERSION": "0.0.0",

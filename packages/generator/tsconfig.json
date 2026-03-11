@@ -1,5 +1,5 @@
 {
-	"extends": "../../tsconfig.node.json",
-	"exclude": ["node_modules", "dist", "tests"],
-	"include": ["src","worker-configuration.d.ts"]
+  "extends": "../../tsconfig.node.json",
+  "exclude": ["node_modules", "dist", "tests"],
+  "include": ["src", "worker-configuration.d.ts"]
 }

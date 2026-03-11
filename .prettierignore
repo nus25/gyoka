@@ -1,5 +1,0 @@
-# .prettierignore
-**/node_modules/
-**/.wrangler/
-**/coverage
-**/worker-configuration.d.ts

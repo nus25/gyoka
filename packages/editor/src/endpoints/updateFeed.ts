@@ -1,14 +1,14 @@
 import { contentJson } from 'chanfana';
-import * as z from 'zod';
-import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
   UnknownFeedError,
   BadRequestError,
   InternalServerError,
   UnauthorizedError,
 } from 'shared/src/errors';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
+import { AppContext, FeedRow } from 'shared/src/types';
 import { feedUri } from 'shared/src/validators';
-import { AppContext } from 'shared/src/types';
+import * as z from 'zod';
 
 const SQL_SELECT_FEED = 'SELECT * FROM feeds WHERE feed_uri = ?';
 const SQL_UPDATE_LANG_FILTER = 'UPDATE feeds SET lang_filter = ? WHERE feed_uri = ?';
@@ -59,7 +59,10 @@ export class UpdateFeed extends BaseOpenAPIRoute {
     }
 
     // Check if the feed exists
-    const { success: selectSuccess, results } = await db.prepare(SQL_SELECT_FEED).bind(uri).all();
+    const { success: selectSuccess, results } = await db
+      .prepare(SQL_SELECT_FEED)
+      .bind(uri)
+      .all<FeedRow>();
     if (!selectSuccess) {
       throw new InternalServerError('Failed to query the database');
     }
@@ -68,7 +71,7 @@ export class UpdateFeed extends BaseOpenAPIRoute {
     }
     const feed = results[0];
     //update
-    const stmt = [];
+    const stmt: D1PreparedStatement[] = [];
     if (langFilter !== undefined) {
       stmt.push(db.prepare(SQL_UPDATE_LANG_FILTER).bind(langFilter, uri));
       feed.lang_filter = langFilter ? 1 : 0;
@@ -86,8 +89,8 @@ export class UpdateFeed extends BaseOpenAPIRoute {
       message: 'Feed updated successfully',
       feed: {
         uri: feed.feed_uri,
-        langFilter: feed.lang_filter == 1 ? true : false,
-        isActive: feed.is_active == 1 ? true : false,
+        langFilter: feed.lang_filter === 1,
+        isActive: feed.is_active === 1,
       },
     };
     return Response.json(response);

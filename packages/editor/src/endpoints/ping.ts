@@ -1,6 +1,6 @@
+import { InternalServerError, UnauthorizedError } from 'shared/src/errors';
 import { BaseOpenAPIRoute } from 'shared/src/routes';
 import * as z from 'zod';
-import { InternalServerError, UnauthorizedError } from 'shared/src/errors';
 
 export class Ping extends BaseOpenAPIRoute {
   schema = {

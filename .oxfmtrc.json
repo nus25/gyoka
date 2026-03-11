@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "sortPackageJson": false,
+  "sortImports": {
+    "groups": [
+      "type-import",
+      ["value-builtin", "value-external"],
+      "type-internal",
+      "value-internal",
+      ["type-parent", "type-sibling", "type-index"],
+      ["value-parent", "value-sibling", "value-index"],
+      "unknown"
+    ]
+  },
+  "ignorePatterns": [
+    "**/node_modules/",
+    "**/.wrangler/",
+    "**/coverage/",
+    "**/worker-configuration.d.ts",
+    "**/pnpm-lock.yaml",
+    "**/pnpm-workspace.yaml",
+    "**/.dev.vars",
+    "**/.git/",
+    "**/data/"
+  ]
+}

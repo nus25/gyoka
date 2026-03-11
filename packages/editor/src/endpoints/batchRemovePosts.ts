@@ -1,14 +1,10 @@
 import { contentJson } from 'chanfana';
-import * as z from 'zod';
+import { UnauthorizedError, BadRequestError, InternalServerError } from 'shared/src/errors';
+import { createLogger } from 'shared/src/logger';
 import { BaseOpenAPIRoute } from 'shared/src/routes';
-import { feedUri, postUri } from 'shared/src/validators';
 import { AppContext } from 'shared/src/types';
-import {
-  UnauthorizedError,
-  UnknownFeedError,
-  BadRequestError,
-  InternalServerError,
-} from 'shared/src/errors';
+import { feedUri, postUri } from 'shared/src/validators';
+import * as z from 'zod';
 
 const SQL_DELETE_POST = `
 DELETE FROM posts 
@@ -26,6 +22,8 @@ const RemovePostSchema = z
   })
   .openapi('BatchRemovePostPostParam');
 
+type RemovePostInput = z.infer<typeof RemovePostSchema>;
+
 interface PostToRemove {
   uri: string;
   indexedAt: string | null;
@@ -39,6 +37,32 @@ type EntryResult = {
   status: 'removed' | 'error';
   error?: string;
 };
+
+const logger = createLogger({ service: 'editor', minLevel: 'debug' });
+const DEFAULT_MAX_BATCH_POSTS = 25;
+
+function resolveMaxBatchPosts(rawValue: string | undefined): number {
+  if (!rawValue) {
+    logger.warn('config.resolve.max.batch.posts.failed', {
+      fallbackValue: DEFAULT_MAX_BATCH_POSTS,
+      rawValue: null,
+      reason: 'missing',
+    });
+    return DEFAULT_MAX_BATCH_POSTS;
+  }
+
+  const parsed = Number(rawValue);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    logger.warn('config.resolve.max.batch.posts.failed', {
+      fallbackValue: DEFAULT_MAX_BATCH_POSTS,
+      rawValue,
+      reason: 'invalid',
+    });
+    return DEFAULT_MAX_BATCH_POSTS;
+  }
+
+  return parsed;
+}
 
 export class BatchRemovePosts extends BaseOpenAPIRoute {
   schema = {
@@ -81,7 +105,6 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
         },
       },
       ...UnauthorizedError.schema(),
-      ...UnknownFeedError.schema(),
       ...BadRequestError.schema(),
       ...InternalServerError.schema(),
     },
@@ -92,8 +115,8 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
     const data = await this.getValidatedData<typeof this.schema>();
     const { entries } = data.body;
 
-    // Get max batch posts from environment variable or default to 25
-    const maxBatchPosts = parseInt(c.env.MAX_BATCH_POSTS || '25', 10);
+    // Use a safe default when MAX_BATCH_POSTS is missing or invalid.
+    const maxBatchPosts = resolveMaxBatchPosts(c.env.MAX_BATCH_POSTS);
 
     // Validate max total posts limit per request
     const totalPosts = entries.reduce((sum, entry) => sum + entry.posts.length, 0);
@@ -104,7 +127,7 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
     }
 
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log('Batch removing posts:', {
+      logger.debug('db.batch_remove.posts.start', {
         totalPosts,
         uniqueFeeds: new Set(entries.map((e) => e.feed)).size,
       });
@@ -115,7 +138,7 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
       string,
       {
         entryIndices: number[];
-        posts: Array<{ post: any; entryIndex: number; postIndex: number }>;
+        posts: Array<{ post: RemovePostInput; entryIndex: number; postIndex: number }>;
       }
     >();
 
@@ -145,8 +168,10 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
         const feedQuery = `SELECT feed_id, feed_uri FROM feeds WHERE feed_uri IN (${placeholders})`;
 
         if (c.env.DEVELOPER_MODE === 'enabled') {
-          console.log('Generated query:', feedQuery);
-          console.log('Bindings:', feedUris);
+          logger.debug('db.query.batch_remove_feeds.start', {
+            query: feedQuery,
+            bindings: feedUris,
+          });
         }
 
         const { success, results } = await db
@@ -171,7 +196,9 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
         }
       }
     } catch (error) {
-      console.error('Error querying feeds:', error);
+      logger.error('db.query.batch_remove_feeds.failed', {
+        error,
+      });
       throw new InternalServerError('Failed to query feeds');
     }
 
@@ -223,8 +250,10 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
           const checkBindings: (string | number)[] = [feed_id, ...uniqueUris];
 
           if (c.env.DEVELOPER_MODE === 'enabled') {
-            console.log('Generated query:', checkQuery);
-            console.log('Bindings:', checkBindings);
+            logger.debug('db.query.batch_remove_check_posts.start', {
+              query: checkQuery,
+              bindings: checkBindings,
+            });
           }
 
           const { success, results } = await db
@@ -247,7 +276,10 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
           }
         }
       } catch (error) {
-        console.error(`Error checking posts for feed ${feed_uri}:`, error);
+        logger.error('db.query.batch_remove_check_posts.failed', {
+          feedUri: feed_uri,
+          error,
+        });
         // Mark all posts as error
         for (const postToRemove of postsToRemove) {
           recordEntryResult(postToRemove.entryIndex, {
@@ -310,8 +342,10 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
           });
 
           if (c.env.DEVELOPER_MODE === 'enabled') {
-            console.log('Generated query:', SQL_DELETE_POST.trim());
-            console.log('Bindings:', deleteBindingsForLog);
+            logger.debug('db.query.batch_remove_delete_posts.start', {
+              query: SQL_DELETE_POST.trim(),
+              bindings: deleteBindingsForLog,
+            });
           }
 
           const batchResult = await db.batch(batchStatements);
@@ -337,7 +371,10 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
             }
           }
         } catch (error) {
-          console.error(`Error batch deleting posts for feed ${feed_uri}:`, error);
+          logger.error('db.batch_remove.delete_posts.failed', {
+            feedUri: feed_uri,
+            error,
+          });
 
           // Mark all valid posts as error
           for (const postToRemove of validPosts) {
@@ -374,7 +411,7 @@ export class BatchRemovePosts extends BaseOpenAPIRoute {
             }
           }
         }
-        console.log('Feed deletion result:', {
+        logger.debug('db.batch_remove.posts.success', {
           feed_uri,
           deleted: deletedCount,
           errors: errorCount,

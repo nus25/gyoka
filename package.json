@@ -1,20 +1,38 @@
 {
   "name": "gyoka",
-  "version": "0.8.0",
-  "description": "simple feed generator for bluesky which works on cloudflare workers",
+  "version": "0.9.0",
   "private": "true",
-  "scripts": {
-    "editor":"pnpm -F gyoka-editor",
-    "generator":"pnpm -F gyoka-generator",
-    "d1-create": "pnpx wrangler d1 create gyoka-db",
-    "d1-init-local": "pnpm editor d1-init-local",
-    "d1-add-dummy-local": "pnpm editor d1-add-dummy-local"
-  },
-  "author": "Nus",
+  "description": "simple feed generator for bluesky which works on cloudflare workers",
   "license": "MIT",
+  "author": "Nus",
+  "scripts": {
+    "editor": "pnpm -F gyoka-editor",
+    "generator": "pnpm -F gyoka-generator",
+    "shared": "pnpm -F shared",
+    "d1-create": "wrangler d1 create gyoka-db --binding=DB",
+    "d1-init:local": "pnpm editor d1-init:local",
+    "d1-init:production": "pnpm editor d1-init:production",
+    "d1-add-sample:local": "pnpm editor d1-add-sample:local",
+    "test:all": "pnpm -r test run",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware"
+  },
   "devDependencies": {
     "@vitest/coverage-istanbul": "^3.2.x",
-    "vitest": "^3.2.x"
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "oxlint-tsgolint": "^0.16.0",
+    "typescript-eslint": "^8.56.1",
+    "vitest": "^3.2.x",
+    "wrangler": "catalog:"
   },
-  "packageManager": "pnpm@10.28.2"
+  "pnpm": {
+    "overrides": {
+      "minimatch": "9.0.7",
+      "rollup": "4.59.0"
+    }
+  },
+  "packageManager": "pnpm@10.30.3"
 }

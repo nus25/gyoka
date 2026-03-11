@@ -1,66 +1,77 @@
-import { fromHono } from 'chanfana';
-import { Hono } from 'hono';
-import { etag } from 'hono/etag';
-import { cors } from 'hono/cors';
-import { DescribeFeedGenerator } from './endpoints/app/bsky/feed/describeFeedGenerator';
-import { GetFeedSkeleton } from './endpoints/app/bsky/feed/getFeedSkeleton';
-import { GetDidDocument } from './endpoints/getDidDocument';
-import { GetDocument } from './endpoints/getDocument';
-import { AppContext } from 'shared/src/types';
-import { createErrorResponse } from 'shared/src/errors';
-import process from 'node:process';
-import { GyokaBaseError, InternalServerError } from 'shared/src/errors';
-const app = new Hono();
+import { isDid, isHandle } from '@atcute/lexicons/syntax';
+import { env as workerEnv } from 'cloudflare:workers';
+import { InternalServerError } from 'shared/src/errors/core';
+import { createLogger } from 'shared/src/logger';
 
-// Setup OpenAPI registry
-const openapi = fromHono(app, {
-  docs_url: process.env.SWAGGER_UI === 'enabled'? '/docs': null,
-  redoc_url: process.env.REDOC === 'enabled'?'/redocs':null,
-  openapi_url: process.env.OPENAPI_JSON === 'enabled'?'/openapi.json':null,
+import { getDidDocument } from './endpoints/getDidDocument';
+import { getDocument } from './endpoints/getDocument';
+import { handleAppError } from './errorHandler';
+import { createXrpcRouter, sanitizeAtcuteValidationResponse } from './xrpcRouter';
+
+const logger = createLogger({
+  service: 'generator',
+  minLevel: workerEnv.DEVELOPER_MODE === 'enabled' ? 'debug' : 'info',
 });
 
-app.use('*', etag());
-app.use(
-  '*',
-  cors({
-    origin: '*',
-    allowMethods: ['GET'],
-  })
-);
+// closure to hold env map for request handlers since we can't pass env directly through router context
+const envMap = new WeakMap<Request, Env>();
 
-// configuration check for each endpoint
-app.use('*', async (c: AppContext, next) => {
-  if (!c.env.FEEDGEN_PUBLISHER_DID || !c.env.FEEDGEN_HOST) {
+const xrpcRouter = createXrpcRouter(workerEnv, envMap, logger);
+
+function assertRequiredConfiguration(env: Env): void {
+  if (!env.FEEDGEN_PUBLISHER_DID || !env.FEEDGEN_HOST) {
+    logger.error('config.validation.failed', {
+      message: 'Missing required environment variables',
+      missingVariables: [
+        !env.FEEDGEN_PUBLISHER_DID ? 'FEEDGEN_PUBLISHER_DID' : null,
+        !env.FEEDGEN_HOST ? 'FEEDGEN_HOST' : null,
+      ].filter(Boolean),
+    });
     throw new InternalServerError('Missing required environment variables');
   }
-  if (!c.env.DB) {
+
+  if (!env.DB) {
+    logger.error('config.validation.failed', {
+      message: 'Missing database configuration',
+    });
     throw new InternalServerError('Missing database configuration');
   }
-  await next();
-});
 
-openapi.get('/doc/:type', GetDocument);
-// DID Document endpoint (W3C DID Core Specification)
-openapi.get('/.well-known/did.json', GetDidDocument);
-// Feed Generator description endpoint (AT Protocol Lexicon)
-openapi.get('/xrpc/app.bsky.feed.describeFeedGenerator', DescribeFeedGenerator);
-// Feed Skeleton endpoint (AT Protocol Lexicon)
-openapi.get('/xrpc/app.bsky.feed.getFeedSkeleton', GetFeedSkeleton);
-
-// Global error handler
-app.onError((err, c) => {
-  if (err instanceof GyokaBaseError) {
-    console.error('API Exception:', err.message, err.status);
-    // @ts-expect-error: 'DEVELOPER_MODE' may not exist on 'env' in some environments
-    if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.error(err.stack);
-    }
-    return createErrorResponse(err.errorCode, err.message, err.status);
+  if (!isDid(env.FEEDGEN_PUBLISHER_DID) || !isHandle(env.FEEDGEN_HOST)) {
+    logger.error('config.validation.failed', {
+      message: 'Invalid required environment variables',
+      invalidVariables: [
+        !isDid(env.FEEDGEN_PUBLISHER_DID) ? 'FEEDGEN_PUBLISHER_DID' : null,
+        !isHandle(env.FEEDGEN_HOST) ? 'FEEDGEN_HOST' : null,
+      ].filter(Boolean),
+    });
+    throw new InternalServerError('Invalid required environment variables');
   }
+}
 
-  // For other errors, return a generic 500 response
-  console.error(err);
-  return createErrorResponse('InternalServerError', 'An unexpected error occurred.', 500);
-});
+export default {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
+    try {
+      assertRequiredConfiguration(env);
 
-export default app;
+      const url = new URL(request.url);
+      //  '/.well-known/did.json'
+      if (request.method === 'GET' && url.pathname === '/.well-known/did.json') {
+        return getDidDocument(env);
+      }
+      // '/doc/:id'
+      if (request.method === 'GET') {
+        const docMatch = /^\/doc\/([^/]+)$/.exec(url.pathname);
+        if (docMatch) {
+          return await getDocument(env, decodeURIComponent(docMatch[1]));
+        }
+      }
+      // '/xrpc/:method' and others handled by router
+      envMap.set(request, env); // make env available to handlers
+      const response = await xrpcRouter.fetch(request);
+      return await sanitizeAtcuteValidationResponse(response, logger);
+    } catch (err) {
+      return handleAppError(err, env.DEVELOPER_MODE === 'enabled', logger);
+    }
+  },
+} satisfies ExportedHandler;

@@ -1,14 +1,15 @@
 import { contentJson } from 'chanfana';
-import * as z from 'zod';
-import { BaseOpenAPIRoute } from 'shared/src/routes';
 import {
   BadRequestError,
   InternalServerError,
   UnknownFeedError,
   UnauthorizedError,
 } from 'shared/src/errors';
-import { feedUri } from 'shared/src/validators';
+import { createLogger } from 'shared/src/logger';
+import { BaseOpenAPIRoute } from 'shared/src/routes';
 import { AppContext } from 'shared/src/types';
+import { feedUri } from 'shared/src/validators';
+import * as z from 'zod';
 
 const SQL_SELECT_FEED_AND_COUNT = `
     SELECT 
@@ -30,6 +31,7 @@ const SQL_DELETE_POST = `
         LIMIT ?2
     )
 `;
+const logger = createLogger({ service: 'editor', minLevel: 'debug' });
 export class TrimFeed extends BaseOpenAPIRoute {
   schema = {
     tags: ['Feed Editor'],
@@ -83,7 +85,11 @@ export class TrimFeed extends BaseOpenAPIRoute {
     const feedId = feedResults[0].feed_id;
     const feedPosts = parseInt(feedResults[0].post_count as string);
     if (c.env.DEVELOPER_MODE === 'enabled') {
-      console.log({ feedID: feedId, remain: remain, feedPosts: feedPosts });
+      logger.debug('db.trim.feed.start', {
+        feedId,
+        remain,
+        feedPosts,
+      });
     }
     const deletePostStmt = db.prepare(SQL_DELETE_POST).bind(feedId, remain);
     const deleteResult = await deletePostStmt.run();

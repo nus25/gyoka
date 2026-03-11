@@ -6,11 +6,14 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "gyoka-editor",
   "main": "src/index.ts",
-  "compatibility_date": "2025-04-05",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_date": "2026-02-05",
   "minify": true,
   "env": {
     "test": {
+      "define": {
+        /* Build-time flag: false disables /docs, /redocs, /openapi.json route registration. */
+        "__OPENAPI_DOCS_ENABLED__": "false"
+      },
       "d1_databases": [
         {
           "binding": "DB",
@@ -31,10 +34,11 @@
        * Environment Variables
        * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
        */
+      "define": {
+        /* Build-time flag: set true for local debugging of docs and schema endpoints. */
+        "__OPENAPI_DOCS_ENABLED__": "true"
+      },
       "vars": {
-        "SWAGGER_UI": "enabled",
-        "REDOC": "enabled",
-        "OPENAPI_JSON": "enabled",
         "DEVELOPER_MODE": "enabled"
       }
     },
@@ -51,13 +55,12 @@
         "enabled": true,
         "head_sampling_rate": 1.0
       },
+      "define": {
+        /* Build-time flag: keep false in production for best runtime performance. */
+        "__OPENAPI_DOCS_ENABLED__": "false"
+      },
       "vars": {
-        /* Flag to enable the Swagger document at /docs */
-        "SWAGGER_UI": "disabled",
-        /* Flag to enable the ReDoc document at /redocs */
-        "REDOC": "disabled",
-        /* Flag to enable the OpenAPI JSON document at /openapi.json */
-        "OPENAPI_JSON": "disabled",
+        /* Runtime flag: enables verbose debug logging in endpoints when set to "enabled". */
         "DEVELOPER_MODE": "disabled",
         /* Maximum number of posts allowed per batchAddPosts request (integer, >= 1). */
         "MAX_BATCH_POSTS": "25",
@@ -75,18 +78,4 @@
       ]
     }
   }
-  /**
-   * Note: Use secrets to store sensitive data.
-   * https://developers.cloudflare.com/workers/configuration/secrets/
-   */
-  /**
-   * Static Assets
-   * https://developers.cloudflare.com/workers/static-assets/binding/
-   */
-  // "assets": { "directory": "./public/", "binding": "ASSETS" },
-  /**
-   * Service Bindings (communicate between multiple Workers)
-   * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
-   */
-  // "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
 }

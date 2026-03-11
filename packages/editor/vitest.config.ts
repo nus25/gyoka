@@ -1,5 +1,5 @@
-import path from 'node:path';
 import { defineWorkersProject, readD1Migrations } from '@cloudflare/vitest-pool-workers/config';
+import path from 'node:path';
 
 export default defineWorkersProject(async () => {
   // Read all migrations in the `migrations` directory
@@ -28,6 +28,7 @@ export default defineWorkersProject(async () => {
       coverage: {
         provider: 'istanbul', // or 'v8'
       },
+      silent: true,
     },
   };
 });

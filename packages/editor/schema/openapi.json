@@ -1,6 +1,6 @@
 {
   "openapi": "3.0.3",
-  "info": { "title": "Gyoka Editor API", "version": "1.2.1" },
+  "info": { "title": "Gyoka Editor API", "version": "1.2.2" },
   "security": [{ "ApiKeyAuth": [] }],
   "components": {
     "securitySchemes": { "ApiKeyAuth": { "type": "apiKey", "in": "header", "name": "X-API-Key" } },
@@ -970,24 +970,6 @@
               }
             }
           },
-          "404": {
-            "description": "Unknown Feed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": { "type": "string", "enum": ["UnknownFeed"] },
-                    "message": {
-                      "type": "string",
-                      "example": "Feed with URI {feedUri} does not exist."
-                    }
-                  },
-                  "required": ["error"]
-                }
-              }
-            }
-          },
           "500": {
             "description": "Internal Server Error",
             "content": {
@@ -1231,24 +1213,6 @@
               }
             }
           },
-          "404": {
-            "description": "Unknown Feed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": { "type": "string", "enum": ["UnknownFeed"] },
-                    "message": {
-                      "type": "string",
-                      "example": "Feed with URI {feedUri} does not exist."
-                    }
-                  },
-                  "required": ["error"]
-                }
-              }
-            }
-          },
           "500": {
             "description": "Internal Server Error",
             "content": {
@@ -1444,7 +1408,13 @@
                             "format": "cid",
                             "example": "sampleiaajksfnn3if2crogjkz5c4bmb2lh2ufspcdf6hfc7mtg6e2bysva"
                           },
-                          "langs": { "type": "array", "items": { "type": "string" } },
+                          "languages": { "type": "array", "items": { "type": "string" } },
+                          "langs": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "deprecated": true,
+                            "description": "Deprecated alias of languages. Use languages instead."
+                          },
                           "indexedAt": { "type": "string", "format": "date-time" },
                           "reason": {
                             "type": "object",
@@ -1459,7 +1429,7 @@
                           },
                           "feedContext": { "type": "string" }
                         },
-                        "required": ["uri", "cid", "langs", "indexedAt"]
+                        "required": ["uri", "cid", "languages", "indexedAt"]
                       }
                     },
                     "cursor": { "type": "string" }
@@ -1607,8 +1577,8 @@
                 "type": "object",
                 "properties": {
                   "type": { "type": "string", "enum": ["tos", "privacy_policy"] },
-                  "url": { "type": "string", "nullable": true, "format": "uri" },
-                  "content": { "type": "string", "nullable": true }
+                  "url": { "type": "string", "nullable": true, "maxLength": 2048, "format": "uri" },
+                  "content": { "type": "string", "nullable": true, "maxLength": 32768 }
                 },
                 "required": ["type"]
               }

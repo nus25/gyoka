@@ -1,5 +1,6 @@
 import { OpenAPIRoute } from 'chanfana';
 import * as z from 'zod';
+
 import { createErrorResponse } from './errors';
 
 export type ValidationErrorDetail = {
@@ -19,7 +20,14 @@ export abstract class BaseOpenAPIRoute extends OpenAPIRoute {
   }
 
   handleValidationError(errors: z.core.$ZodIssue[]): Response {
-    const payload = JSON.stringify(this.buildValidationErrorPayload(errors));
-    return createErrorResponse('BadRequest', payload, 400);
+    const validationDetails = this.buildValidationErrorPayload(errors);
+    const payload = JSON.stringify(validationDetails);
+    return createErrorResponse('BadRequest', payload, 400, {
+      event: 'api.validate.request.failed',
+      level: 'warn',
+      details: {
+        issues: validationDetails,
+      },
+    });
   }
 }
