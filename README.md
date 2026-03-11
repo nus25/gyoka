@@ -101,6 +101,7 @@ Gyoka does **not** support in this version:
    ```
 
    > [!NOTE]
+   >
    > `X-API-Key` provides minimal authentication only. For production use, combining with an additional authentication layer such as [Cloudflare One](https://developers.cloudflare.com/cloudflare-one/) is strongly recommended.
 
 7. Create and manage feeds.
