@@ -163,16 +163,16 @@ up to a total of 25 posts across all feeds in a single request.
 - Each `feed` in the response contains a `results` array, listing the status for each post.
 - If a post fails to be added, its `status` will be `"error"` and an `error` field will be included.
 
-### Notes
-
-- If the total number of posts in `entries` exceeds 25, the request will be rejected with a `400 BadRequest` error.
-  By default, the maximum number of posts is 25, but you can change this limit by setting the environment variable `MAX_BATCH_POSTS`.  
-  If you change this limit, please make sure to check the restrictions of Cloudflare workers.
-- Posts are added to each feed in the order provided.
-- Error handling and validation are the same as for single-feed operations.
-- **Partial Success:**  
-  When using `batchAddPosts`, if some posts fail to be added (for example, due to invalid data), the response will indicate `"status": "error"` for those posts, along with an `error` field describing the reason. Posts that can be added successfully will have `"status": "added"`.  
-  The operation is not atomic: posts that succeed will be added even if others fail in the same request. Please check the `results` array in the response to confirm which posts were added and which failed.
+> [!NOTE]
+>
+> - If the total number of posts in `entries` exceeds 25, the request will be rejected with a `400 BadRequest` error.
+>   By default, the maximum number of posts is 25, but you can change this limit by setting the environment variable `MAX_BATCH_POSTS`.
+>   If you change this limit, please make sure to check the restrictions of Cloudflare workers.
+> - Posts are added to each feed in the order provided.
+> - Error handling and validation are the same as for single-feed operations.
+> - **Partial Success:**  
+>   When using `batchAddPosts`, if some posts fail to be added (for example, due to invalid data), the response will indicate `"status": "error"` for those posts, along with an `error` field describing the reason. Posts that can be added successfully will have `"status": "added"`.  
+>   The operation is not atomic: posts that succeed will be added even if others fail in the same request. Please check the `results` array in the response to confirm which posts were added and which failed.
 
 ## Removing a Post (removePost)
 
@@ -289,16 +289,16 @@ This endpoint allows you to specify several feed and post combinations at once, 
 - Each `feed` in the response contains a `results` array, listing the status for each post.
 - If a post fails to be removed, its `status` will be `"error"` and an `error` field will be included.
 
-### Notes
-
-- If the total number of posts in `entries` exceeds 25, the request will be rejected with a `400 BadRequest` error.
-  By default, the maximum number of posts is 25, but you can change this limit by setting the environment variable `MAX_BATCH_POSTS`.  
-  If you change this limit, please make sure to check the restrictions of Cloudflare workers.
-- Posts are removed from each feed in the order provided.
-- Error handling and validation are the same as for single-feed operations.
-- **Partial Success:**  
-  When using `batchRemovePosts`, if some posts fail to be removed (for example, due to the post not existing), the response will indicate `"status": "error"` for those posts, along with an `error` field describing the reason. Posts that can be removed successfully will have `"status": "removed"`.  
-  The operation is not atomic: posts that succeed will be removed even if others fail in the same request. Please check the `results` array in the response to confirm which posts were removed and which failed.
+> [!NOTE]
+>
+> - If the total number of posts in `entries` exceeds 25, the request will be rejected with a `400 BadRequest` error.
+>   By default, the maximum number of posts is 25, but you can change this limit by setting the environment variable `MAX_BATCH_POSTS`.  
+>   If you change this limit, please make sure to check the restrictions of Cloudflare workers.
+> - Posts are removed from each feed in the order provided.
+> - Error handling and validation are the same as for single-feed operations.
+> - **Partial Success:**  
+>   When using `batchRemovePosts`, if some posts fail to be removed (for example, due to the post not existing), the response will indicate `"status": "error"` for those posts, along with an `error` field describing the reason. Posts that can be removed successfully will have `"status": "removed"`.  
+>   The operation is not atomic: posts that succeed will be removed even if others fail in the same request. Please check the `results` array in the response to confirm which posts were removed and which failed.
 
 ## Removing a Post by Author (removePostByAuthor)
 
