@@ -87,16 +87,16 @@ pnpm editor coverage
     ]
   ```
 
-2. Set API key secret for production.
-
-```sh
-pnpm --dir packages/editor wrangler secret put GYOKA_API_KEY --env production
-```
-
-3. Deploy from repository root.
+2. Deploy from repository root.
 
 ```sh
 pnpm editor run deploy
+```
+
+3. Set API key secret for production.
+
+```sh
+pnpm --dir packages/editor wrangler secret put GYOKA_API_KEY --env production
 ```
 
 ## Related docs

@@ -4,7 +4,7 @@
   "license": "MIT",
   "author": "Nus",
   "scripts": {
-    "postinstall": "node ../shared/scripts/copy-config.js",
+    "postinstall": "node ../shared/scripts/copy-config.js && node ../shared/scripts/create-dev-vars.js",
     "deploy": "echo VERSION=$(node -p \"require('./package.json').version\") GIT_SHA=$(git rev-parse --short HEAD) && wrangler deploy --env production --tag ver:$(node -p \"require('./package.json').version\") --message GIT_SHA:$(git rev-parse --short HEAD)",
     "dev": "wrangler dev --persist-to=../../data --env dev",
     "cf-typegen": "wrangler types --strict-vars=false --env production",
