@@ -20,17 +20,15 @@
     "lint:fix": "oxlint --fix --type-aware"
   },
   "devDependencies": {
-    "@vitest/coverage-istanbul": "^3.2.x",
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
     "oxlint-tsgolint": "^0.16.0",
-    "vitest": "^3.2.x",
+    "vitest": "^4.1.0",
     "wrangler": "catalog:"
   },
   "pnpm": {
     "overrides": {
-      "minimatch": "9.0.7",
-      "rollup": "4.59.0"
+      "undici": "7.24.0"
     }
   },
   "packageManager": "pnpm@10.30.3"
