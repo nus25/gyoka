@@ -9,6 +9,7 @@ catalog:
   "wrangler": 4.70.0 
   "@cloudflare/vitest-pool-workers": 0.12.19  
   "@cloudflare/workers-types": 4.20260305.0
+  "@types/node": 25.5.0
 
 catalogMode: manual
 cleanupUnusedCatalogs: true

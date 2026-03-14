@@ -24,7 +24,7 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "catalog:",
     "@cloudflare/workers-types": "catalog:",
-    "@types/node": "^22.15.35",
+    "@types/node": "catalog:",
     "wrangler": "catalog:"
   },
   "packageManager": "pnpm@10.30.3"

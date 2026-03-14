@@ -23,7 +23,7 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "catalog:",
     "@cloudflare/workers-types": "catalog:",
-    "@types/node": "^22.15.35",
+    "@types/node": "catalog:",
     "wrangler": "catalog:",
     "@atcute/crypto": "^2.3.0"
   },
