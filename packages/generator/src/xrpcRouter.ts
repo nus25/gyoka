@@ -70,32 +70,40 @@ export function createXrpcRouter(
   envMap: WeakMap<Request, Env>,
   logger: Logger
 ): XRPCRouter {
+  const isDevMode = workerEnv.DEVELOPER_MODE === 'enabled';
   const requiredAuth = workerEnv.FEEDGEN_AUTH_REQUIRED !== 'disabled';
   const ttlSeconds = resolveDidCacheTtlSeconds(workerEnv.DID_CACHE_TTL_SECONDS);
   const requireAuth = createRequireAuth(requiredAuth, workerEnv.FEEDGEN_HOST, ttlSeconds, logger);
   const router = new XRPCRouter({
-    handleException: (error) =>
-      handleAppError(error, workerEnv.DEVELOPER_MODE === 'enabled', logger),
+    handleException: (error) => handleAppError(error, isDevMode, logger),
   });
 
   router.addQuery(AppBskyFeedGetFeedSkeleton.mainSchema, {
     async handler({ params, request }) {
-      await requireAuth(request, 'app.bsky.feed.getFeedSkeleton');
+      try {
+        await requireAuth(request, 'app.bsky.feed.getFeedSkeleton');
 
-      return getFeedSkeleton({
-        env: envMap.get(request)!,
-        request,
-        feed: params.feed,
-        limit: params.limit,
-        cursor: params.cursor,
-      });
+        return await getFeedSkeleton({
+          env: envMap.get(request)!,
+          request,
+          feed: params.feed,
+          limit: params.limit,
+          cursor: params.cursor,
+        });
+      } catch (error) {
+        return handleAppError(error, isDevMode, logger);
+      }
     },
   });
 
   router.addQuery(AppBskyFeedDescribeFeedGenerator.mainSchema, {
     async handler({ request }) {
-      await requireAuth(request, 'app.bsky.feed.describeFeedGenerator');
-      return describeFeedGenerator(envMap.get(request)!);
+      try {
+        await requireAuth(request, 'app.bsky.feed.describeFeedGenerator');
+        return await describeFeedGenerator(envMap.get(request)!);
+      } catch (error) {
+        return handleAppError(error, isDevMode, logger);
+      }
     },
   });
 

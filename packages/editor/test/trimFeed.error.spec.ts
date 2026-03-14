@@ -1,4 +1,3 @@
-import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { assertErrorResponse } from './testUtils';
@@ -35,12 +34,20 @@ describe(ENDPOINT_PATH, () => {
       expect(response.status).toBe(400);
     });
 
-    it('Given a database schema failure When trim is called Then it returns 500', async () => {
-      await insertFeed(dummyFeed);
-      const db = env.DB;
-      await db.prepare('DROP TABLE posts').run();
+    it('Given feed query throws exception When trim is called Then it returns 500', async () => {
+      const mockDb = {
+        prepare: () => ({
+          bind: () => ({
+            all: async () => {
+              throw new Error('SQLITE_ERROR: no such table: posts');
+            },
+          }),
+        }),
+      };
 
-      const { response } = await trimFeed(dummyFeed.uri, 5);
+      const { response } = await trimFeed(dummyFeed.uri, 5, {
+        DB: mockDb as unknown as D1Database,
+      });
       expect(response.status).toBe(500);
     });
 

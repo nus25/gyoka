@@ -1,6 +1,6 @@
 import type { ErrorResponse } from 'shared/src/types';
 
-import { env } from 'cloudflare:test';
+import { env } from 'cloudflare:workers';
 
 import { clearTables, expectJsonResponse, requestJson } from './testUtils';
 

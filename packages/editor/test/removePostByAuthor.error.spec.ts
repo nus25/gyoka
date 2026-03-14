@@ -1,4 +1,3 @@
-import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import {
@@ -49,12 +48,30 @@ describe(ENDPOINT_PATH, () => {
       expect(await countPostLanguagesByPostId(dummyPosts[0].id)).toBeGreaterThan(0);
     });
 
-    it('Given database schema is broken When remove by author is called Then it returns internal server error', async () => {
-      await insertFeed(dummyFeed);
-      const db = env.DB;
-      await db.prepare('DROP TABLE posts').run();
+    it('Given feed query throws exception When remove by author is called Then it returns internal server error', async () => {
+      const mockDb = {
+        prepare: (query: string) => {
+          if (query.includes('SELECT')) {
+            return {
+              bind: () => ({
+                all: async () => {
+                  throw new Error('SQLITE_ERROR: no such table: posts');
+                },
+              }),
+            };
+          }
 
-      const { response } = await removePostByAuthor(dummyFeed.uri, author1Did);
+          return {
+            bind: () => ({
+              run: async () => ({ success: true, meta: { changes: 0 } }),
+            }),
+          };
+        },
+      };
+
+      const { response } = await removePostByAuthor(dummyFeed.uri, author1Did, {
+        DB: mockDb as unknown as D1Database,
+      });
       expect(response.status).toBe(500);
     });
 

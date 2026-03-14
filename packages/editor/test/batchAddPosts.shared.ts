@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:test';
+import { env } from 'cloudflare:workers';
 
 import { expectJsonResponse, requestJson, clearTables } from './testUtils';
 

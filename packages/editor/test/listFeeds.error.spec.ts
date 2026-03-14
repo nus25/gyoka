@@ -1,4 +1,3 @@
-import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { ENDPOINT_PATH, getFeedList, resetListFeedsTable } from './listFeeds.shared';
@@ -9,14 +8,6 @@ describe(ENDPOINT_PATH, () => {
   });
 
   describe('Error cases', () => {
-    it('Given database schema is broken When list feeds is called Then it returns internal server error', async () => {
-      const db = env.DB;
-      await db.prepare('DROP TABLE feeds').run();
-
-      const { response } = await getFeedList();
-      expect(response.status).toBe(500);
-    });
-
     it('Given feed query reports failure When list feeds is called Then it returns internal server error', async () => {
       const failingDb = {
         prepare: () => ({
@@ -35,6 +26,19 @@ describe(ENDPOINT_PATH, () => {
         error: 'InternalServerError',
         message: 'Failed to fetch feeds',
       });
+    });
+
+    it('Given feed query throws exception When list feeds is called Then it returns internal server error', async () => {
+      const throwingDb = {
+        prepare: () => ({
+          all: async () => {
+            throw new Error('SQLITE_ERROR: no such table: feeds');
+          },
+        }),
+      } as unknown as D1Database;
+
+      const { response } = await getFeedList({ DB: throwingDb });
+      expect(response.status).toBe(500);
     });
   });
 });

@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:test';
+import { env } from 'cloudflare:workers';
 import { createLogger } from 'shared/src/logger';
 import { describe, expect, it, vi } from 'vitest';
 
