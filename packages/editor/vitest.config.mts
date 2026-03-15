@@ -7,6 +7,14 @@ const migrationsPath = path.join(__dirname, '../shared/migrations');
 const migrations = await readD1Migrations(migrationsPath);
 
 export default defineConfig({
+  resolve: {
+    alias: [
+      {
+        find: /^@babel\/core$/,
+        replacement: path.join(__dirname, '../shared/test/babel-core-compat.mjs'),
+      },
+    ],
+  },
   plugins: [
     cloudflareTest({
       wrangler: { configPath: './wrangler.jsonc', environment: 'test' },
@@ -20,6 +28,12 @@ export default defineConfig({
     include: ['**/*.spec.ts'],
     setupFiles: ['../shared/migrations/apply-migrations.ts'],
     silent: true,
+    coverage: {
+      enabled: false,
+      include: ['src/**/*.ts'],
+      exclude: ['**/test/**'],
+      provider: 'istanbul',
+    },
     onUnhandledError(error) {
       // Check if the error is a ZodError from Chanfana's validation and ignore it if so.
       const maybeZodError = error as {

@@ -25,6 +25,7 @@
     "@cloudflare/vitest-pool-workers": "catalog:",
     "@cloudflare/workers-types": "catalog:",
     "@types/node": "catalog:",
+    "@vitest/coverage-istanbul": "catalog:",
     "wrangler": "catalog:"
   },
   "packageManager": "pnpm@10.30.3"
