@@ -30,7 +30,8 @@
   "pnpm": {
     "overrides": {
       "minimatch": "9.0.7",
-      "rollup": "4.59.0"
+      "rollup": "4.59.0",
+      "undici": "7.24.0"
     }
   },
   "packageManager": "pnpm@10.30.3"
