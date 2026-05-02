@@ -1,6 +1,6 @@
 {
   "name": "gyoka",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": "true",
   "description": "simple feed generator for bluesky which works on cloudflare workers",
   "license": "MIT",
@@ -28,6 +28,8 @@
   },
   "pnpm": {
     "overrides": {
+      "minimatch": "9.0.7",
+      "rollup": "4.59.0",
       "undici": "7.24.0"
     }
   },

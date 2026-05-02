@@ -1,6 +1,6 @@
 # Gyoka
 
-Gyoka is a edge server for Bluesky custom feed generators, running on Cloudflare Workers.
+Gyoka is a edge server for Bluesky custom feed generators, running on Cloudflare Workers with D1 database.
 It serves feed skeletons to Bluesky/AppView and provides an API to manage the post list for each feed.
 
 To populate feeds, you need a separate post-collection component that discovers relevant posts
