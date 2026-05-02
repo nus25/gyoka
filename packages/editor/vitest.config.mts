@@ -7,14 +7,6 @@ const migrationsPath = path.join(__dirname, '../shared/migrations');
 const migrations = await readD1Migrations(migrationsPath);
 
 export default defineConfig({
-  resolve: {
-    alias: [
-      {
-        find: /^@babel\/core$/,
-        replacement: path.join(__dirname, '../shared/test/babel-core-compat.mjs'),
-      },
-    ],
-  },
   plugins: [
     cloudflareTest({
       wrangler: { configPath: './wrangler.jsonc', environment: 'test' },
