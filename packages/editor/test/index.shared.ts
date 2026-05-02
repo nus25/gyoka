@@ -1,4 +1,5 @@
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { env } from 'cloudflare:workers';
 
 import app from '../src/index';
 import { TEST_API_KEY } from './testUtils';

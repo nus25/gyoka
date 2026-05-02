@@ -1,4 +1,3 @@
-import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { ENDPOINT_PATH, registerFeed, resetRegisterFeedTables } from './registerFeed.shared';
@@ -30,11 +29,21 @@ describe(ENDPOINT_PATH, () => {
       expect(json.message).toBeDefined();
     });
 
-    it('Given database schema is broken When register feed is called Then it returns internal server error', async () => {
-      const db = env.DB;
-      await db.prepare('DROP TABLE feeds').run();
+    it('Given feed insert throws exception When register feed is called Then it returns internal server error', async () => {
+      const mockDb = {
+        prepare: () => ({
+          bind: () => ({
+            run: async () => {
+              throw new Error('SQLITE_ERROR: no such table: feeds');
+            },
+          }),
+        }),
+      };
+
       const feed = { uri: 'at://did:plc:testuser/app.bsky.feed.generator/feed4', isActive: true };
-      const { response, json } = await registerFeed(feed);
+      const { response, json } = await registerFeed(feed, {
+        DB: mockDb as unknown as D1Database,
+      });
       expect(response.status).toBe(500);
       expect(json).toEqual({
         error: 'InternalServerError',

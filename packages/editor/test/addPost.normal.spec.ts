@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:test';
+import { env } from 'cloudflare:workers';
 import { All_LANGS } from 'shared/src/constants';
 import { describe, it, expect, beforeEach } from 'vitest';
 

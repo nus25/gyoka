@@ -1,4 +1,3 @@
-import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { assertErrorResponse } from './testUtils';
@@ -33,11 +32,20 @@ describe(ENDPOINT_PATH, () => {
       expect(json.message).toBeDefined();
     });
 
-    it('Given database schema is broken When unregister feed is called Then it returns internal server error', async () => {
-      const db = env.DB;
-      await db.prepare('DROP TABLE feeds').run();
+    it('Given feed query throws exception When unregister feed is called Then it returns internal server error', async () => {
+      const throwingDb = {
+        prepare: () => ({
+          bind: () => ({
+            all: async () => {
+              throw new Error('SQLITE_ERROR: no such table: feeds');
+            },
+          }),
+        }),
+      };
 
-      const { response, json } = await unregisterFeed(DEFAULT_FEED_URI);
+      const { response, json } = await unregisterFeed(DEFAULT_FEED_URI, {
+        DB: throwingDb as unknown as D1Database,
+      });
       expect(response.status).toBe(500);
       assertErrorResponse(json);
       expect(json.error).toBe('InternalServerError');

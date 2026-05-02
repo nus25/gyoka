@@ -1,4 +1,3 @@
-import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import {
@@ -80,12 +79,26 @@ describe(ENDPOINT_PATH, () => {
       });
     });
 
-    it('Given database schema is broken When add post is called Then it returns internal server error', async () => {
-      await insertFeed(dummyFeed);
-      const db = env.DB;
-      await db.prepare('DROP TABLE posts').run();
+    it('Given post insert throws exception When add post is called Then it returns internal server error', async () => {
+      const mockEnv: Partial<Env> = {
+        DB: {
+          prepare: () => ({
+            bind: (...bindArgs: unknown[]) => {
+              if (bindArgs.length === 6) {
+                return {
+                  all: async () => {
+                    throw new Error('SQLITE_ERROR: no such table: posts');
+                  },
+                };
+              }
+              return {};
+            },
+          }),
+          batch: async () => [{ success: true }],
+        } as unknown as D1Database,
+      };
 
-      const { response } = await addPost(dummyFeed.uri, dummyPost);
+      const { response } = await addPost(dummyFeed.uri, dummyPost, mockEnv);
       expect(response.status).toBe(500);
     });
 

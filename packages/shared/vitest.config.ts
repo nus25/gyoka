@@ -6,7 +6,7 @@ export default defineConfig({
     include: ['**/*.spec.ts', '**/*.test.ts'],
     coverage: {
       include: ['src/**/*.{ts,tsx}'],
-      provider: 'istanbul',
+      provider: 'v8',
     },
     silent: true,
   },

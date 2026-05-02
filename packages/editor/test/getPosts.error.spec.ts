@@ -1,4 +1,3 @@
-import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import {
@@ -40,12 +39,34 @@ describe(ENDPOINT_PATH, () => {
       expect(response.status).toBe(400);
     });
 
-    it('Given database schema is broken When get posts is called Then it returns internal server error', async () => {
-      await insertFeed(dummyFeed);
-      const db = env.DB;
-      await db.prepare('DROP TABLE posts').run();
+    it('Given posts query throws exception When get posts is called Then it returns internal server error', async () => {
+      let queryCount = 0;
+      const throwingPostsQueryEnv: Partial<Env> = {
+        DB: {
+          prepare: () => ({
+            bind: () => ({
+              all: async () => {
+                queryCount += 1;
+                if (queryCount === 1) {
+                  return {
+                    success: true,
+                    results: [{ feed_id: 1 }],
+                  };
+                }
 
-      const { response } = await getPosts(dummyFeed.uri);
+                throw new Error('SQLITE_ERROR: no such table: posts');
+              },
+            }),
+          }),
+        } as unknown as D1Database,
+      };
+
+      const { response } = await getPosts(
+        dummyFeed.uri,
+        undefined,
+        undefined,
+        throwingPostsQueryEnv
+      );
       expect(response.status).toBe(500);
     });
 

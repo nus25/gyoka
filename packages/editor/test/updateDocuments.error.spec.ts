@@ -1,4 +1,3 @@
-import { env } from 'cloudflare:test';
 import { DOCUMENT_TYPES } from 'shared/src/constants';
 import { describe, it, expect, beforeEach } from 'vitest';
 
@@ -58,15 +57,24 @@ describe(ENDPOINT_PATH, () => {
       expect(response.status).toBe(400);
     });
 
-    it('Given database schema is broken When update document is called Then it returns internal server error', async () => {
-      const db = env.DB;
-      await db.prepare('DROP TABLE documents').run();
+    it('Given update operation throws exception When update document is called Then it returns internal server error', async () => {
+      const throwingEnv: Partial<Env> = {
+        DB: {
+          prepare: () => ({
+            bind: () => ({
+              run: async () => {
+                throw new Error('SQLITE_ERROR: no such table: documents');
+              },
+            }),
+          }),
+        } as unknown as D1Database,
+      };
 
       const request = {
         type: DOCUMENT_TYPES.TOS,
       };
 
-      const { response } = await updateDocument(request);
+      const { response } = await updateDocument(request, throwingEnv);
       expect(response.status).toBe(500);
     });
 

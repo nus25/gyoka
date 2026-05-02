@@ -1,20 +1,30 @@
 packages:
   - packages/*
 
-minimumReleaseAge: 1440 # 24 hours
-trustPolicy: no-downgrade
 blockExoticSubdeps: true
 
 catalog:
-  "wrangler": 4.70.0 
-  "@cloudflare/vitest-pool-workers": 0.12.19  
-  "@cloudflare/workers-types": 4.20260305.0
-  "@types/node": 25.5.0
+  '@cloudflare/vitest-pool-workers': 0.15.2
+  '@cloudflare/workers-types': 4.20260501.1
+  '@types/node': 25.5.0
+  'vite': 7.3.2
+  'vitest': 4.1.5
+  '@vitest/coverage-istanbul': 4.1.5
+  wrangler: 4.87.0
+  hono: 4.12.16
 
 catalogMode: manual
+
 cleanupUnusedCatalogs: true
+
+minimumReleaseAge: 1440 # 24 hours
 
 onlyBuiltDependencies:
   - esbuild
   - sharp
   - workerd
+
+trustPolicy: no-downgrade
+
+trustPolicyExclude:
+  - semver@6.3.1
