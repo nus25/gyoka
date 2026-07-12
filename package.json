@@ -28,7 +28,9 @@
     "wrangler": "catalog:"
   },
   "pnpm": {
-    "overrides": {}
+    "overrides": {
+      "js-yaml": "4.2.0"
+    }
   },
   "packageManager": "pnpm@10.30.3"
 }
