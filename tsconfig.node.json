@@ -20,7 +20,7 @@
     "outDir": "",
     "target": "esnext",
     "module": "esnext",
-    "types": ["node", "@cloudflare/workers-types/2023-07-01"]
+    "types": ["node"]
   },
   "exclude": ["node_modules", "dist", "tests"]
 }
