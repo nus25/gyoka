@@ -1,6 +1,11 @@
 packages:
   - packages/*
 
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+
 blockExoticSubdeps: true
 
 catalog:
@@ -12,6 +17,9 @@ catalog:
   '@vitest/coverage-istanbul': 4.1.10
   wrangler: 4.110.0
   hono: 4.12.29
+
+override:
+  'js-yaml': 4.2.0
 
 catalogMode: manual
 
