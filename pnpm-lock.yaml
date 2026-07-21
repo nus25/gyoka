@@ -103,8 +103,8 @@ importers:
         specifier: 2.0.3
         version: 2.0.3
       '@atcute/xrpc-server':
-        specifier: ^0.1.11
-        version: 0.1.11
+        specifier: 2.0.2
+        version: 2.0.2(@atcute/cid@2.4.1)(@atcute/lexicons@2.0.3)
       shared:
         specifier: workspace:*
         version: link:../shared
@@ -173,8 +173,10 @@ packages:
     peerDependencies:
       '@atcute/lexicons': ^2.0.0
 
-  '@atcute/cbor@2.3.2':
-    resolution: {integrity: sha512-xP2SORSau/VVI00x2V4BjwIkHr6EQ7l/MXEOPaa4LGYtePFc4gnD4L1yN10dT5NEuUnvGEuCh6arLB7gz1smVQ==}
+  '@atcute/cbor@2.3.6':
+    resolution: {integrity: sha512-Ml/G8i6KK5UWSx1kxgm41eTYm1EQ6O2fNWSXMJ5DxoQv/lmZ0Hmk7dmHda2seRE+Cj2X3HJKAuD9cQRh3m2P7A==}
+    peerDependencies:
+      '@atcute/cid': ^2.0.0
 
   '@atcute/cid@2.4.1':
     resolution: {integrity: sha512-bwhna69RCv7yetXudtj+2qrMPYvhhIQqvJz6YUpUS98v7OdF3X2dnye9Nig2NDrklZcuyOsu7sQo7GOykJXRLQ==}
@@ -182,10 +184,8 @@ packages:
   '@atcute/crypto@2.3.0':
     resolution: {integrity: sha512-w5pkJKCjbNMQu+F4JRHbR3ROQyhi1wbn+GSC6WDQamcYHkZmEZk1/eoI354bIQOOfkEM6aFLv718iskrkon4GQ==}
 
-  '@atcute/identity-resolver@1.2.2':
-    resolution: {integrity: sha512-eUh/UH4bFvuXS0X7epYCeJC/kj4rbBXfSRumLEH4smMVwNOgTo7cL/0Srty+P/qVPoZEyXdfEbS0PHJyzoXmHw==}
-    peerDependencies:
-      '@atcute/identity': ^1.0.0
+  '@atcute/crypto@2.4.4':
+    resolution: {integrity: sha512-Yc7lXz4ndDjbs+/WrKeGS+sVEr+sx8xi5zSVInKNl0FAEY6KbvcT+bjaU9A3erUVviFp9yEcu/1aSg/f+GPpBg==}
 
   '@atcute/identity-resolver@2.0.1':
     resolution: {integrity: sha512-0enA9w7XnbbqsZ5Rcl6jXLf7ZZuwFQ9dBmxFq3qOxPHLaCETsqsrQflXDPqiM27TnZwYq8sqCV5D1mFOksggDQ==}
@@ -193,16 +193,10 @@ packages:
       '@atcute/identity': ^2.0.0
       '@atcute/lexicons': ^2.0.0
 
-  '@atcute/identity@1.1.3':
-    resolution: {integrity: sha512-oIqPoI8TwWeQxvcLmFEZLdN2XdWcaLVtlm8pNk0E72As9HNzzD9pwKPrLr3rmTLRIoULPPFmq9iFNsTeCIU9ng==}
-
   '@atcute/identity@2.0.2':
     resolution: {integrity: sha512-amr/EQceqVtBVmjBK4uUF7nKKYuRttadigpvOcAn4dnO6SNSwSjQi8KDH9LnukEotPsSP4UDsQvNfHWEoUcslw==}
     peerDependencies:
       '@atcute/lexicons': ^2.0.0
-
-  '@atcute/lexicons@1.2.9':
-    resolution: {integrity: sha512-/RRHm2Cw9o8Mcsrq0eo8fjS9okKYLGfuFwrQ0YoP/6sdSDsXshaTLJsvLlcUcaDaSJ1YFOuHIo3zr2Om2F/16g==}
 
   '@atcute/lexicons@2.0.3':
     resolution: {integrity: sha512-rs3WqZIQ7lhSYXEvRU/x9rBMY2/fzvrsTgTf2/bgt+MgIQqOKAMySK3TWqfrvesGHDLxFlunHE3uMXeNdEC90Q==}
@@ -213,26 +207,25 @@ packages:
   '@atcute/multibase@1.1.8':
     resolution: {integrity: sha512-pJgtImMZKCjqwRbu+2GzB+4xQjKBXDwdZOzeqe0u97zYKRGftpGYGvYv3+pMe2xXe+msDyu7Nv8iJp+U14otTA==}
 
+  '@atcute/multibase@1.2.5':
+    resolution: {integrity: sha512-cReTONgYpQo/VHD3ZmzPNoyBKJgSk1J4h//cvvdVVJBMar+SjlQ/sUXeTjQfuyfmDKv+TLKhmutLcvbMcQ9Rvw==}
+
   '@atcute/uint8array@1.1.1':
     resolution: {integrity: sha512-3LsC8XB8TKe9q/5hOA5sFuzGaIFdJZJNewC5OKa3o/eU6+K7JR6see9Zy2JbQERNVnRl11EzbNov1efgLMAs4g==}
 
   '@atcute/uint8array@1.1.5':
     resolution: {integrity: sha512-1SFCXOtjE3ismP92CqzbOfYSwJmPPPFbj798wLXSpLv2hSd5OIaUrTh6EqRVR1VZ3ZhR+vaBmd3kxAN0wkw+gQ==}
 
-  '@atcute/util-fetch@1.0.5':
-    resolution: {integrity: sha512-qjHj01BGxjSjIFdPiAjSARnodJIIyKxnCMMEcXMESo9TAyND6XZQqrie5fia+LlYWVXdpsTds8uFQwc9jdKTig==}
-
   '@atcute/util-fetch@2.0.2':
     resolution: {integrity: sha512-I0oenHlJjwRpWPyAJojox5H0z9NthhdMFaEjtkxyjo85VPPxk1vMJk/1ZjMJsrs1SgHhB3spazEWzV5DW8w70A==}
-
-  '@atcute/util-text@1.1.1':
-    resolution: {integrity: sha512-JH0SxzUQJAmbOBTYyhxQbkkI6M33YpjlVLEcbP5GYt43xgFArzV0FJVmEpvIj0kjsmphHB45b6IitdvxPdec9w==}
 
   '@atcute/util-text@1.3.4':
     resolution: {integrity: sha512-u2UAM7iSM09sQaSG9jtxWFSPgB8boVj50/BoyMvYnhVgGBu+nXIuAcdDUQCsZA44YZgTPPhN/b86JX+jH7SPzQ==}
 
-  '@atcute/xrpc-server@0.1.11':
-    resolution: {integrity: sha512-KapH0UDvNovtQ0anbLKAh24Of5vNqLXEkK08DXQF5o59xG7fYaGeaDXS7VBSUzyd7eu3KXcTgXhzx7Ez8W2N1w==}
+  '@atcute/xrpc-server@2.0.2':
+    resolution: {integrity: sha512-tjOAqJfrBOwit6ccKg5s/eosvzoHmRszafS008/VP0yYdZkiBcSgYpy9S32e4aVoKeVurudBZjGD937bMcLg1Q==}
+    peerDependencies:
+      '@atcute/lexicons': ^2.0.0
 
   '@babel/code-frame@7.29.0':
     resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
@@ -300,10 +293,6 @@ packages:
   '@babel/types@7.29.0':
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
-
-  '@badrap/valita@0.4.6':
-    resolution: {integrity: sha512-4kdqcjyxo/8RQ8ayjms47HCWZIF5981oE5nIenbfThKDxWXtEHKipAOWlflpPJzZx9y/JWYQkp18Awr7VuepFg==}
-    engines: {node: '>= 18'}
 
   '@cloudflare/kv-asset-handler@0.5.0':
     resolution: {integrity: sha512-jxQYkj8dSIzc0cD6cMMNdOc1UVjqSqu8BZdor5s8cGjW2I8BjODt/kWPVdY+u9zj3ms75Q5qaZgnxUad83+eAg==}
@@ -868,6 +857,9 @@ packages:
 
   '@noble/secp256k1@3.0.0':
     resolution: {integrity: sha512-NJBaR352KyIvj3t6sgT/+7xrNyF9Xk9QlLSIqUGVUYlsnDTAUqY8LOmwpcgEx4AMJXRITQ5XEVHD+mMaPfr3mg==}
+
+  '@noble/secp256k1@3.1.0':
+    resolution: {integrity: sha512-+F7iS7tUMaNGXcc9X3PjmjvuQnXEuSjCRNzVVA2xAcKXgCaP0dHYz4SFyt4FKNHef7sOP//xihowcySSS7PK9g==}
 
   '@oxfmt/binding-android-arm-eabi@0.59.0':
     resolution: {integrity: sha512-bNTnfbuG7sAwb2PakMNaDukx5kXeW9duXOBeWtTOiLz3fXz3q2DlWguufPZ+c2IHEVrRXHD+M4aUgEWm841LDA==}
@@ -1521,9 +1513,9 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@5.1.6:
-    resolution: {integrity: sha512-c7+7RQ+dMB5dPwwCp4ee1/iV/q2P6aK1mTZcfr1BTuVlyW9hJYiMPybJCcnBlQtuSmTIWNeazm/zqNoZSSElBg==}
-    engines: {node: ^18 || >=20}
+  nanoid@6.0.0:
+    resolution: {integrity: sha512-mkUH+rPkwU2qPadJ0oJZOjeZ5Mxn8Q1UhevwkTRWNuUZzyia3h4rhzK39hxaHTk0o2OxB8W2SQ6A8k23ZDi1pQ==}
+    engines: {node: ^22 || ^24 || >=26}
     hasBin: true
 
   node-releases@2.0.36:
@@ -1652,9 +1644,6 @@ packages:
 
   unenv@2.0.0-rc.24:
     resolution: {integrity: sha512-i7qRCmY42zmCwnYlh9H2SvLEypEFGye5iRmEMKjcGi7zk9UquigRjFtTLz0TYqr0ZGLZhaMHl/foy1bZR+Cwlw==}
-
-  unicode-segmenter@0.14.5:
-    resolution: {integrity: sha512-jHGmj2LUuqDcX3hqY12Ql+uhUTn8huuxNZGq7GvtF6bSybzH3aFgedYu/KTzQStEgt1Ra2F3HxadNXsNjb3m3g==}
 
   unicode-segmenter@0.17.0:
     resolution: {integrity: sha512-rN+u/LmZx2SISURhq2vy+JeQmmf+9lFVsdVgvFJHa6wL42h3ojnYaS/UK4Fgsjku9C2P23WB/JK5sQWeBaZt+A==}
@@ -1826,16 +1815,16 @@ snapshots:
       '@atcute/atproto': 4.0.3(@atcute/lexicons@2.0.3)
       '@atcute/lexicons': 2.0.3
 
-  '@atcute/cbor@2.3.2':
+  '@atcute/cbor@2.3.6(@atcute/cid@2.4.1)':
     dependencies:
       '@atcute/cid': 2.4.1
-      '@atcute/multibase': 1.1.8
-      '@atcute/uint8array': 1.1.1
+      '@atcute/multibase': 1.2.5
+      '@atcute/uint8array': 1.1.5
 
   '@atcute/cid@2.4.1':
     dependencies:
       '@atcute/multibase': 1.1.8
-      '@atcute/uint8array': 1.1.1
+      '@atcute/uint8array': 1.1.5
 
   '@atcute/crypto@2.3.0':
     dependencies:
@@ -1843,12 +1832,11 @@ snapshots:
       '@atcute/uint8array': 1.1.1
       '@noble/secp256k1': 3.0.0
 
-  '@atcute/identity-resolver@1.2.2(@atcute/identity@1.1.3)':
+  '@atcute/crypto@2.4.4':
     dependencies:
-      '@atcute/identity': 1.1.3
-      '@atcute/lexicons': 1.2.9
-      '@atcute/util-fetch': 1.0.5
-      '@badrap/valita': 0.4.6
+      '@atcute/multibase': 1.2.5
+      '@atcute/uint8array': 1.1.5
+      '@noble/secp256k1': 3.1.0
 
   '@atcute/identity-resolver@2.0.1(@atcute/identity@2.0.2(@atcute/lexicons@2.0.3))(@atcute/lexicons@2.0.3)':
     dependencies:
@@ -1859,24 +1847,12 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@atcute/identity@1.1.3':
-    dependencies:
-      '@atcute/lexicons': 1.2.9
-      '@badrap/valita': 0.4.6
-
   '@atcute/identity@2.0.2(@atcute/lexicons@2.0.3)':
     dependencies:
       '@atcute/lexicons': 2.0.3
       valibot: 1.4.2
     transitivePeerDependencies:
       - typescript
-
-  '@atcute/lexicons@1.2.9':
-    dependencies:
-      '@atcute/uint8array': 1.1.1
-      '@atcute/util-text': 1.1.1
-      '@standard-schema/spec': 1.1.0
-      esm-env: 1.2.2
 
   '@atcute/lexicons@2.0.3':
     dependencies:
@@ -1887,19 +1863,19 @@ snapshots:
 
   '@atcute/multibase@1.1.7':
     dependencies:
-      '@atcute/uint8array': 1.1.1
+      '@atcute/uint8array': 1.1.5
 
   '@atcute/multibase@1.1.8':
     dependencies:
-      '@atcute/uint8array': 1.1.1
+      '@atcute/uint8array': 1.1.5
+
+  '@atcute/multibase@1.2.5':
+    dependencies:
+      '@atcute/uint8array': 1.1.5
 
   '@atcute/uint8array@1.1.1': {}
 
   '@atcute/uint8array@1.1.5': {}
-
-  '@atcute/util-fetch@1.0.5':
-    dependencies:
-      '@badrap/valita': 0.4.6
 
   '@atcute/util-fetch@2.0.2':
     dependencies:
@@ -1907,25 +1883,24 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@atcute/util-text@1.1.1':
-    dependencies:
-      unicode-segmenter: 0.14.5
-
   '@atcute/util-text@1.3.4':
     dependencies:
       unicode-segmenter: 0.17.0
 
-  '@atcute/xrpc-server@0.1.11':
+  '@atcute/xrpc-server@2.0.2(@atcute/cid@2.4.1)(@atcute/lexicons@2.0.3)':
     dependencies:
-      '@atcute/cbor': 2.3.2
-      '@atcute/crypto': 2.3.0
-      '@atcute/identity': 1.1.3
-      '@atcute/identity-resolver': 1.2.2(@atcute/identity@1.1.3)
-      '@atcute/lexicons': 1.2.9
-      '@atcute/multibase': 1.1.8
-      '@atcute/uint8array': 1.1.1
-      '@badrap/valita': 0.4.6
-      nanoid: 5.1.6
+      '@atcute/cbor': 2.3.6(@atcute/cid@2.4.1)
+      '@atcute/crypto': 2.4.4
+      '@atcute/identity': 2.0.2(@atcute/lexicons@2.0.3)
+      '@atcute/identity-resolver': 2.0.1(@atcute/identity@2.0.2(@atcute/lexicons@2.0.3))(@atcute/lexicons@2.0.3)
+      '@atcute/lexicons': 2.0.3
+      '@atcute/multibase': 1.2.5
+      '@atcute/uint8array': 1.1.5
+      nanoid: 6.0.0
+      valibot: 1.4.2
+    transitivePeerDependencies:
+      - '@atcute/cid'
+      - typescript
 
   '@babel/code-frame@7.29.0':
     dependencies:
@@ -2026,8 +2001,6 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
-
-  '@badrap/valita@0.4.6': {}
 
   '@cloudflare/kv-asset-handler@0.5.0': {}
 
@@ -2370,6 +2343,8 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   '@noble/secp256k1@3.0.0': {}
+
+  '@noble/secp256k1@3.1.0': {}
 
   '@oxfmt/binding-android-arm-eabi@0.59.0':
     optional: true
@@ -2856,7 +2831,7 @@ snapshots:
 
   nanoid@3.3.12: {}
 
-  nanoid@5.1.6: {}
+  nanoid@6.0.0: {}
 
   node-releases@2.0.36: {}
 
@@ -3039,8 +3014,6 @@ snapshots:
   unenv@2.0.0-rc.24:
     dependencies:
       pathe: 2.0.3
-
-  unicode-segmenter@0.14.5: {}
 
   unicode-segmenter@0.17.0: {}
 

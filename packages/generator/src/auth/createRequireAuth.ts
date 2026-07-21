@@ -1,3 +1,5 @@
+import type { AtprotoAudience } from '@atcute/lexicons/syntax';
+
 import { normalizeWebDid } from '@atcute/identity';
 import {
   CompositeDidDocumentResolver,
@@ -14,12 +16,13 @@ import { createDidResolverFetch } from './didResolverFetch';
 const authErrorMessage = 'Missing or invalid authentication credentials';
 
 export function createRequireAuth(
-  requiedAuth: boolean,
+  requiredAuth: boolean,
   host: string,
   ttlSeconds: number,
   logger: Logger
 ) {
   const serviceDid = normalizeWebDid(`did:web:${host}`);
+  const serviceAudience: AtprotoAudience = (serviceDid + '#atproto') as AtprotoAudience;
   const didResolverFetch = createDidResolverFetch(ttlSeconds, logger);
   const didDocResolver = new CompositeDidDocumentResolver({
     methods: {
@@ -33,35 +36,27 @@ export function createRequireAuth(
   });
 
   const jwtVerifier = new ServiceJwtVerifier({
-    serviceDid,
+    acceptAudiences: [serviceDid, serviceAudience],
     resolver: didDocResolver,
   });
 
   return async (request: Request, lxm: Nsid): Promise<VerifiedJwt | null> => {
-    if (!requiedAuth) {
+    if (!requiredAuth) {
       return null;
     }
 
-    const auth = request.headers.get('authorization');
-    if (auth === null) {
-      throw new AuthRequiredError({ description: authErrorMessage });
-    }
-    if (!auth.startsWith('Bearer ')) {
-      throw new AuthRequiredError({ description: authErrorMessage });
-    }
-
-    const jwtString = auth.slice('Bearer '.length).trim();
-
-    const result = await jwtVerifier.verify(jwtString, { lxm });
-    if (!result.ok) {
-      if ('error' in result) {
-        throw new AuthRequiredError({ description: authErrorMessage });
+    try {
+      return await jwtVerifier.verifyRequest(request, { lxm });
+    } catch (error) {
+      if (error instanceof AuthRequiredError) {
+        throw new AuthRequiredError({
+          message: authErrorMessage,
+          headers: error.headers,
+        });
       }
-      // this case should not happen
-      /* istanbul ignore next -- @preserve*/
-      throw new AuthRequiredError({ description: 'invalid authorization token' });
-    }
 
-    return result.value;
+      // Keep the auth response shape stable for unexpected verifier failures.
+      throw new AuthRequiredError({ message: authErrorMessage });
+    }
   };
 }

@@ -9,7 +9,7 @@ export function handleAppError(err: unknown, devMode: boolean, logger: Logger): 
     const details: Record<string, unknown> = {
       errorCode: err.error,
       status: err.status,
-      message: err.description,
+      message: err.message,
     };
 
     if (devMode) {
