@@ -1,0 +1,42 @@
+{
+  "name": "gyoka-editor-atproto",
+  "version": "0.9.3",
+  "license": "MIT",
+  "author": "Nus",
+  "type": "module",
+  "scripts": {
+    "postinstall": "node ../shared/scripts/copy-config.js",
+    "deploy": "echo VERSION=$(node -p \"require('./package.json').version\") GIT_SHA=$(git rev-parse --short HEAD) && wrangler deploy --env production --tag ver:$(node -p \"require('./package.json').version\") --message GIT_SHA:$(git rev-parse --short HEAD)",
+    "dev": "wrangler dev --persist-to=../../data --env dev",
+    "generate": "pnpm run generate:lexicons",
+    "generate:lexicons": "lex-cli generate --config lex.config.js",
+    "cf-typegen": "wrangler types --strict-vars=false --env production",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@atcute/identity": "2.0.2",
+    "@atcute/identity-resolver": "2.0.1",
+    "@atcute/lexicons": "2.0.3",
+    "@atcute/xrpc-server": "2.0.2",
+    "shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@atcute/crypto": "2.3.0",
+    "@atcute/lex-cli": "2.0.3",
+    "@cloudflare/vitest-pool-workers": "catalog:",
+    "@cloudflare/workers-types": "catalog:",
+    "@types/node": "catalog:",
+    "@vitest/coverage-istanbul": "catalog:",
+    "wrangler": "catalog:"
+  },
+  "atcute:lexicons": {
+    "mappings": {
+      "net.nusno.gyoka.*": {
+        "type": "namespace",
+        "path": "./src/lexicons/{{nsid_remainder}}"
+      }
+    }
+  },
+  "packageManager": "pnpm@11.15.1"
+}

@@ -7,6 +7,7 @@
   "author": "Nus",
   "scripts": {
     "editor": "pnpm -F gyoka-editor",
+    "editor-atproto": "pnpm -F gyoka-editor-atproto",
     "generator": "pnpm -F gyoka-generator",
     "shared": "pnpm -F shared",
     "d1-create": "wrangler d1 create gyoka-db --binding=DB",

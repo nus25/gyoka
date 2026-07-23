@@ -1,0 +1,70 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "gyoka-editor-atproto",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-02-05",
+  "minify": false,
+  "env": {
+    "test": {
+      "vars": {
+        "GYOKA_EDITOR_HOST": "editor.test.example.com",
+        "GYOKA_EDITOR_AUTH_REQUIRED": "disabled",
+        "GYOKA_EDITOR_ADMIN_DIDS": "did:plc:testadmin000000000000000000",
+        "DID_CACHE_TTL_SECONDS": "86400",
+        "DEVELOPER_MODE": "enabled"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "gyoka-db",
+          "database_id": "test_id"
+        }
+      ]
+    },
+    "dev": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "gyoka-db",
+          "database_id": "dev_id"
+        }
+      ],
+      "vars": {
+        "GYOKA_EDITOR_HOST": "editor.dev.example.com",
+        "GYOKA_EDITOR_AUTH_REQUIRED": "disabled",
+        "GYOKA_EDITOR_ADMIN_DIDS": "did:plc:developer000000000000000000",
+        "DID_CACHE_TTL_SECONDS": "86400",
+        "DEVELOPER_MODE": "enabled"
+      }
+    },
+    "production": {
+      "preview_urls": false,
+      "workers_dev": true,
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1.0
+      },
+      "vars": {
+        "GYOKA_EDITOR_HOST": "editor.example.com",
+        "GYOKA_EDITOR_AUTH_REQUIRED": "enabled",
+        "GYOKA_EDITOR_ADMIN_DIDS": "did:example:admin",
+        "DID_CACHE_TTL_SECONDS": "86400",
+        "DEVELOPER_MODE": "disabled",
+        "D1_USE_SESSION": "enabled",
+        "VERSION": "0.0.0",
+        "GIT_SHA": "unknown"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "gyoka-db",
+          "database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        }
+      ]
+    }
+  }
+}
