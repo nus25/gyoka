@@ -55,7 +55,7 @@
           "description": "Returned when the authenticated caller is not in the admin allowlist."
         },
         {
-          "name": "InvalidRequest",
+          "name": "BadRequest",
           "description": "Returned when request payload validation fails."
         },
         {
