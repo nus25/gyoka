@@ -1,0 +1,99 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.removePost",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Remove a post from a registered Gyoka feed.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "post"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "post": {
+              "type": "ref",
+              "ref": "#postRef"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["message", "feed", "post"],
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "post": {
+              "type": "ref",
+              "ref": "#postResult"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when the request payload is invalid."
+        },
+        {
+          "name": "NotFound",
+          "description": "Returned when the feed or post to remove does not exist."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when the post cannot be removed."
+        }
+      ]
+    },
+    "postRef": {
+      "type": "object",
+      "required": ["uri"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the app.bsky.feed.post record to remove."
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "If provided, only the matching post instance at this timestamp is removed."
+        }
+      }
+    },
+    "postResult": {
+      "type": "object",
+      "required": ["uri", "indexedAt"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    }
+  }
+}

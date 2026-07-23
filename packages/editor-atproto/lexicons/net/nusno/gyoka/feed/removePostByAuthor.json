@@ -1,0 +1,74 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.removePostByAuthor",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Remove all posts by a specific author from a registered Gyoka feed.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "author"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "author": {
+              "type": "string",
+              "format": "did",
+              "description": "DID of the post author whose posts should be removed."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["message", "feed", "author", "deletedCount"],
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "author": {
+              "type": "string",
+              "format": "did"
+            },
+            "deletedCount": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when the request payload is invalid."
+        },
+        {
+          "name": "UnknownFeed",
+          "description": "Returned when the target feed URI is not registered."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when the posts cannot be removed."
+        }
+      ]
+    }
+  }
+}

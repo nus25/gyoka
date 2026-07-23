@@ -1,0 +1,77 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.document.updateDocument",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Update the stored document body and URL for a Gyoka document type.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["type"],
+          "nullable": ["url", "content"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "knownValues": ["tos", "privacy_policy"],
+              "description": "Document type to update."
+            },
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 2048,
+              "description": "Optional source URL for the document."
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 32768,
+              "description": "Optional inline content for the document."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["type", "url", "content"],
+          "nullable": ["url", "content"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "knownValues": ["tos", "privacy_policy"]
+            },
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 2048
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when the request payload is invalid."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when the document cannot be updated."
+        }
+      ]
+    }
+  }
+}

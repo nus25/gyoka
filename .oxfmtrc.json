@@ -26,6 +26,7 @@
     "**/pnpm-workspace.yaml",
     "**/.dev.vars",
     "**/.git/",
-    "**/data/"
+    "**/data/",
+    "**/packages/editor-atproto/src/lexicons/"
   ]
 }

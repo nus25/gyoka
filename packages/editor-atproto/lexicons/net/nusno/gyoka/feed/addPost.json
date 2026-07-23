@@ -1,0 +1,159 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.addPost",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Add a post to a registered Gyoka feed.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "post"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri",
+              "description": "AT-URI of the feed generator record receiving the post."
+            },
+            "post": {
+              "type": "ref",
+              "ref": "#postInput"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["message", "feed", "post"],
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "post": {
+              "type": "ref",
+              "ref": "#postView"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when the request payload is invalid or the post fields cannot be normalized."
+        },
+        {
+          "name": "UnknownFeed",
+          "description": "Returned when the target feed URI is not registered."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when the post cannot be stored."
+        }
+      ]
+    },
+    "postInput": {
+      "type": "object",
+      "required": ["uri", "cid"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the app.bsky.feed.post record to add."
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid",
+          "description": "CID of the post record."
+        },
+        "languages": {
+          "type": "array",
+          "description": "Optional language tags for the post. The wildcard '*' is accepted, and non-wildcard values are normalized to primary language subtags.",
+          "items": {
+            "type": "string",
+            "description": "A BCP-47 language tag or the wildcard '*'."
+          }
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp used for feed ordering. Defaults to the current time when omitted."
+        },
+        "feedContext": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Context passed through to the client and feed generator."
+        },
+        "reason": {
+          "type": "union",
+          "refs": ["#skeletonReasonRepost", "#skeletonReasonPin"],
+          "closed": true,
+          "description": "Reason for including the post in the feed skeleton."
+        }
+      }
+    },
+    "postView": {
+      "type": "object",
+      "required": ["uri", "cid", "languages", "indexedAt"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Normalized primary language tag or '*'."
+          }
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "feedContext": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "reason": {
+          "type": "union",
+          "refs": ["#skeletonReasonRepost", "#skeletonReasonPin"],
+          "closed": true
+        }
+      }
+    },
+    "skeletonReasonRepost": {
+      "type": "object",
+      "required": ["repost"],
+      "properties": {
+        "repost": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the app.bsky.feed.repost record associated with this reason."
+        }
+      }
+    },
+    "skeletonReasonPin": {
+      "type": "object",
+      "properties": {}
+    }
+  }
+}

@@ -1,3 +1,13 @@
+export * as NetNusnoGyokaDocumentUpdateDocument from "./types/net/nusno/gyoka/document/updateDocument.js";
+export * as NetNusnoGyokaFeedAddPost from "./types/net/nusno/gyoka/feed/addPost.js";
+export * as NetNusnoGyokaFeedBatchAddPosts from "./types/net/nusno/gyoka/feed/batchAddPosts.js";
+export * as NetNusnoGyokaFeedBatchRemovePosts from "./types/net/nusno/gyoka/feed/batchRemovePosts.js";
+export * as NetNusnoGyokaFeedGetPosts from "./types/net/nusno/gyoka/feed/getPosts.js";
 export * as NetNusnoGyokaFeedListFeeds from "./types/net/nusno/gyoka/feed/listFeeds.js";
 export * as NetNusnoGyokaFeedRegisterFeed from "./types/net/nusno/gyoka/feed/registerFeed.js";
+export * as NetNusnoGyokaFeedRemovePost from "./types/net/nusno/gyoka/feed/removePost.js";
+export * as NetNusnoGyokaFeedRemovePostByAuthor from "./types/net/nusno/gyoka/feed/removePostByAuthor.js";
+export * as NetNusnoGyokaFeedTrimFeed from "./types/net/nusno/gyoka/feed/trimFeed.js";
+export * as NetNusnoGyokaFeedUnregisterFeed from "./types/net/nusno/gyoka/feed/unregisterFeed.js";
+export * as NetNusnoGyokaFeedUpdateFeed from "./types/net/nusno/gyoka/feed/updateFeed.js";
 export * as NetNusnoGyokaPing from "./types/net/nusno/gyoka/ping.js";

@@ -1,0 +1,128 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.batchRemovePosts",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Remove multiple posts from one or more registered Gyoka feeds.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["entries"],
+          "properties": {
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "#entryInput"
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["results"],
+          "properties": {
+            "results": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "#entryResult"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when the request payload is invalid or exceeds the configured batch limits."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when the batch removal cannot be completed."
+        }
+      ]
+    },
+    "entryInput": {
+      "type": "object",
+      "required": ["feed", "posts"],
+      "properties": {
+        "feed": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "posts": {
+          "type": "array",
+          "minLength": 1,
+          "items": {
+            "type": "ref",
+            "ref": "#postInput"
+          }
+        }
+      }
+    },
+    "postInput": {
+      "type": "object",
+      "required": ["uri"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the app.bsky.feed.post record to remove."
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "If provided, only the matching post instance at this timestamp is removed."
+        }
+      }
+    },
+    "entryResult": {
+      "type": "object",
+      "required": ["feed", "results"],
+      "properties": {
+        "feed": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#postResult"
+          }
+        }
+      }
+    },
+    "postResult": {
+      "type": "object",
+      "required": ["uri", "status"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["removed", "error"]
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

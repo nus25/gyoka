@@ -1,0 +1,86 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.updateFeed",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Partially update the mutable settings of a registered Gyoka feed. Only the provided optional fields are updated; omitted fields retain their current values. At least one optional field must be provided.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["uri"],
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "at-uri",
+              "description": "AT-URI of the feed generator record to update."
+            },
+            "langFilter": {
+              "type": "boolean",
+              "description": "Whether language filtering is enabled for the feed."
+            },
+            "isActive": {
+              "type": "boolean",
+              "description": "Whether the feed is active."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["message", "feed"],
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "feed": {
+              "type": "ref",
+              "ref": "#feedView"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when the request payload is invalid or contains no fields to update."
+        },
+        {
+          "name": "UnknownFeed",
+          "description": "Returned when the target feed URI is not registered."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when the feed cannot be updated."
+        }
+      ]
+    },
+    "feedView": {
+      "type": "object",
+      "required": ["uri", "langFilter", "isActive"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "langFilter": {
+          "type": "boolean"
+        },
+        "isActive": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

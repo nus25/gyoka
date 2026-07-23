@@ -1,0 +1,135 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.getPosts",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "List posts stored in a registered Gyoka feed.",
+      "parameters": {
+        "type": "params",
+        "required": ["feed"],
+        "properties": {
+          "feed": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "AT-URI of the feed generator record to read."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3000,
+            "default": 1000,
+            "description": "Maximum number of posts to return."
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Opaque pagination cursor encoded as <epochMs>::<cid>."
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "posts"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "posts": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "#postView"
+              }
+            },
+            "cursor": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when the query parameters are invalid or the cursor is malformed."
+        },
+        {
+          "name": "UnknownFeed",
+          "description": "Returned when the target feed URI is not registered."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when posts cannot be loaded from the database."
+        }
+      ]
+    },
+    "postView": {
+      "type": "object",
+      "required": ["uri", "cid", "languages", "indexedAt"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the app.bsky.feed.post record."
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Normalized primary language tag or '*'."
+          }
+        },
+        "langs": {
+          "type": "array",
+          "description": "Deprecated alias of languages.",
+          "items": {
+            "type": "string",
+            "description": "Normalized primary language tag or '*'."
+          }
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "reason": {
+          "type": "union",
+          "refs": ["#skeletonReasonRepost", "#skeletonReasonPin"],
+          "closed": true,
+          "description": "AT Protocol feed skeleton reason for this post."
+        },
+        "feedContext": {
+          "type": "string"
+        }
+      }
+    },
+    "skeletonReasonRepost": {
+      "type": "object",
+      "required": ["repost"],
+      "properties": {
+        "repost": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the app.bsky.feed.repost record associated with this reason."
+        }
+      }
+    },
+    "skeletonReasonPin": {
+      "type": "object",
+      "properties": {}
+    }
+  }
+}
