@@ -4,8 +4,13 @@ import { Logger } from 'shared/src/logger';
 import { createRequireAuth } from './auth/createRequireAuth';
 import { listFeeds } from './endpoints/listFeeds';
 import { ping } from './endpoints/ping';
+import { registerFeed } from './endpoints/registerFeed';
 import { handleAppError } from './errorHandler';
-import { NetNusnoGyokaFeedListFeeds, NetNusnoGyokaPing } from './lexicons';
+import {
+  NetNusnoGyokaFeedListFeeds,
+  NetNusnoGyokaFeedRegisterFeed,
+  NetNusnoGyokaPing,
+} from './lexicons';
 
 export type XrpcRuntimeConfig = {
   isDevMode: boolean;
@@ -105,6 +110,21 @@ export function createXrpcRouter(
       try {
         await requireAuth(request, 'net.nusno.gyoka.feed.listFeeds');
         return await listFeeds(envMap.get(request)!.DB);
+      } catch (error) {
+        return handleAppError(error, config.isDevMode, logger);
+      }
+    },
+  });
+
+  router.addProcedure(NetNusnoGyokaFeedRegisterFeed.mainSchema, {
+    async handler({ request, input }) {
+      try {
+        await requireAuth(request, 'net.nusno.gyoka.feed.registerFeed');
+        return await registerFeed(envMap.get(request)!.DB, {
+          uri: input.uri,
+          langFilter: input.langFilter,
+          isActive: input.isActive,
+        });
       } catch (error) {
         return handleAppError(error, config.isDevMode, logger);
       }

@@ -1,0 +1,89 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.registerFeed",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Register a new feed in Gyoka.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["uri"],
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "at-uri",
+              "description": "AT-URI of the feed generator record to register."
+            },
+            "langFilter": {
+              "type": "boolean",
+              "description": "Whether language filtering is enabled for this feed.",
+              "default": true
+            },
+            "isActive": {
+              "type": "boolean",
+              "description": "Whether the feed is active.",
+              "default": true
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["message", "feed"],
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "feed": {
+              "type": "ref",
+              "ref": "#feedView"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "Returned when request payload validation fails."
+        },
+        {
+          "name": "Conflict",
+          "description": "Returned when the feed URI is already registered."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when feed registration fails unexpectedly."
+        }
+      ]
+    },
+    "feedView": {
+      "type": "object",
+      "description": "Registered feed entry.",
+      "required": ["uri", "langFilter", "isActive"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "langFilter": {
+          "type": "boolean"
+        },
+        "isActive": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

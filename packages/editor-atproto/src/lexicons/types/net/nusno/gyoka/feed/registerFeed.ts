@@ -4,23 +4,35 @@ import type {} from "@atcute/lexicons/ambient";
 
 const _feedViewSchema = /*#__PURE__*/ v.object({
   $type: /*#__PURE__*/ v.optional(
-    /*#__PURE__*/ v.literal("net.nusno.gyoka.feed.listFeeds#feedView"),
+    /*#__PURE__*/ v.literal("net.nusno.gyoka.feed.registerFeed#feedView"),
   ),
   isActive: /*#__PURE__*/ v.boolean(),
   langFilter: /*#__PURE__*/ v.boolean(),
   uri: /*#__PURE__*/ v.resourceUriString(),
 });
-const _mainSchema = /*#__PURE__*/ v.query("net.nusno.gyoka.feed.listFeeds", {
-  params: null,
-  output: {
-    type: "lex",
-    schema: /*#__PURE__*/ v.object({
-      get feeds() {
-        return /*#__PURE__*/ v.array(feedViewSchema);
-      },
-    }),
+const _mainSchema = /*#__PURE__*/ v.procedure(
+  "net.nusno.gyoka.feed.registerFeed",
+  {
+    params: null,
+    input: {
+      type: "lex",
+      schema: /*#__PURE__*/ v.object({
+        isActive: /*#__PURE__*/ v.optional(/*#__PURE__*/ v.boolean(), true),
+        langFilter: /*#__PURE__*/ v.optional(/*#__PURE__*/ v.boolean(), true),
+        uri: /*#__PURE__*/ v.resourceUriString(),
+      }),
+    },
+    output: {
+      type: "lex",
+      schema: /*#__PURE__*/ v.object({
+        get feed() {
+          return feedViewSchema;
+        },
+        message: /*#__PURE__*/ v.string(),
+      }),
+    },
   },
-});
+);
 
 type feedView$schematype = typeof _feedViewSchema;
 type main$schematype = typeof _mainSchema;
@@ -34,7 +46,7 @@ export const mainSchema = _mainSchema as mainSchema;
 export interface FeedView extends v.InferInput<typeof feedViewSchema> {}
 
 declare module "@atcute/lexicons/ambient" {
-  interface XRPCQueries {
-    "net.nusno.gyoka.feed.listFeeds": mainSchema;
+  interface XRPCProcedures {
+    "net.nusno.gyoka.feed.registerFeed": mainSchema;
   }
 }

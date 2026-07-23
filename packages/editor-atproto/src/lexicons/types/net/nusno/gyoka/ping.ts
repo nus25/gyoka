@@ -1,12 +1,11 @@
-import type {} from '@atcute/lexicons';
-import type {} from '@atcute/lexicons/ambient';
+import type {} from "@atcute/lexicons";
+import * as v from "@atcute/lexicons/validations";
+import type {} from "@atcute/lexicons/ambient";
 
-import * as v from '@atcute/lexicons/validations';
-
-const _mainSchema = /*#__PURE__*/ v.query('net.nusno.gyoka.ping', {
+const _mainSchema = /*#__PURE__*/ v.query("net.nusno.gyoka.ping", {
   params: null,
   output: {
-    type: 'lex',
+    type: "lex",
     schema: /*#__PURE__*/ v.object({
       message: /*#__PURE__*/ v.string(),
     }),
@@ -15,12 +14,12 @@ const _mainSchema = /*#__PURE__*/ v.query('net.nusno.gyoka.ping', {
 
 type main$schematype = typeof _mainSchema;
 
-export type mainSchema = main$schematype;
+export interface mainSchema extends main$schematype {}
 
 export const mainSchema = _mainSchema as mainSchema;
 
-declare module '@atcute/lexicons/ambient' {
+declare module "@atcute/lexicons/ambient" {
   interface XRPCQueries {
-    'net.nusno.gyoka.ping': mainSchema;
+    "net.nusno.gyoka.ping": mainSchema;
   }
 }
