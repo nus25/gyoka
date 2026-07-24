@@ -37,6 +37,5 @@
         "path": "./src/lexicons/{{nsid_remainder}}"
       }
     }
-  },
-  "packageManager": "pnpm@11.15.1"
+  }
 }
