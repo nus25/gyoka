@@ -1,6 +1,8 @@
+import { isHandle } from '@atcute/lexicons/syntax';
 import { InternalServerError } from 'shared/src/errors/core';
 import { createLogger, type Logger } from 'shared/src/logger';
 
+import { getDidDocument } from './endpoints/getDidDocument';
 import { handleAppError } from './errorHandler';
 import {
   createXrpcRouter,
@@ -30,6 +32,14 @@ function assertRequiredConfiguration(
       missingVariables: ['GYOKA_EDITOR_HOST'],
     });
     throw new InternalServerError('Missing required environment variables');
+  }
+
+  if (!isHandle(env.GYOKA_EDITOR_HOST)) {
+    logger.error('config.validation.failed', {
+      message: 'Invalid required environment variables',
+      invalidVariables: ['GYOKA_EDITOR_HOST'],
+    });
+    throw new InternalServerError('Invalid required environment variables');
   }
 
   if (authRequired && !env.GYOKA_EDITOR_ADMIN_DIDS) {
@@ -97,6 +107,11 @@ const app = {
 
     try {
       assertRequiredConfiguration(env, config.requiredAuth, logger);
+
+      const url = new URL(request.url);
+      if (request.method === 'GET' && url.pathname === '/.well-known/did.json') {
+        return getDidDocument(env);
+      }
 
       envMap.set(request, env);
       const router = getRouter(config, logger);
