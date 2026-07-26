@@ -22,7 +22,7 @@ export function createRequireAuth(
   logger: Logger
 ) {
   const serviceDid = normalizeWebDid(`did:web:${host}`);
-  const serviceAudience: AtprotoAudience = (serviceDid + '#atproto') as AtprotoAudience;
+  const serviceAudience: AtprotoAudience = (serviceDid + '#bsky_fg') as AtprotoAudience;
   const didResolverFetch = createDidResolverFetch(ttlSeconds, logger);
   const didDocResolver = new CompositeDidDocumentResolver({
     methods: {
