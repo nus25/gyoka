@@ -39,6 +39,33 @@ describe(ENDPOINT_PATH, () => {
       });
     });
 
+    it('Given auth is enabled and caller DID is in admin allowlist When ping is called with valid service JWT with gyoka_editor audience Then success is returned', async () => {
+      const issuer = 'did:plc:12345qq5tlnx4f5qvtpntest';
+      const { token, publicKey } = await createServiceJwtToken({
+        issuer,
+        audience: `did:web:${HOST}#gyoka_editor`,
+        lxm: LXM,
+      });
+
+      vi.spyOn(globalThis, 'fetch').mockImplementation(createDidDocumentFetch(issuer, publicKey));
+
+      const { response, json } = await ping({
+        envOverrides: {
+          GYOKA_EDITOR_AUTH_REQUIRED: 'enabled',
+          GYOKA_EDITOR_HOST: HOST,
+          GYOKA_EDITOR_ADMIN_DIDS: issuer,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      expect(response.status).toBe(200);
+      expect(json).toEqual({
+        message: 'Gyoka is available',
+      });
+    });
+
     it('Given auth is enabled and caller DID is not in admin allowlist When ping is called with valid service JWT Then forbidden is returned', async () => {
       const issuer = 'did:plc:12345qq5tlnx4f5qvtpntest';
       const { token, publicKey } = await createServiceJwtToken({

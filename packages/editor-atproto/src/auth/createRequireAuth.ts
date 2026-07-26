@@ -32,7 +32,7 @@ export function createRequireAuth(
   logger: Logger
 ) {
   const serviceDid = normalizeWebDid(`did:web:${host}`);
-  const serviceAudience: AtprotoAudience = `${serviceDid}#atproto` as AtprotoAudience;
+  const serviceAudience: AtprotoAudience = `${serviceDid}#gyoka_editor` as AtprotoAudience;
   const didResolverFetch = createDidResolverFetch(ttlSeconds, logger);
   const adminDids = parseAdminDidSet(adminDidsRaw);
   const didDocResolver = new CompositeDidDocumentResolver({
