@@ -75,7 +75,8 @@
       "properties": {
         "uri": {
           "type": "string",
-          "format": "at-uri"
+          "format": "at-uri",
+          "description": "AT-URI of the app.bsky.feed.generator record."
         },
         "langFilter": {
           "type": "boolean"
