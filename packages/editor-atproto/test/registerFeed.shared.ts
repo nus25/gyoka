@@ -1,5 +1,6 @@
 import { env } from 'cloudflare:workers';
 
+import { countFeedRowsByUri, findFeedRowByUri } from './feedTest.shared';
 import { clearTables, expectJsonResponse, requestPath } from './index.shared';
 
 export const ENDPOINT_PATH = '/xrpc/net.nusno.gyoka.feed.registerFeed';
@@ -32,6 +33,8 @@ export async function registerFeed(
 export function assertValidResponse(response: Response) {
   expectJsonResponse(response);
 }
+
+export { countFeedRowsByUri, findFeedRowByUri };
 
 export async function resetRegisterFeedTables() {
   await clearTables(['feeds']);

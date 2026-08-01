@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { ENDPOINT_PATH, registerFeed, resetRegisterFeedTables } from './registerFeed.shared';
+import {
+  countFeedRowsByUri,
+  ENDPOINT_PATH,
+  registerFeed,
+  resetRegisterFeedTables,
+} from './registerFeed.shared';
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
@@ -19,6 +24,9 @@ describe(ENDPOINT_PATH, () => {
         error: 'Conflict',
         message: `Feed with URI ${feed.uri} already exists.`,
       });
+
+      const feedCount = await countFeedRowsByUri(feed.uri);
+      expect(feedCount).toBe(1);
     });
 
     it('Given feed URI is invalid When register feed is called Then it returns bad request', async () => {
@@ -30,6 +38,9 @@ describe(ENDPOINT_PATH, () => {
         error: 'BadRequest',
       });
       expect(json.message).toBeDefined();
+
+      const feedCount = await countFeedRowsByUri(feed.uri);
+      expect(feedCount).toBe(0);
     });
 
     it('Given feed URI collection is invalid When register feed is called Then it returns bad request', async () => {
@@ -41,6 +52,9 @@ describe(ENDPOINT_PATH, () => {
         error: 'BadRequest',
         message: 'Invalid feed URI collection',
       });
+
+      const feedCount = await countFeedRowsByUri(feed.uri);
+      expect(feedCount).toBe(0);
     });
 
     it('Given feed insert throws exception When register feed is called Then it returns internal server error', async () => {

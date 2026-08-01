@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   assertValidResponse,
+  findFeedRowByUri,
   ENDPOINT_PATH,
   registerFeed,
   resetRegisterFeedTables,
@@ -25,6 +26,13 @@ describe(ENDPOINT_PATH, () => {
           langFilter: true,
           isActive: true,
         },
+      });
+
+      const row = await findFeedRowByUri(feed.uri);
+      expect(row).toEqual({
+        feed_uri: feed.uri,
+        lang_filter: 1,
+        is_active: 1,
       });
     });
   });
