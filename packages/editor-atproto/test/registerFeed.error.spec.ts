@@ -32,6 +32,17 @@ describe(ENDPOINT_PATH, () => {
       expect(json.message).toBeDefined();
     });
 
+    it('Given feed URI collection is invalid When register feed is called Then it returns bad request', async () => {
+      const feed = { uri: 'at://did:plc:testuser/app.bsky.feed.post/feed1', isActive: true };
+      const { response, json } = await registerFeed(feed);
+
+      expect(response.status).toBe(400);
+      expect(json).toEqual({
+        error: 'BadRequest',
+        message: 'Invalid feed URI collection',
+      });
+    });
+
     it('Given feed insert throws exception When register feed is called Then it returns internal server error', async () => {
       const mockDb = {
         prepare: () => ({

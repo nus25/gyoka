@@ -1,6 +1,20 @@
-import { ConflictError, InternalServerError } from 'shared/src/errors/core';
+import { BadRequestError, ConflictError, InternalServerError } from 'shared/src/errors/core';
+
+import { assertAtUriCollection } from '../validation/atUri';
 
 const SQL_INSERT_FEED = 'INSERT INTO feeds (feed_uri, lang_filter, is_active) VALUES (?, ?, ?)';
+
+export function validateRegisterFeedInput(input: {
+  uri: string;
+  langFilter?: boolean;
+  isActive?: boolean;
+}) {
+  // uri - validate collection
+  assertAtUriCollection(input.uri, 'app.bsky.feed.generator', 'feed URI');
+  // langFilter - already validated
+
+  // isActive - already validated
+}
 
 export async function registerFeed(
   db: Env['DB'],
@@ -10,6 +24,7 @@ export async function registerFeed(
   const isActive = input.isActive ?? true;
 
   try {
+    validateRegisterFeedInput(input);
     const { success } = await db
       .prepare(SQL_INSERT_FEED)
       .bind(input.uri, langFilter, isActive)
@@ -19,10 +34,9 @@ export async function registerFeed(
       throw new InternalServerError('Failed to register feed');
     }
   } catch (error) {
-    if (error instanceof InternalServerError) {
+    if (error instanceof BadRequestError || error instanceof InternalServerError) {
       throw error;
     }
-
     if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
       throw new ConflictError(`Feed with URI ${input.uri} already exists.`);
     }
