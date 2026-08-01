@@ -1,5 +1,7 @@
 import { BadRequestError, InternalServerError, UnknownFeedError } from 'shared/src/errors/core';
 
+import { assertAtUriCollection } from '../validation/atUri';
+
 const SQL_SELECT_POSTS = `
 SELECT 
     p.uri, 
@@ -22,6 +24,8 @@ export async function getPosts(
 ): Promise<Response> {
   const limit = input.limit ?? 1000;
   const { feed, cursor } = input;
+
+  assertAtUriCollection(feed, 'app.bsky.feed.generator', 'feed URI');
 
   let cursorIndexedAt: string | null = null;
   let cursorCid: string | null = null;

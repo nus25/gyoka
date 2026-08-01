@@ -2,6 +2,8 @@ import { All_LANGS } from 'shared/src/constants';
 import { BadRequestError, InternalServerError } from 'shared/src/errors/core';
 import { createLogger } from 'shared/src/logger';
 
+import { assertAtUriCollection } from '../validation/atUri';
+
 const logger = createLogger({ service: 'editor', minLevel: 'debug' });
 const DEFAULT_MAX_BATCH_POSTS = 25;
 const PRIMARY_LANGUAGE_TAG_PATTERN = /^[a-z]{2,3}$/;
@@ -116,6 +118,7 @@ function normalizeLanguages(languages?: string[] | null): string[] {
 function validateAndProcessPost(post: PostInput, postIndex: number): ValidationResult {
   let languageCodes: string[];
   try {
+    assertAtUriCollection(post.uri, 'app.bsky.feed.post', 'post URI');
     languageCodes = normalizeLanguages(post.languages);
   } catch (error) {
     return {
@@ -140,6 +143,14 @@ function validateAndProcessPost(post: PostInput, postIndex: number): ValidationR
           return {
             success: false,
             error: 'Reason type skeletonReasonRepost needs repost field',
+          };
+        }
+        try {
+          assertAtUriCollection(post.reason.repost, 'app.bsky.feed.post', 'repost URI');
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Invalid repost URI',
           };
         }
         reason = {
@@ -196,6 +207,8 @@ export async function batchAddPosts(env: Env, input: BatchAddPostsInput): Promis
   >();
 
   entries.forEach((entry) => {
+    assertAtUriCollection(entry.feed, 'app.bsky.feed.generator', 'feed URI');
+
     if (!feedMap.has(entry.feed)) {
       feedMap.set(entry.feed, { posts: [] });
     }

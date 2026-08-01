@@ -1,6 +1,8 @@
 import { InternalServerError, UnknownFeedError } from 'shared/src/errors/core';
 import { FeedRow } from 'shared/src/types';
 
+import { assertAtUriCollection } from '../validation/atUri';
+
 const SQL_DELETE_FEED = 'DELETE FROM feeds WHERE feed_uri = ?';
 const SQL_DELETE_POSTS =
   'DELETE FROM posts WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)';
@@ -8,6 +10,8 @@ const SQL_SELECT_FEED = 'SELECT * FROM feeds WHERE feed_uri = ?';
 
 export async function unregisterFeed(db: Env['DB'], input: { uri: string }): Promise<Response> {
   const { uri } = input;
+
+  assertAtUriCollection(uri, 'app.bsky.feed.generator', 'feed URI');
 
   const { success: selectSuccess, results } = await db
     .prepare(SQL_SELECT_FEED)

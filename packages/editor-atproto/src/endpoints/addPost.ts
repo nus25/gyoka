@@ -1,6 +1,8 @@
 import { All_LANGS } from 'shared/src/constants';
 import { BadRequestError, InternalServerError, UnknownFeedError } from 'shared/src/errors/core';
 
+import { assertAtUriCollection } from '../validation/atUri';
+
 const SQL_INSERT_POST = `
 INSERT INTO posts (feed_id, uri, cid, indexed_at, feed_context, reason)
 SELECT feed_id, ?, ?, ?, ?, ?
@@ -64,6 +66,7 @@ function normalizeReason(reason?: PostReason): Record<string, string> | null {
           'Reason type app.bsky.feed.defs#skeletonReasonRepost needs repost field'
         );
       }
+      assertAtUriCollection(reason.repost, 'app.bsky.feed.post', 'repost URI');
       return {
         $type: reason.$type,
         repost: reason.repost,
@@ -81,6 +84,9 @@ function normalizeReason(reason?: PostReason): Record<string, string> | null {
 export async function addPost(db: Env['DB'], input: AddPostInput): Promise<Response> {
   const feedUri = input.feed;
   const post = input.post;
+
+  assertAtUriCollection(feedUri, 'app.bsky.feed.generator', 'feed URI');
+  assertAtUriCollection(post.uri, 'app.bsky.feed.post', 'post URI');
 
   const languages = normalizeLanguages(post.languages);
   const indexedAt = post.indexedAt

@@ -1,6 +1,8 @@
 import { BadRequestError, InternalServerError, UnknownFeedError } from 'shared/src/errors/core';
 import { FeedRow } from 'shared/src/types';
 
+import { assertAtUriCollection } from '../validation/atUri';
+
 const SQL_SELECT_FEED = 'SELECT * FROM feeds WHERE feed_uri = ?';
 const SQL_UPDATE_LANG_FILTER = 'UPDATE feeds SET lang_filter = ? WHERE feed_uri = ?';
 const SQL_UPDATE_IS_ACTIVE = 'UPDATE feeds SET is_active = ? WHERE feed_uri = ?';
@@ -13,6 +15,8 @@ type UpdateFeedInput = {
 
 export async function updateFeed(db: Env['DB'], input: UpdateFeedInput): Promise<Response> {
   const { uri, langFilter, isActive } = input;
+
+  assertAtUriCollection(uri, 'app.bsky.feed.generator', 'feed URI');
 
   if (langFilter === undefined && isActive === undefined) {
     throw new BadRequestError('No value for update in request');

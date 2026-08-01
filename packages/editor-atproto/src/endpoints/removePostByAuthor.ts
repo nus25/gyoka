@@ -1,5 +1,7 @@
 import { InternalServerError, UnknownFeedError } from 'shared/src/errors/core';
 
+import { assertAtUriCollection } from '../validation/atUri';
+
 const SQL_SELECT_FEED_AND_COUNT = `
 SELECT 
   f.feed_id,
@@ -13,6 +15,8 @@ export async function removePostByAuthor(
   input: { feed: string; author: string }
 ): Promise<Response> {
   const { feed, author } = input;
+
+  assertAtUriCollection(feed, 'app.bsky.feed.generator', 'feed URI');
 
   const { success: selectSuccess, results } = await db
     .prepare(SQL_SELECT_FEED_AND_COUNT)

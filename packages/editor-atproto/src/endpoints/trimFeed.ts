@@ -1,5 +1,7 @@
 import { InternalServerError, UnknownFeedError } from 'shared/src/errors/core';
 
+import { assertAtUriCollection } from '../validation/atUri';
+
 const SQL_SELECT_FEED_AND_COUNT = `
   SELECT 
       feed_id, 
@@ -24,6 +26,8 @@ export async function trimFeed(
   input: { feed: string; remain: number }
 ): Promise<Response> {
   const { feed, remain } = input;
+
+  assertAtUriCollection(feed, 'app.bsky.feed.generator', 'feed URI');
 
   const { success: selectFeedSuccess, results: feedResults } = await db
     .prepare(SQL_SELECT_FEED_AND_COUNT)

@@ -1,5 +1,7 @@
 import { InternalServerError, NotFoundError } from 'shared/src/errors/core';
 
+import { assertAtUriCollection } from '../validation/atUri';
+
 const SQL_DELETE_POST = `
 DELETE FROM posts 
 WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)
@@ -17,6 +19,10 @@ type RemovePostInput = {
 
 export async function removePost(db: Env['DB'], input: RemovePostInput): Promise<Response> {
   const { feed, post } = input;
+
+  assertAtUriCollection(feed, 'app.bsky.feed.generator', 'feed URI');
+  assertAtUriCollection(post.uri, 'app.bsky.feed.post', 'post URI');
+
   const indexedAt = post.indexedAt ? new Date(post.indexedAt).toISOString() : null;
 
   const deleteResult = await db

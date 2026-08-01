@@ -1,6 +1,8 @@
 import { BadRequestError, InternalServerError } from 'shared/src/errors/core';
 import { createLogger } from 'shared/src/logger';
 
+import { assertAtUriCollection } from '../validation/atUri';
+
 const SQL_DELETE_POST = `
 DELETE FROM posts 
 WHERE feed_id = ?
@@ -84,12 +86,15 @@ export async function batchRemovePosts(env: Env, input: BatchRemovePostsInput): 
   >();
 
   entries.forEach((entry, entryIndex) => {
+    assertAtUriCollection(entry.feed, 'app.bsky.feed.generator', 'feed URI');
+
     if (!feedMap.has(entry.feed)) {
       feedMap.set(entry.feed, { entryIndices: [], posts: [] });
     }
     const feedData = feedMap.get(entry.feed)!;
     feedData.entryIndices.push(entryIndex);
     entry.posts.forEach((post, postIndex) => {
+      assertAtUriCollection(post.uri, 'app.bsky.feed.post', 'post URI');
       feedData.posts.push({ post, entryIndex, postIndex });
     });
   });
