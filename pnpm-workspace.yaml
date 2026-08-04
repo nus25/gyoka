@@ -16,7 +16,7 @@ catalog:
   'vitest': 4.1.10
   '@vitest/coverage-istanbul': 4.1.10
   wrangler: 4.118.0
-  hono: 4.12.29
+  hono: 4.12.34
 
 overrides:
   'js-yaml': 4.3.0

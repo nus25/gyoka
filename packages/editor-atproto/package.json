@@ -25,8 +25,8 @@
     "shared": "workspace:*"
   },
   "devDependencies": {
-    "@atcute/crypto": "2.3.0",
-    "@atcute/lex-cli": "2.0.3",
+    "@atcute/crypto": "2.4.4",
+    "@atcute/lex-cli": "3.2.1",
     "@cloudflare/vitest-pool-workers": "catalog:",
     "@cloudflare/workers-types": "catalog:",
     "@types/node": "catalog:",

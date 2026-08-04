@@ -12,8 +12,8 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@atcute/atproto": "4.0.3",
-    "@atcute/bluesky": "4.0.14",
+    "@atcute/atproto": "4.0.4",
+    "@atcute/bluesky": "4.0.17",
     "@atcute/identity": "2.0.2",
     "@atcute/identity-resolver": "2.0.1",
     "@atcute/lexicons": "2.0.3",
@@ -21,7 +21,7 @@
     "shared": "workspace:*"
   },
   "devDependencies": {
-    "@atcute/crypto": "^2.3.0",
+    "@atcute/crypto": "^2.4.4",
     "@cloudflare/vitest-pool-workers": "catalog:",
     "@cloudflare/workers-types": "catalog:",
     "@types/node": "catalog:",
