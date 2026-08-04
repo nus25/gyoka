@@ -176,6 +176,7 @@ dist
 .wrangler
 
 wrangler.jsonc
+worker-startup.cpuprofile
 
 /data/
 packages/generator/test.sql
