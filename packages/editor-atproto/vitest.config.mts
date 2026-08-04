@@ -22,7 +22,7 @@ export default defineConfig({
     coverage: {
       enabled: false,
       include: ['src/**/*.ts'],
-      exclude: ['**/test/**'],
+      exclude: ['**/test/**', 'src/lexicons/**'],
       provider: 'istanbul',
     },
   },
