@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { assertValidResponse, ENDPOINT_PATH, getFeedList, resetListFeedsTable } from './listFeeds.shared';
+import {
+  assertValidResponse,
+  ENDPOINT_PATH,
+  getFeedList,
+  resetListFeedsTable,
+} from './listFeeds.shared';
 
 describe(ENDPOINT_PATH, () => {
   beforeEach(async () => {
