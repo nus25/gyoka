@@ -1,138 +1,151 @@
 # Gyoka
 
-Gyoka is a edge server for Bluesky custom feed generators, running on Cloudflare Workers with D1 database.
-It serves feed skeletons to Bluesky/AppView and provides an API to manage the post list for each feed.
+Gyoka is an edge service for Bluesky custom feed generators.
+It runs on Cloudflare Workers and uses a D1 database.
+Gyoka serves feed skeletons to Bluesky AppView.
+Gyoka also provides an API to manage posts in each feed.
 
-To populate feeds, you need a separate post-collection component that discovers relevant posts
-via Firehose, Jetstream, or other means, and registers or removes them through the editor API.
+To fill feeds, use a separate post collector.
+The collector finds posts by Firehose, Jetstream, or another method.
+Then it adds or removes posts by the editor API.
 
-- `gyoka-generator`: public feed skeleton endpoint for Bluesky/AppView
-- `gyoka-editor`: private API for managing feeds and posts
+- `gyoka-generator`: Public feed skeleton endpoint for Bluesky AppView.
+- `gyoka-editor`: Private API to manage feeds and posts (OpenAPI-based).
+- `gyoka-editor-atproto`: `gyoka-editor` API based on AT Protocol Lexicon (beta).
 
 ## Why Gyoka?
 
-- **Edge-native**: Runs on Cloudflare Workers worldwide — low latency response to Bluesky/AppView requests.
-- **Decoupled by design**: Post collection is fully separated from feed serving.
-  AppView sees only the generator endpoint; collectors and their logic are hidden
-  behind the private editor API.
-- **Multiple feeds, single deployment**: Manage any number of feeds from one worker instance.
-- **AT Protocol ready**: DID document of feed generator, feed skeleton pagination, and Service JWT
-  verification are supported.
-- **Rich management API**: Batch add/remove, per-author removal, feed trimming,
-  and active/inactive toggling via the editor REST API.
+- **Edge-native**: Runs on Cloudflare Workers in many regions for low latency.
+- **Separated design**: Post collection is separate from feed serving.
+  AppView sees only the generator endpoint.
+  Collector logic stays behind the private editor API.
+- **Many feeds in one deployment**: Manage many feeds from one worker instance.
+- **AT Protocol support**: Supports feed generator DID document, feed pagination, and Service JWT verification.
+- **Management API**: Supports batch add and remove, remove by author, feed trim, and active or inactive toggle.
 
 ## Features
 
 Gyoka supports:
 
-- Feed generator endpoints
+- Feed generator endpoints:
   - `/xrpc/app.bsky.feed.getFeedSkeleton`
   - `/xrpc/app.bsky.feed.describeFeedGenerator`
   - `/.well-known/did.json`
-  - `/doc` (for terms of service and privacy policy documents)
-- Language tag filtering on `/xrpc/app.bsky.feed.getFeedSkeleton` via request headers
+  - `/doc` for Terms of Service and Privacy Policy documents
+- Language tag filtering on `/xrpc/app.bsky.feed.getFeedSkeleton` by request headers
 - JWT verification on `/xrpc/app.bsky.feed.getFeedSkeleton` with cached DID document resolution
+- Feed management by XRPC endpoints through `editor-atproto`
 
-Gyoka does **not** support in this version:
+Gyoka does not support in this version:
 
 - Feed interactions
-  (`acceptsInteractions` in `app.bsky.feed.generator` record must be `false`)
-- Feed management via XRPC endpoints (the editor worker exposes an OpenAPI endpoints instead)
+  (`acceptsInteractions` in `app.bsky.feed.generator` must be `false`)
+- Per-user feeds
+- Multi-user editing
+  One administrator manages all feeds.
 
-## Repository structure
+## Repository Structure
 
-- `packages/generator`: [generator guide](packages/generator/README.md)
-- `packages/editor`: [editor guide](packages/editor/README.md)
-- `packages/shared`: shared library and migrations
-- `docs/create-feed.md`: [how to create feed records](docs/create-feed.md)
-- `docs/edit-feed.md`: [how to edit feed data](docs/edit-feed.md)
+- `packages/generator`: [Generator guide](packages/generator/README.md)
+- `packages/editor`: [Editor guide](packages/editor/README.md)
+- `packages/editor-atproto`: [Editor-atproto guide](packages/editor-atproto/README.md)
+- `packages/shared`: Shared library and migrations
+- `docs/create-feed.md`: [How to create feed records](docs/create-feed.md)
+- `docs/edit-feed.md`: [How to edit feed data](docs/edit-feed.md)
+- `docs/edit-feed-atproto.md`: [How to edit feed data with AT Protocol](docs/edit-feed-atproto.md)
 
 ## Requirements
 
 - Node.js v22 or later
-- pnpm v10 or later
+- pnpm v11 or later
 - Wrangler v4
 - Cloudflare account
 
-## Quick start (deploy to production)
+## Quick Start (Production Deployment)
 
-1. Clone this repository and install dependencies.
+1. Clone this repository.
+2. Install dependencies.
 
-   ```sh
-   pnpm install
-   ```
+```sh
+pnpm install
+```
 
-2. Create D1 database and keep the returned `database_id`.
+3. Create a D1 database and save the returned `database_id`.
 
-   ```sh
-   pnpm d1-create
+```sh
+pnpm d1-create
 
-   # or with location
-   pnpm d1-create --location wnam
-   ```
+# Example: specify a location
+pnpm d1-create --location wnam
+```
 
-   Add the `--location` option to create the D1 database in a specific location. See [wrangler D1 create](https://developers.cloudflare.com/workers/wrangler/commands/#d1-create) document.
+Use `--location` to create the D1 database in a specific location.
+See [wrangler D1 create](https://developers.cloudflare.com/workers/wrangler/commands/#d1-create).
 
-3. Configure production settings.
-   - Set production `database_id` in:
-     - `packages/editor/wrangler.jsonc`
-     - `packages/generator/wrangler.jsonc`
-   - Configure worker vars (details in each package README):
-     - generator vars: see [packages/generator/README.md](packages/generator/README.md)
-     - editor vars: see [packages/editor/README.md](packages/editor/README.md)
+4. Configure production settings.
 
-4. Initialize production schema.
+- Set production `database_id` in:
+  - `packages/editor/wrangler.jsonc`
+  - `packages/generator/wrangler.jsonc`
+- Configure worker vars (see each package README):
+  - Generator vars: [packages/generator/README.md](packages/generator/README.md)
+  - Editor vars: [packages/editor/README.md](packages/editor/README.md)
 
-   ```sh
-   pnpm d1-init:production
-   ```
+5. Initialize the production schema.
 
-5. Deploy both workers.
+```sh
+pnpm d1-init:production
+```
 
-   ```sh
-   pnpm editor run deploy
-   pnpm generator run deploy
-   ```
+6. Deploy both workers.
 
-6. Set editor API key secret for production.
+```sh
+pnpm editor run deploy
+pnpm generator run deploy
+```
 
-   ```sh
-   pnpm editor gyoka-api-key:put
-   ```
+7. Set the production editor API key secret.
 
-   > [!NOTE]
-   >
-   > `X-API-Key` provides minimal authentication only. For production use, combining with an additional authentication layer such as [Cloudflare One](https://developers.cloudflare.com/cloudflare-one/) is strongly recommended.
+```sh
+pnpm editor gyoka-api-key:put
+```
 
-7. Create and manage feeds.
-   - How to create feeds: [docs/create-feed.md](docs/create-feed.md)
-   - How to edit feeds: [docs/edit-feed.md](docs/edit-feed.md)
+> [!NOTE]
+> `X-API-Key` provides only basic authentication.
+> For production, use an additional authentication layer such as [Cloudflare One](https://developers.cloudflare.com/cloudflare-one/).
 
-## Local development
+8. Create and manage feeds.
 
-1. Initialize local D1 and optional sample data.
+- Create feeds: [docs/create-feed.md](docs/create-feed.md)
+- Edit feeds: [docs/edit-feed.md](docs/edit-feed.md)
 
-   ```sh
-   pnpm d1-init:local
-   pnpm d1-add-sample:local
-   ```
+## Local Development
 
-2. Start workers.
+1. Initialize local D1.
+2. Optionally add sample data.
 
-   ```sh
-   pnpm editor dev
-   pnpm generator dev
-   ```
+```sh
+pnpm d1-init:local
+pnpm d1-add-sample:local
+```
 
-3. Open endpoints.
-   - generator DID document: `http://localhost:8788/.well-known/did.json`
-   - editor OpenAPI docs (dev): `http://localhost:8787/docs`
-     - Default API key is `dev` set in `.dev.vars`
+3. Start workers.
+
+```sh
+pnpm editor dev
+pnpm generator dev
+```
+
+4. Open endpoints.
+
+- Generator DID document: `http://localhost:8788/.well-known/did.json`
+- Editor OpenAPI docs (dev): `http://localhost:8787/docs`
+- Default API key in `.dev.vars`: `dev`
 
 ## Test
 
-- Workspace all tests: `pnpm test:all`
-- Package-specific examples:
+- Run all workspace tests: `pnpm test:all`
+- Run package tests:
   - `pnpm generator test run`
   - `pnpm editor test run`
   - `pnpm shared test run`

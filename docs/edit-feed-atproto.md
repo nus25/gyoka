@@ -1,27 +1,59 @@
-# Feed Editing Guide
+# Feed Editing Guide (AT Protocol)- Beta version
 
 ## Overview
 
-Gyoka Editor lets you edit feed content with these operations:
+Gyoka Editor AT Protocol lets you edit feed content with these operations:
 
-- Add a post to a specified feed (`/api/feed/addPost`)
-- Add multiple posts to multiple feeds in a single request (`/api/feed/batchAddPosts`)
-- Remove a post from a specified feed (`/api/feed/removePost`)
-- Remove multiple posts from multiple feeds in a single request (`/api/feed/batchRemovePosts`)
-- Remove posts from a specified feed by a specified author (`/api/feed/removePostByAuthor`)
-- Trim the feed to keep a specified number of posts (`/api/feed/trimPosts`)
+- Add a post to one feed (`net.nusno.gyoka.feed.addPost`)
+- Add multiple posts to multiple feeds in one request (`net.nusno.gyoka.feed.batchAddPosts`)
+- Remove a post from one feed (`net.nusno.gyoka.feed.removePost`)
+- Remove multiple posts from multiple feeds in one request (`net.nusno.gyoka.feed.batchRemovePosts`)
+- Remove posts by one author from one feed (`net.nusno.gyoka.feed.removePostByAuthor`)
+- Trim a feed to keep a fixed number of posts (`net.nusno.gyoka.feed.trimFeed`)
 
-You can test these APIs in Swagger UI at `/docs`.
-This document explains how to use each operation.
+Use XRPC endpoint paths in this format:
+`/xrpc/{nsid}`
+
+Example:
+`/xrpc/net.nusno.gyoka.feed.addPost`
+
+## Gyoka Lexicon
+
+Gyoka Editor AT Protocol uses Lexicon files that are defined by this project.
+These Lexicon files define NSIDs, request schemas, response schemas, and error names.
+
+Main location:
+
+- `gyoka/packages/editor-atproto/lexicons`
+
+## Authentication
+
+Requests must use AT Protocol XRPC authentication.
+Use one of these methods:
+
+- Service Proxying
+- Inter-Service Authentication (JWT)
+
+For details, see the XRPC authentication specification:
+https://atproto.com/specs/xrpc
+
+If `GYOKA_EDITOR_AUTH_REQUIRED` is enabled, requests without valid authentication fail.
+If the JWT issuer DID is not in `GYOKA_EDITOR_ADMIN_DIDS`, the server returns `Forbidden`.
 
 Note: All AT URIs in requests must use DID-based authority.
 Gyoka does not accept handle-based authority.
 
 ## Adding a Post (addPost)
 
-Use `/api/feed/addPost` to add a post to a feed.
+Use `net.nusno.gyoka.feed.addPost` to add a post to a feed.
 
 ### Request Example
+
+```http
+POST /xrpc/net.nusno.gyoka.feed.addPost
+Authorization: Bearer <service-jwt>
+Content-Type: application/json
+```
 
 ```json
 {
@@ -55,9 +87,7 @@ Use `/api/feed/addPost` to add a post to a feed.
     Gyoka sorts feed posts by this value in descending order.
     If this field is missing, Gyoka uses current time.
   - `feedContext`: Optional context string for response clients (`max 2000` chars)
-    See [Bluesky API documentation](https://docs.bsky.app/docs/api/app-bsky-feed-get-feed-skeleton#responses).
-    This is for feed interactions.
-    Gyoka does not use this field in this version.
+    This value is passed through to clients.
   - `reason`: Optional reason object
     - `app.bsky.feed.defs#skeletonReasonRepost`: requires `repost`
     - `app.bsky.feed.defs#skeletonReasonPin`: requires no additional fields
@@ -83,12 +113,18 @@ Use `/api/feed/addPost` to add a post to a feed.
 
 ## Adding Multiple Posts to Multiple Feeds (batchAddPosts)
 
-Use `/api/feed/batchAddPosts` to add multiple posts to multiple feeds in one request.
+Use `net.nusno.gyoka.feed.batchAddPosts` to add multiple posts to multiple feeds in one request.
 
 This endpoint lets you send multiple feed and post combinations.
-The maximum is 25 posts in total per request.
+The maximum is 25 posts in total per request by default.
 
 ### Request Example
+
+```http
+POST /xrpc/net.nusno.gyoka.feed.batchAddPosts
+Authorization: Bearer <service-jwt>
+Content-Type: application/json
+```
 
 ```json
 {
@@ -168,29 +204,29 @@ The maximum is 25 posts in total per request.
 }
 ```
 
-- Each `feed` in the response contains a `results` array, listing the status for each post.
-- If a post fails to be added, its `status` will be `"error"` and an `error` field will be included.
+- Each `feed` in the response contains a `results` array.
+- If a post fails, its `status` is `"error"` and response has `error`.
 
 > [!NOTE]
 >
-> - If the total number of posts in `entries` exceeds 25, the request will be rejected with a `400 BadRequest` error.
->   Default maximum is 25.
->   You can change this limit with environment variable `MAX_BATCH_POSTS`.
->   If you change this value, check Cloudflare Workers limits.
-> - Posts are added to each feed in the order provided.
-> - Error handling and validation are the same as for single-feed operations.
-> - **Partial success:**
->   If some posts fail (for example, invalid data), those posts return `"status": "error"` with an `error` field.
->   Posts that succeed return `"status": "added"`.
->   This operation is not atomic.
+> - If the total number of posts in `entries` exceeds the limit, request returns `400 BadRequest`.
+> - Default limit is 25.
+> - You can change the limit with environment variable `MAX_BATCH_POSTS`.
+> - Posts are added in the order in each feed entry.
+> - This operation is not atomic.
 >   A successful post is added even if another post fails.
->   Check `results` to see which posts succeeded and which failed.
 
 ## Removing a Post (removePost)
 
-Use `/api/feed/removePost` to remove a post from a feed.
+Use `net.nusno.gyoka.feed.removePost` to remove a post from a feed.
 
 ### Request Example
+
+```http
+POST /xrpc/net.nusno.gyoka.feed.removePost
+Authorization: Bearer <service-jwt>
+Content-Type: application/json
+```
 
 ```json
 {
@@ -217,20 +253,23 @@ Use `/api/feed/removePost` to remove a post from a feed.
   "message": "Post removed successfully",
   "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
   "post": {
-    "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post"
+    "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
+    "indexedAt": "2024-01-15T12:00:00Z"
   }
 }
 ```
 
-If request has `indexedAt`, response `post` also has `indexedAt`.
-
 ## Removing Multiple Posts from Multiple Feeds (batchRemovePosts)
 
-Use `/api/feed/batchRemovePosts` to remove multiple posts from multiple feeds in one request.
-
-This endpoint allows you to specify several feed and post combinations at once, up to a total of 25 posts across all feeds in a single request.
+Use `net.nusno.gyoka.feed.batchRemovePosts` to remove multiple posts from multiple feeds in one request.
 
 ### Request Example
+
+```http
+POST /xrpc/net.nusno.gyoka.feed.batchRemovePosts
+Authorization: Bearer <service-jwt>
+Content-Type: application/json
+```
 
 ```json
 {
@@ -300,29 +339,29 @@ This endpoint allows you to specify several feed and post combinations at once, 
 }
 ```
 
-- Each `feed` in the response contains a `results` array, listing the status for each post.
-- If a post fails to be removed, its `status` will be `"error"` and an `error` field will be included.
+- Each `feed` in the response contains a `results` array.
+- If a post fails, its `status` is `"error"` and response has `error`.
 
 > [!NOTE]
 >
-> - If the total number of posts in `entries` exceeds 25, the request will be rejected with a `400 BadRequest` error.
->   Default maximum is 25.
->   You can change this limit with environment variable `MAX_BATCH_POSTS`.
->   If you change this value, check Cloudflare Workers limits.
-> - Posts are removed from each feed in the order provided.
-> - Error handling and validation are the same as for single-feed operations.
-> - **Partial success:**
->   If some posts fail (for example, post does not exist), those posts return `"status": "error"` with an `error` field.
->   Posts that succeed return `"status": "removed"`.
->   This operation is not atomic.
+> - If the total number of posts in `entries` exceeds the limit, request returns `400 BadRequest`.
+> - Default limit is 25.
+> - You can change the limit with environment variable `MAX_BATCH_POSTS`.
+> - Posts are removed in the order in each feed entry.
+> - This operation is not atomic.
 >   A successful post is removed even if another post fails.
->   Check `results` to see which posts succeeded and which failed.
 
-## Removing a Post by Author (removePostByAuthor)
+## Removing Posts by Author (removePostByAuthor)
 
-Use `/api/feed/removePostByAuthor` to remove all posts by one author from a feed.
+Use `net.nusno.gyoka.feed.removePostByAuthor` to remove all posts by one author from a feed.
 
 ### Request Example
+
+```http
+POST /xrpc/net.nusno.gyoka.feed.removePostByAuthor
+Authorization: Bearer <service-jwt>
+Content-Type: application/json
+```
 
 ```json
 {
@@ -347,17 +386,19 @@ Use `/api/feed/removePostByAuthor` to remove all posts by one author from a feed
 }
 ```
 
-This operation removes all posts in the feed by the specified DID.
-Use this operation carefully.
-It can remove many posts.
+## Trimming a Feed (trimFeed)
 
-## Trimming the Feed (trimFeed)
-
-Use `/api/feed/trimPosts` to limit post count in a feed.
+Use `net.nusno.gyoka.feed.trimFeed` to limit post count in a feed.
 This endpoint keeps the specified number of latest posts.
 It removes older posts.
 
 ### Request Example
+
+```http
+POST /xrpc/net.nusno.gyoka.feed.trimFeed
+Authorization: Bearer <service-jwt>
+Content-Type: application/json
+```
 
 ```json
 {
@@ -375,31 +416,27 @@ It removes older posts.
 
 ```json
 {
-  "message": "Posts trimmed successfully",
+  "message": "Feed trimmed successfully",
   "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
   "deletedCount": 25
 }
 ```
 
-### Note
-
-The trim operation can cause many database reads and writes.
-Do not run this operation too often.
-Frequent use can increase database load.
-
 ## Error Handling
 
-All endpoints may return the following errors:
+Endpoints can return these errors:
 
-- `400 BadRequest`: Invalid request parameters
-- `404 UnknownFeed`: The specified feed does not exist (e.g. `addPost`, `removePostByAuthor`, `trimPosts`)
-- `404 NotFound`: For `removePost` when the feed or post does not exist
-- `500 InternalServerError`: Server-side issues, for example database query failures
+- `AuthenticationRequired`: Missing or invalid authentication credentials
+- `Forbidden`: Authenticated caller DID is not allowed
+- `BadRequest`: Invalid request payload
+- `UnknownFeed`: Target feed URI is not registered
+- `NotFound`: Feed or post was not found (`removePost`)
+- `InternalServerError`: Server-side failure
 
-For `batchAddPosts` and `batchRemovePosts`, missing feed and missing post errors are per-item errors in `results` with HTTP `200` (partial success model).
+For `batchAddPosts` and `batchRemovePosts`, per-item errors are in `results` with HTTP `200` (partial success model).
 These errors are not top-level `404` errors.
 
-Error Response Example:
+Error response example:
 
 ```json
 {
@@ -412,4 +449,3 @@ Error Response Example:
 
 For debugging, set environment variable `DEVELOPER_MODE` to `enabled`.
 Then you can see detailed logs.
-This is useful for testing and troubleshooting.

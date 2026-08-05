@@ -2,35 +2,41 @@
 
 ## Overview
 
-This document explains how to create a new feed in Gyoka. The process involves two steps:
+This document explains how to create a new feed in Gyoka.
+The process has two steps:
 
-1. Creating a feed generator record in your PDS (Personal Data Server)
-2. Registering the feed from Gyoka-editor
+1. Create a feed generator record in your PDS (Personal Data Server).
+2. Register the feed in Gyoka Editor.
 
 ## Steps
 
 ### 1. Create Feed Generator Record in PDS
 
-First, you need to create an `app.bsky.feed.generator` record in your PDS:
+Create an `app.bsky.feed.generator` record in your PDS.
 
 #### Option 1: Using the official feed generator script (recommended)
 
-See [official feed generator starter kit repository](https://github.com/bluesky-social/feed-generator) and use [publishing script](https://github.com/bluesky-social/feed-generator?tab=readme-ov-file#publishing-your-feed)
+Use the [official feed generator starter kit](https://github.com/bluesky-social/feed-generator).
+Then use the [publishing script](https://github.com/bluesky-social/feed-generator?tab=readme-ov-file#publishing-your-feed).
 
-Set your gyoka-generator endpoint hostname as `FEEDGEN_SERVICE_DID` like `did:web:gyoka-generator.{your-subdomain}.workers.dev` or your custom domain.
+Set your Gyoka Generator endpoint as `FEEDGEN_SERVICE_DID`.
+Example: `did:web:gyoka-generator.{your-subdomain}.workers.dev`.
+You can also use your custom domain.
 
 #### Option 2: Direct PDS record creation
 
-Create record by the atproto PDS repository management API [xrpc/com.atproto.repo.createRecord](https://docs.bsky.app/docs/api/com-atproto-repo-create-record)
+Create the record with the atproto PDS repository API
+[xrpc/com.atproto.repo.createRecord](https://docs.bsky.app/docs/api/com-atproto-repo-create-record).
 
-See also [app.bsky.feed.generator lexicon](https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/generator.json)
+See also the
+[app.bsky.feed.generator lexicon](https://github.com/bluesky-social/atproto/blob/main/lexicons/app/bsky/feed/generator.json).
 
-After creating record, the feed URI will be in the format:
+After you create the record, the feed URI has this format:
 `at://{did}/app.bsky.feed.generator/{record-key}`
 
-### 2. Registering the feed from Gyoka-editor
+### 2. Register the Feed in Gyoka Editor
 
-After creating the record, register the feed in Gyoka using the RegisterFeed API:
+After you create the record, register the feed with the `registerFeed` API.
 
 ```bash
 curl -X POST https://your-gyoka-editor.workers.dev/api/feed/registerFeed \
@@ -45,9 +51,13 @@ curl -X POST https://your-gyoka-editor.workers.dev/api/feed/registerFeed \
 
 Parameters:
 
-- `uri`: The feed URI from step 1 (required)
-- `langFilter`: Enable language filtering (optional, default: true). Gyoka filters posts by primary language tags in requests (up to first 5 languages, ex. jp, en). See [Language Handling documentation](https://docs.bsky.app/docs/starter-templates/custom-feeds#language-handling) for details.
-- `isActive`: Controls the feed's active status. When set to `false`, Gyoka-generator will not return feed data (optional, defaults to `true`)
+- `uri`: Feed URI from step 1 (required)
+- `langFilter`: Enable language filtering (optional, default: `true`)
+  Gyoka filters by primary language tags from the request.
+  Gyoka reads up to the first 5 languages (for example, `ja`, `en`).
+  See [Language Handling documentation](https://docs.bsky.app/docs/starter-templates/custom-feeds#language-handling).
+- `isActive`: Feed active status (optional, default: `true`)
+  If `false`, Gyoka Generator does not return feed data.
 
 Response:
 
@@ -64,6 +74,6 @@ Response:
 
 > [!NOTE]
 >
-> - API key (`X-API-Key`) is required for Gyoka-editor authentication
-> - Each feed URI must be unique in Gyoka
-> - Duplicate feed registration returns `409 Conflict`
+> - `X-API-Key` is required for Gyoka Editor authentication.
+> - Each feed URI must be unique in Gyoka.
+> - Duplicate feed registration returns `409 Conflict`.
