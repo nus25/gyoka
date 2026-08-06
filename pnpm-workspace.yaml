@@ -20,6 +20,7 @@ catalog:
 
 overrides:
   'js-yaml': 4.3.0 # For Chanfana
+  'undici': '>=7.29.0 <8.0.0' # For wrangler
 
 catalogMode: manual
 
