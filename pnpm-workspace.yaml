@@ -19,8 +19,7 @@ catalog:
   hono: 4.12.34
 
 overrides:
-  'js-yaml': 4.3.0
-  '@babel/core': 7.29.7
+  'js-yaml': 4.3.0 # For Chanfana
 
 catalogMode: manual
 
