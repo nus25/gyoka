@@ -5,6 +5,7 @@ import { createRequireAuth } from './auth/createRequireAuth';
 import { addPost } from './endpoints/addPost';
 import { batchAddPosts } from './endpoints/batchAddPosts';
 import { batchRemovePosts } from './endpoints/batchRemovePosts';
+import { getDocument } from './endpoints/getDocument';
 import { getPosts } from './endpoints/getPosts';
 import { listFeeds } from './endpoints/listFeeds';
 import { ping } from './endpoints/ping';
@@ -17,6 +18,7 @@ import { updateDocument } from './endpoints/updateDocument';
 import { updateFeed } from './endpoints/updateFeed';
 import { handleAppError } from './errorHandler';
 import {
+  NetNusnoGyokaDocumentGetDocument,
   NetNusnoGyokaDocumentUpdateDocument,
   NetNusnoGyokaFeedAddPost,
   NetNusnoGyokaFeedBatchAddPosts,
@@ -130,6 +132,19 @@ export function createXrpcRouter(
       try {
         await requireAuth(request, 'net.nusno.gyoka.feed.listFeeds');
         return await listFeeds(envMap.get(request)!.DB);
+      } catch (error) {
+        return handleAppError(error, config.isDevMode, logger);
+      }
+    },
+  });
+
+  router.addQuery(NetNusnoGyokaDocumentGetDocument.mainSchema, {
+    async handler({ request, params }) {
+      try {
+        await requireAuth(request, 'net.nusno.gyoka.document.getDocument');
+        return await getDocument(envMap.get(request)!.DB, {
+          type: params.type,
+        });
       } catch (error) {
         return handleAppError(error, config.isDevMode, logger);
       }

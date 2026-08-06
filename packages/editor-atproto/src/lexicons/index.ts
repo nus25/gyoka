@@ -1,3 +1,4 @@
+export * as NetNusnoGyokaDocumentGetDocument from "./types/net/nusno/gyoka/document/getDocument.js";
 export * as NetNusnoGyokaDocumentUpdateDocument from "./types/net/nusno/gyoka/document/updateDocument.js";
 export * as NetNusnoGyokaFeedAddPost from "./types/net/nusno/gyoka/feed/addPost.js";
 export * as NetNusnoGyokaFeedBatchAddPosts from "./types/net/nusno/gyoka/feed/batchAddPosts.js";
