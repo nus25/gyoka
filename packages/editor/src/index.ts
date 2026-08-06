@@ -8,6 +8,7 @@ import { AppContext } from 'shared/src/types';
 import { AddPost } from './endpoints/addPost';
 import { BatchAddPosts } from './endpoints/batchAddPosts';
 import { BatchRemovePosts } from './endpoints/batchRemovePosts';
+import { GetDocument } from './endpoints/getDocument';
 import { GetPosts } from './endpoints/getPosts';
 import { ListFeeds } from './endpoints/listFeeds';
 import { Ping } from './endpoints/ping';
@@ -91,6 +92,7 @@ openapi.post('/api/feed/batchRemovePosts', BatchRemovePosts);
 openapi.post('/api/feed/removePostByAuthor', RemovePostByAuthor);
 openapi.get('/api/feed/getPosts', GetPosts);
 openapi.get('/api/gyoka/ping', Ping);
+openapi.get('/api/gyoka/getDocument', GetDocument);
 openapi.post('/api/gyoka/updateDocument', UpdateDocument);
 
 // Global error handler
