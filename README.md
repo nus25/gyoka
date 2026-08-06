@@ -1,13 +1,10 @@
 # Gyoka
 
 Gyoka is an edge service for Bluesky custom feed generators.
-It runs on Cloudflare Workers and uses a D1 database.
-Gyoka serves feed skeletons to Bluesky AppView.
-Gyoka also provides an API to manage posts in each feed.
+It runs on Cloudflare Workers with a D1 database, serves feed skeletons to Bluesky AppView, and provides APIs to manage posts for each feed.
 
-To fill feeds, use a separate post collector.
-The collector finds posts by Firehose, Jetstream, or another method.
-Then it adds or removes posts by the editor API.
+To populate feeds, run a separate post-collection component.
+That collector can discover posts from Firehose, Jetstream, or other sources, then add or remove them through the editor API.
 
 - `gyoka-generator`: Public feed skeleton endpoint for Bluesky AppView.
 - `gyoka-editor`: Private API to manage feeds and posts (OpenAPI-based).
@@ -15,17 +12,16 @@ Then it adds or removes posts by the editor API.
 
 ## Why Gyoka?
 
-- **Edge-native**: Runs on Cloudflare Workers in many regions for low latency.
-- **Separated design**: Post collection is separate from feed serving.
-  AppView sees only the generator endpoint.
-  Collector logic stays behind the private editor API.
-- **Many feeds in one deployment**: Manage many feeds from one worker instance.
-- **AT Protocol support**: Supports feed generator DID document, feed pagination, and Service JWT verification.
-- **Management API**: Supports batch add and remove, remove by author, feed trim, and active or inactive toggle.
+- **Edge-native**: Runs globally on Cloudflare Workers, so Bluesky/AppView requests can be served with low latency.
+- **Decoupled architecture**: Feed serving and post collection are independent.
+  AppView calls only the generator endpoint, while collector logic stays behind the private editor API.
+- **Multi-feed operation**: You can manage many feeds from one deployment.
+- **AT Protocol support**: Includes feed generator DID document endpoints, feed skeleton pagination, and Service JWT verification.
+- **Practical management API**: Supports batch add/remove, remove-by-author, feed trimming, and active/inactive control.
 
 ## Features
 
-Gyoka supports:
+Gyoka includes the following features:
 
 - Feed generator endpoints:
   - `/xrpc/app.bsky.feed.getFeedSkeleton`
@@ -34,15 +30,14 @@ Gyoka supports:
   - `/doc` for Terms of Service and Privacy Policy documents
 - Language tag filtering on `/xrpc/app.bsky.feed.getFeedSkeleton` by request headers
 - JWT verification on `/xrpc/app.bsky.feed.getFeedSkeleton` with cached DID document resolution
-- Feed management by XRPC endpoints through `editor-atproto`
+- Feed management via XRPC endpoints through `editor-atproto`
 
-Gyoka does not support in this version:
+Current limitations:
 
 - Feed interactions
   (`acceptsInteractions` in `app.bsky.feed.generator` must be `false`)
 - Per-user feeds
-- Multi-user editing
-  One administrator manages all feeds.
+- Multi-user editing (one administrator manages all feeds)
 
 ## Repository Structure
 
@@ -63,14 +58,13 @@ Gyoka does not support in this version:
 
 ## Quick Start (Production Deployment)
 
-1. Clone this repository.
-2. Install dependencies.
+1. Clone this repository and install dependencies.
 
 ```sh
 pnpm install
 ```
 
-3. Create a D1 database and save the returned `database_id`.
+2. Create a D1 database and save the returned `database_id`.
 
 ```sh
 pnpm d1-create
@@ -82,7 +76,7 @@ pnpm d1-create --location wnam
 Use `--location` to create the D1 database in a specific location.
 See [wrangler D1 create](https://developers.cloudflare.com/workers/wrangler/commands/#d1-create).
 
-4. Configure production settings.
+3. Configure production settings.
 
 - Set production `database_id` in:
   - `packages/editor/wrangler.jsonc`
@@ -91,20 +85,20 @@ See [wrangler D1 create](https://developers.cloudflare.com/workers/wrangler/comm
   - Generator vars: [packages/generator/README.md](packages/generator/README.md)
   - Editor vars: [packages/editor/README.md](packages/editor/README.md)
 
-5. Initialize the production schema.
+4. Initialize the production schema.
 
 ```sh
 pnpm d1-init:production
 ```
 
-6. Deploy both workers.
+5. Deploy both workers.
 
 ```sh
 pnpm editor run deploy
 pnpm generator run deploy
 ```
 
-7. Set the production editor API key secret.
+6. Set the production editor API key secret.
 
 ```sh
 pnpm editor gyoka-api-key:put
@@ -114,29 +108,28 @@ pnpm editor gyoka-api-key:put
 > `X-API-Key` provides only basic authentication.
 > For production, use an additional authentication layer such as [Cloudflare One](https://developers.cloudflare.com/cloudflare-one/).
 
-8. Create and manage feeds.
+7. Create and manage feeds.
 
 - Create feeds: [docs/create-feed.md](docs/create-feed.md)
 - Edit feeds: [docs/edit-feed.md](docs/edit-feed.md)
 
 ## Local Development
 
-1. Initialize local D1.
-2. Optionally add sample data.
+1. Initialize local D1 and optionally add sample data.
 
 ```sh
 pnpm d1-init:local
 pnpm d1-add-sample:local
 ```
 
-3. Start workers.
+2. Start workers.
 
 ```sh
 pnpm editor dev
 pnpm generator dev
 ```
 
-4. Open endpoints.
+3. Open endpoints.
 
 - Generator DID document: `http://localhost:8788/.well-known/did.json`
 - Editor OpenAPI docs (dev): `http://localhost:8787/docs`

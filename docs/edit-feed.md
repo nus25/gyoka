@@ -53,7 +53,7 @@ Use `/api/feed/addPost` to add a post to a feed.
     If `"*"` and specific tags are mixed, `"*"` has priority.
   - `indexedAt`: Post index time (optional)
     Gyoka sorts feed posts by this value in descending order.
-    If this field is missing, Gyoka uses current time.
+    If this field is missing, it uses the current time.
   - `feedContext`: Optional context string for response clients (`max 2000` chars)
     See [Bluesky API documentation](https://docs.bsky.app/docs/api/app-bsky-feed-get-feed-skeleton#responses).
     This is for feed interactions.
@@ -85,8 +85,7 @@ Use `/api/feed/addPost` to add a post to a feed.
 
 Use `/api/feed/batchAddPosts` to add multiple posts to multiple feeds in one request.
 
-This endpoint lets you send multiple feed and post combinations.
-The maximum is 25 posts in total per request.
+This endpoint lets you send multiple feed and post combinations, with a maximum of 25 posts per request.
 
 ### Request Example
 
@@ -182,9 +181,8 @@ The maximum is 25 posts in total per request.
 > - **Partial success:**
 >   If some posts fail (for example, invalid data), those posts return `"status": "error"` with an `error` field.
 >   Posts that succeed return `"status": "added"`.
->   This operation is not atomic.
->   A successful post is added even if another post fails.
->   Check `results` to see which posts succeeded and which failed.
+>   This operation is not atomic, so successful posts are still added even if others fail.
+>   Check `results` to confirm which posts succeeded and which failed.
 
 ## Removing a Post (removePost)
 
@@ -222,7 +220,7 @@ Use `/api/feed/removePost` to remove a post from a feed.
 }
 ```
 
-If request has `indexedAt`, response `post` also has `indexedAt`.
+If the request includes `indexedAt`, the response `post` also includes `indexedAt`.
 
 ## Removing Multiple Posts from Multiple Feeds (batchRemovePosts)
 
@@ -348,14 +346,12 @@ Use `/api/feed/removePostByAuthor` to remove all posts by one author from a feed
 ```
 
 This operation removes all posts in the feed by the specified DID.
-Use this operation carefully.
-It can remove many posts.
+Use it carefully because it can remove many posts.
 
 ## Trimming the Feed (trimFeed)
 
 Use `/api/feed/trimPosts` to limit post count in a feed.
-This endpoint keeps the specified number of latest posts.
-It removes older posts.
+This endpoint keeps the specified number of latest posts and removes older ones.
 
 ### Request Example
 
@@ -383,9 +379,8 @@ It removes older posts.
 
 ### Note
 
-The trim operation can cause many database reads and writes.
-Do not run this operation too often.
-Frequent use can increase database load.
+The trim operation can trigger many database reads and writes.
+Do not run it too often, because frequent use can increase database load.
 
 ## Error Handling
 
@@ -411,5 +406,4 @@ Error Response Example:
 ## Developer Mode
 
 For debugging, set environment variable `DEVELOPER_MODE` to `enabled`.
-Then you can see detailed logs.
-This is useful for testing and troubleshooting.
+You can then view detailed logs for testing and troubleshooting.

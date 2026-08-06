@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document explains how to create a new feed in Gyoka.
+This guide explains how to create a new feed in Gyoka.
 The process has two steps:
 
 1. Create a feed generator record in your PDS (Personal Data Server).
@@ -25,7 +25,7 @@ You can also use your custom domain.
 
 #### Option 2: Direct PDS record creation
 
-Create the record with the atproto PDS repository API
+Create the record with the AT Protocol PDS repository API
 [xrpc/com.atproto.repo.createRecord](https://docs.bsky.app/docs/api/com-atproto-repo-create-record).
 
 See also the
@@ -53,8 +53,8 @@ Parameters:
 
 - `uri`: Feed URI from step 1 (required)
 - `langFilter`: Enable language filtering (optional, default: `true`)
-  Gyoka filters by primary language tags from the request.
-  Gyoka reads up to the first 5 languages (for example, `ja`, `en`).
+  Gyoka filters by primary language tags in the request.
+  It reads up to the first 5 languages (for example, `ja`, `en`).
   See [Language Handling documentation](https://docs.bsky.app/docs/starter-templates/custom-feeds#language-handling).
 - `isActive`: Feed active status (optional, default: `true`)
   If `false`, Gyoka Generator does not return feed data.

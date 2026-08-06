@@ -1,4 +1,4 @@
-# Feed Editing Guide (AT Protocol)- Beta version
+# Feed Editing Guide (AT Protocol, Beta)
 
 ## Overview
 
@@ -19,8 +19,8 @@ Example:
 
 ## Gyoka Lexicon
 
-Gyoka Editor AT Protocol uses Lexicon files that are defined by this project.
-These Lexicon files define NSIDs, request schemas, response schemas, and error names.
+Gyoka Editor AT Protocol uses Lexicon files defined in this project.
+These files define NSIDs, request schemas, response schemas, and error names.
 
 Main location:
 
@@ -115,8 +115,7 @@ Content-Type: application/json
 
 Use `net.nusno.gyoka.feed.batchAddPosts` to add multiple posts to multiple feeds in one request.
 
-This endpoint lets you send multiple feed and post combinations.
-The maximum is 25 posts in total per request by default.
+This endpoint lets you send multiple feed and post combinations, with a default maximum of 25 posts per request.
 
 ### Request Example
 
@@ -389,8 +388,7 @@ Content-Type: application/json
 ## Trimming a Feed (trimFeed)
 
 Use `net.nusno.gyoka.feed.trimFeed` to limit post count in a feed.
-This endpoint keeps the specified number of latest posts.
-It removes older posts.
+This endpoint keeps the specified number of latest posts and removes older ones.
 
 ### Request Example
 
