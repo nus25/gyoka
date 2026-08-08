@@ -12,7 +12,8 @@ describe('Error case', () => {
     const requireAuth = createRequireAuth(true, 'com.example.host', 60, logger);
     const req = new Request('http://localhost');
     await expect(requireAuth(req, 'com.example.test')).rejects.toMatchObject({
-      message: expect.stringContaining('Missing or invalid authentication credentials'),
+      status: 401,
+      error: 'AuthenticationRequired',
     });
   });
 
@@ -23,7 +24,8 @@ describe('Error case', () => {
       headers: { Authorization: 'Basic abcdef' },
     });
     await expect(requireAuth(req, 'com.example.test')).rejects.toMatchObject({
-      message: expect.stringContaining('Missing or invalid authentication credentials'),
+      status: 401,
+      error: 'AuthenticationRequired',
     });
   });
 
@@ -49,7 +51,8 @@ describe('Error case', () => {
       headers: { Authorization: `Bearer ${token}` },
     });
     await expect(requireAuth(req, 'com.example.test')).rejects.toMatchObject({
-      message: expect.stringContaining('Missing or invalid authentication credentials'),
+      status: 401,
+      error: 'AuthenticationRequired',
     });
     fetchSpy.mockRestore();
   });

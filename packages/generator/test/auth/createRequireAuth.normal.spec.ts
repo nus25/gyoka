@@ -53,4 +53,42 @@ describe('Success case', () => {
     });
     fetchSpy.mockRestore();
   });
+  it('Given requiredAuth=true, valid Bearer token on aud with #bsky_fg, and jwtVerifier returns ok When called Then returns VerifiedJwt', async () => {
+    const logger = createLogger({ service: 'test', minLevel: 'debug' });
+    const requireAuth = createRequireAuth(true, 'com.example.host', 60, logger);
+    // create JWT token
+    // secp256k1 keypair
+    const keypair = await Secp256k1PrivateKeyExportable.createKeypair();
+
+    // mock fetch to https://plc.directory/:did server taht returns a did document with the public key corresponding to the private key used to sign the JWT
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(createDidDocumentFetch(await keypair.exportPublicKey('multikey')));
+
+    // create a JWT token
+    const now = Math.floor(Date.now() / 1_000);
+    const option = {
+      keypair: keypair,
+      issuer: 'did:plc:12345qq5tlnx4f5qvtpntest',
+      audience: 'did:web:com.example.host#bsky_fg',
+      lxm: 'com.example.test',
+      issuedAt: now,
+      expiresIn: 60,
+    } as CreateServiceJwtOptions;
+    const token = await createServiceJwt(option);
+    const req = new Request('http://com.example.host', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // call requireAuth and check result
+    const result = await requireAuth(req, 'com.example.test');
+    expect(fetchSpy).toHaveBeenCalled();
+    expect(result).not.toBeNull();
+    expect(result).toMatchObject({
+      audience: 'did:web:com.example.host#bsky_fg',
+      issuer: 'did:plc:12345qq5tlnx4f5qvtpntest',
+      lxm: 'com.example.test',
+    });
+    fetchSpy.mockRestore();
+  });
 });

@@ -11,7 +11,7 @@ describe('Error case', () => {
     const err = new XRPCError({
       status: 500,
       error: 'InternalServerError',
-      description: 'stacktrace',
+      message: 'stacktrace',
     });
     const response = handleAppError(err, false, logger);
     const logLine = errorSpy.mock.calls[0][0] as string;

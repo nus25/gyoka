@@ -1,6 +1,6 @@
 {
   "name": "gyoka-editor",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "license": "MIT",
   "author": "Nus",
   "scripts": {
@@ -27,6 +27,5 @@
     "@types/node": "catalog:",
     "@vitest/coverage-istanbul": "catalog:",
     "wrangler": "catalog:"
-  },
-  "packageManager": "pnpm@10.30.3"
+  }
 }

@@ -1,6 +1,6 @@
 {
   "name": "gyoka-generator",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "license": "MIT",
   "author": "Nus",
   "scripts": {
@@ -12,21 +12,20 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@atcute/atproto": "^3.1.10",
-    "@atcute/bluesky": "^3.2.19",
-    "@atcute/identity": "^1.1.3",
-    "@atcute/identity-resolver": "^1.2.2",
-    "@atcute/lexicons": "^1.2.9",
-    "@atcute/xrpc-server": "^0.1.11",
+    "@atcute/atproto": "4.0.4",
+    "@atcute/bluesky": "4.0.17",
+    "@atcute/identity": "2.0.2",
+    "@atcute/identity-resolver": "2.0.1",
+    "@atcute/lexicons": "2.0.3",
+    "@atcute/xrpc-server": "2.0.2",
     "shared": "workspace:*"
   },
   "devDependencies": {
-    "@atcute/crypto": "^2.3.0",
+    "@atcute/crypto": "^2.4.4",
     "@cloudflare/vitest-pool-workers": "catalog:",
     "@cloudflare/workers-types": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-istanbul": "catalog:",
     "wrangler": "catalog:"
-  },
-  "packageManager": "pnpm@10.30.3"
+  }
 }

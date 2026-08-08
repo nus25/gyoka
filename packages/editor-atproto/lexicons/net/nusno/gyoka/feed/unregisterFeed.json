@@ -1,0 +1,58 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.unregisterFeed",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Unregister a feed from Gyoka.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["uri"],
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "at-uri",
+              "description": "AT-URI of the feed generator record to unregister."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["message"],
+          "properties": {
+            "message": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when the request payload is invalid."
+        },
+        {
+          "name": "UnknownFeed",
+          "description": "Returned when the target feed URI is not registered."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when the feed cannot be unregistered."
+        }
+      ]
+    }
+  }
+}

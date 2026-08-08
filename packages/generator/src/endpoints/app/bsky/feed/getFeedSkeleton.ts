@@ -86,11 +86,21 @@ export function extractLanguageCodes(acceptLanguage: string): string[] {
 }
 
 function assertFeedUri(feed: string): void {
-  const parsed = parseResourceUri(feed);
-  if (!parsed.ok || parsed.value.collection !== 'app.bsky.feed.generator' || !parsed.value.rkey) {
+  let parsed: ReturnType<typeof parseResourceUri>;
+
+  try {
+    parsed = parseResourceUri(feed);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new BadRequestError('Invalid feed URI format');
+    }
+    throw error;
+  }
+
+  if (parsed.collection !== 'app.bsky.feed.generator' || !parsed.rkey) {
     throw new BadRequestError('Invalid feed URI format');
   }
-  if (!isDid(parsed.value.repo)) {
+  if (!isDid(parsed.repo)) {
     throw new BadRequestError('DID-based AT URI is required');
   }
 }

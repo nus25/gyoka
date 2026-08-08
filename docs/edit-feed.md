@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Gyoka-editor allows you to edit feed content using the following operations:
+Gyoka Editor lets you edit feed content with these operations:
 
 - Add a post to a specified feed (`/api/feed/addPost`)
 - Add multiple posts to multiple feeds in a single request (`/api/feed/batchAddPosts`)
@@ -11,14 +11,15 @@ The Gyoka-editor allows you to edit feed content using the following operations:
 - Remove posts from a specified feed by a specified author (`/api/feed/removePostByAuthor`)
 - Trim the feed to keep a specified number of posts (`/api/feed/trimPosts`)
 
-These APIs can be tested through the Swagger UI at `/docs` endpoint.
+You can test these APIs in Swagger UI at `/docs`.
 This document explains how to use each operation.
 
-Note: All AT URIs in requests must have a DID-based authority. Gyoka does not accept a handle-based authority.
+Note: All AT URIs in requests must use DID-based authority.
+Gyoka does not accept handle-based authority.
 
 ## Adding a Post (addPost)
 
-To add a new post to the feed, use the `/api/feed/addPost` endpoint.
+Use `/api/feed/addPost` to add a post to a feed.
 
 ### Request Example
 
@@ -40,19 +41,26 @@ To add a new post to the feed, use the `/api/feed/addPost` endpoint.
 
 ### Parameter Description
 
-- `feed`: The URI of the feed (required)
-- `post`: Information about the post to be added
-  - `uri`: The URI of the post (required)
-  - `cid`: The CID of the post (required)
-  - `languages`: Array of language codes. Used for language filtering when feed `langFilter` is `true` (optional).
-    - If omitted or empty, Gyoka stores `"*"`(all languages).
-    - Input is normalized to primary tags (e.g. `"en-US"` -> `"en"`, `"JA-JP"` -> `"ja"`).
-    - `"*"` takes precedence when mixed with specific language tags.
-  - `indexedAt`: The timestamp when the post was indexed. Gyoka sorts feed posts in descending order by this timestamp (optional, defaults to the current time if not specified)
-  - `feedContext`: Optional context string passed through to response clients (`max 2000` chars). See [Bluesky API documentation](https://docs.bsky.app/docs/api/app-bsky-feed-get-feed-skeleton#responses). This is for feed interactions, this is not used in gyoka at this time.
-  - `reason`: Optional reason object.
+- `feed`: Feed URI (required)
+- `post`: Post object to add
+  - `uri`: Post URI (required)
+  - `cid`: Post CID (required)
+  - `languages`: Array of language codes (optional)
+    Use this field when feed `langFilter` is `true`.
+    If this field is missing or empty, Gyoka stores `"*"` (all languages).
+    Gyoka normalizes input to primary tags.
+    Example: `"en-US"` -> `"en"`, `"JA-JP"` -> `"ja"`.
+    If `"*"` and specific tags are mixed, `"*"` has priority.
+  - `indexedAt`: Post index time (optional)
+    Gyoka sorts feed posts by this value in descending order.
+    If this field is missing, it uses the current time.
+  - `feedContext`: Optional context string for response clients (`max 2000` chars)
+    See [Bluesky API documentation](https://docs.bsky.app/docs/api/app-bsky-feed-get-feed-skeleton#responses).
+    This is for feed interactions.
+    Gyoka does not use this field in this version.
+  - `reason`: Optional reason object
     - `app.bsky.feed.defs#skeletonReasonRepost`: requires `repost`
-    - `app.bsky.feed.defs#skeletonReasonPin`: no additional fields required
+    - `app.bsky.feed.defs#skeletonReasonPin`: requires no additional fields
 
 ### Response Example
 
@@ -73,12 +81,11 @@ To add a new post to the feed, use the `/api/feed/addPost` endpoint.
 }
 ```
 
-## Adding multiple posts to multiple feeds (batchAddPosts)
+## Adding Multiple Posts to Multiple Feeds (batchAddPosts)
 
-To add multiple posts to multiple feeds in a single request, use the `/api/feed/batchAddPosts` endpoint.
+Use `/api/feed/batchAddPosts` to add multiple posts to multiple feeds in one request.
 
-This endpoint allows you to specify several feed and post combinations at once.  
-up to a total of 25 posts across all feeds in a single request.
+This endpoint lets you send multiple feed and post combinations, with a maximum of 25 posts per request.
 
 ### Request Example
 
@@ -119,13 +126,13 @@ up to a total of 25 posts across all feeds in a single request.
 
 ### Parameter Description
 
-- `entries`: Array of objects, each specifying a feed and the posts to add.
-  - `feed`: The URI of the feed (required)
-  - `posts`: Array of post objects to add (required, at least 1)
-    - `uri`: The URI of the post (required)
-    - `cid`: The CID of the post (required)
+- `entries`: Array of feed entries to add
+  - `feed`: Feed URI (required)
+  - `posts`: Array of post objects (required, minimum 1)
+    - `uri`: Post URI (required)
+    - `cid`: Post CID (required)
     - `languages`: Array of language codes (optional)
-    - `indexedAt`: The timestamp when the post was indexed (optional, defaults to current time if not specified)
+    - `indexedAt`: Post index time (optional, default: current time)
     - `feedContext`: Optional context string (`max 2000` chars)
     - `reason`: Optional reason object (`skeletonReasonRepost` with required `repost`, or `skeletonReasonPin`)
 
@@ -166,17 +173,20 @@ up to a total of 25 posts across all feeds in a single request.
 > [!NOTE]
 >
 > - If the total number of posts in `entries` exceeds 25, the request will be rejected with a `400 BadRequest` error.
->   By default, the maximum number of posts is 25, but you can change this limit by setting the environment variable `MAX_BATCH_POSTS`.
->   If you change this limit, please make sure to check the restrictions of Cloudflare workers.
+>   Default maximum is 25.
+>   You can change this limit with environment variable `MAX_BATCH_POSTS`.
+>   If you change this value, check Cloudflare Workers limits.
 > - Posts are added to each feed in the order provided.
 > - Error handling and validation are the same as for single-feed operations.
-> - **Partial Success:**  
->   When using `batchAddPosts`, if some posts fail to be added (for example, due to invalid data), the response will indicate `"status": "error"` for those posts, along with an `error` field describing the reason. Posts that can be added successfully will have `"status": "added"`.  
->   The operation is not atomic: posts that succeed will be added even if others fail in the same request. Please check the `results` array in the response to confirm which posts were added and which failed.
+> - **Partial success:**
+>   If some posts fail (for example, invalid data), those posts return `"status": "error"` with an `error` field.
+>   Posts that succeed return `"status": "added"`.
+>   This operation is not atomic, so successful posts are still added even if others fail.
+>   Check `results` to confirm which posts succeeded and which failed.
 
 ## Removing a Post (removePost)
 
-To remove a post from the feed, use the `/api/feed/removePost` endpoint.
+Use `/api/feed/removePost` to remove a post from a feed.
 
 ### Request Example
 
@@ -192,10 +202,11 @@ To remove a post from the feed, use the `/api/feed/removePost` endpoint.
 
 ### Parameter Description
 
-- `feed`: The URI of the feed (required)
-- `post`: Information about the post to be removed
-  - `uri`: The URI of the post (required)
-  - `indexedAt`: The indexing time of the post (optional, used to remove a specific indexed post)
+- `feed`: Feed URI (required)
+- `post`: Post object to remove
+  - `uri`: Post URI (required)
+  - `indexedAt`: Post index time (optional)
+    Use this field to remove a specific indexed post.
 
 ### Response Example
 
@@ -209,11 +220,11 @@ To remove a post from the feed, use the `/api/feed/removePost` endpoint.
 }
 ```
 
-If `indexedAt` is passed in the request, it is also included in `post` in the response.
+If the request includes `indexedAt`, the response `post` also includes `indexedAt`.
 
-## Removing multiple posts from multiple feeds (batchRemovePosts)
+## Removing Multiple Posts from Multiple Feeds (batchRemovePosts)
 
-To remove multiple posts from multiple feeds in a single request, use the `/api/feed/batchRemovePosts` endpoint.
+Use `/api/feed/batchRemovePosts` to remove multiple posts from multiple feeds in one request.
 
 This endpoint allows you to specify several feed and post combinations at once, up to a total of 25 posts across all feeds in a single request.
 
@@ -249,11 +260,12 @@ This endpoint allows you to specify several feed and post combinations at once, 
 
 ### Parameter Description
 
-- `entries`: Array of objects, each specifying a feed and the posts to remove.
-  - `feed`: The URI of the feed (required)
-  - `posts`: Array of post objects to remove (required, at least 1)
-    - `uri`: The URI of the post (required)
-    - `indexedAt`: The timestamp when the post was indexed (optional, used to remove a specific indexed post)
+- `entries`: Array of feed entries to remove
+  - `feed`: Feed URI (required)
+  - `posts`: Array of post objects (required, minimum 1)
+    - `uri`: Post URI (required)
+    - `indexedAt`: Post index time (optional)
+      Use this field to remove a specific indexed post.
 
 ### Response Example
 
@@ -292,17 +304,21 @@ This endpoint allows you to specify several feed and post combinations at once, 
 > [!NOTE]
 >
 > - If the total number of posts in `entries` exceeds 25, the request will be rejected with a `400 BadRequest` error.
->   By default, the maximum number of posts is 25, but you can change this limit by setting the environment variable `MAX_BATCH_POSTS`.  
->   If you change this limit, please make sure to check the restrictions of Cloudflare workers.
+>   Default maximum is 25.
+>   You can change this limit with environment variable `MAX_BATCH_POSTS`.
+>   If you change this value, check Cloudflare Workers limits.
 > - Posts are removed from each feed in the order provided.
 > - Error handling and validation are the same as for single-feed operations.
-> - **Partial Success:**  
->   When using `batchRemovePosts`, if some posts fail to be removed (for example, due to the post not existing), the response will indicate `"status": "error"` for those posts, along with an `error` field describing the reason. Posts that can be removed successfully will have `"status": "removed"`.  
->   The operation is not atomic: posts that succeed will be removed even if others fail in the same request. Please check the `results` array in the response to confirm which posts were removed and which failed.
+> - **Partial success:**
+>   If some posts fail (for example, post does not exist), those posts return `"status": "error"` with an `error` field.
+>   Posts that succeed return `"status": "removed"`.
+>   This operation is not atomic.
+>   A successful post is removed even if another post fails.
+>   Check `results` to see which posts succeeded and which failed.
 
 ## Removing a Post by Author (removePostByAuthor)
 
-To remove all posts by a specific author from the feed, use the `/api/feed/removePostByAuthor` endpoint.
+Use `/api/feed/removePostByAuthor` to remove all posts by one author from a feed.
 
 ### Request Example
 
@@ -315,8 +331,8 @@ To remove all posts by a specific author from the feed, use the `/api/feed/remov
 
 ### Parameter Description
 
-- `feed`: The URI of the feed (required)
-- `author`: The DID of the author whose posts should be removed (required)
+- `feed`: Feed URI (required)
+- `author`: Author DID to remove (required)
 
 ### Response Example
 
@@ -329,11 +345,13 @@ To remove all posts by a specific author from the feed, use the `/api/feed/remov
 }
 ```
 
-This operation removes all posts in the specified feed that were authored by the given DID. Use with caution, as it may affect multiple posts at once.
+This operation removes all posts in the feed by the specified DID.
+Use it carefully because it can remove many posts.
 
 ## Trimming the Feed (trimFeed)
 
-To limit the number of posts in the feed, use the `/api/feed/trimPosts` endpoint. This endpoint keeps the specified number of latest posts and removes older ones.
+Use `/api/feed/trimPosts` to limit post count in a feed.
+This endpoint keeps the specified number of latest posts and removes older ones.
 
 ### Request Example
 
@@ -346,14 +364,14 @@ To limit the number of posts in the feed, use the `/api/feed/trimPosts` endpoint
 
 ### Parameter Description
 
-- `feed`: The URI of the feed (required)
-- `remain`: Number of posts to keep (required, integer greater than or equal to 0)
+- `feed`: Feed URI (required)
+- `remain`: Number of posts to keep (required, integer >= 0)
 
 ### Response Example
 
 ```json
 {
-  "message": "Posts trimed successfully",
+  "message": "Posts trimmed successfully",
   "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
   "deletedCount": 25
 }
@@ -361,7 +379,8 @@ To limit the number of posts in the feed, use the `/api/feed/trimPosts` endpoint
 
 ### Note
 
-The trim operation may cause a large number of database read and write operations. Please carefully consider the frequency of using this operation to avoid excessive database load.
+The trim operation can trigger many database reads and writes.
+Do not run it too often, because frequent use can increase database load.
 
 ## Error Handling
 
@@ -370,9 +389,10 @@ All endpoints may return the following errors:
 - `400 BadRequest`: Invalid request parameters
 - `404 UnknownFeed`: The specified feed does not exist (e.g. `addPost`, `removePostByAuthor`, `trimPosts`)
 - `404 NotFound`: For `removePost` when the feed or post does not exist
-- `500 InternalServerError`: Server-side issues such as database query failures
+- `500 InternalServerError`: Server-side issues, for example database query failures
 
-For `batchAddPosts` / `batchRemovePosts`, missing feed or missing post errors are returned per item in the `results` payload with HTTP `200` (partial success model), not as top-level `404`.
+For `batchAddPosts` and `batchRemovePosts`, missing feed and missing post errors are per-item errors in `results` with HTTP `200` (partial success model).
+These errors are not top-level `404` errors.
 
 Error Response Example:
 
@@ -385,4 +405,5 @@ Error Response Example:
 
 ## Developer Mode
 
-For debugging purposes, set the environment variable `DEVELOPER_MODE` to `enabled` to view detailed log information. This is useful during testing or troubleshooting.
+For debugging, set environment variable `DEVELOPER_MODE` to `enabled`.
+You can then view detailed logs for testing and troubleshooting.

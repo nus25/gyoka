@@ -1,0 +1,66 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.document.getDocument",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Fetch the stored document body and URL for a Gyoka document type.",
+      "parameters": {
+        "type": "params",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "knownValues": ["tos", "privacy_policy"],
+            "description": "Document type to fetch."
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["type", "url", "content"],
+          "nullable": ["url", "content"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "knownValues": ["tos", "privacy_policy"]
+            },
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 2048
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when the query parameters are invalid."
+        },
+        {
+          "name": "NotFound",
+          "description": "Returned when the requested document has not been stored."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when the document cannot be loaded."
+        }
+      ]
+    }
+  }
+}

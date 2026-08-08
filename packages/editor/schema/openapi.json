@@ -1565,6 +1565,108 @@
         }
       }
     },
+    "/api/gyoka/getDocument": {
+      "get": {
+        "tags": ["Documents"],
+        "summary": "Get document content and URL",
+        "operationId": "get_GetDocument",
+        "parameters": [
+          {
+            "schema": { "type": "string", "enum": ["tos", "privacy_policy"] },
+            "required": true,
+            "name": "type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": { "type": "string", "enum": ["tos", "privacy_policy"] },
+                    "url": { "type": "string", "nullable": true, "format": "uri" },
+                    "content": { "type": "string", "nullable": true }
+                  },
+                  "required": ["type", "url", "content"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["BadRequest"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The request could not be understood or was missing required parameters"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["Unauthorized"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Authentication credentials were missing or invalid."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["NotFound"] },
+                    "message": {
+                      "type": "string",
+                      "example": "The requested resource was not found"
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "enum": ["InternalServerError"] },
+                    "message": { "type": "string", "example": "An unexpected error occurred" }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/gyoka/updateDocument": {
       "post": {
         "tags": ["Documents"],
