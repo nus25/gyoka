@@ -9,9 +9,6 @@ catalogs:
     '@cloudflare/vitest-plugin':
       specifier: 1.0.0
       version: 1.0.0
-    '@cloudflare/workers-types':
-      specifier: 5.20260820.1
-      version: 5.20260820.1
     '@types/node':
       specifier: 25.5.0
       version: 25.5.0
@@ -77,9 +74,6 @@ importers:
       '@cloudflare/vitest-plugin':
         specifier: 'catalog:'
         version: 1.0.0(@cloudflare/workers-types@5.20260820.1)(@vitest/runner@4.1.10)(@vitest/snapshot@4.1.10)(vitest@4.1.10)
-      '@cloudflare/workers-types':
-        specifier: 'catalog:'
-        version: 5.20260820.1
       '@types/node':
         specifier: 'catalog:'
         version: 25.5.0
@@ -117,9 +111,6 @@ importers:
       '@cloudflare/vitest-plugin':
         specifier: 'catalog:'
         version: 1.0.0(@cloudflare/workers-types@5.20260820.1)(@vitest/runner@4.1.10)(@vitest/snapshot@4.1.10)(vitest@4.1.10)
-      '@cloudflare/workers-types':
-        specifier: 'catalog:'
-        version: 5.20260820.1
       '@types/node':
         specifier: 'catalog:'
         version: 25.5.0
@@ -160,9 +151,6 @@ importers:
       '@cloudflare/vitest-plugin':
         specifier: 'catalog:'
         version: 1.0.0(@cloudflare/workers-types@5.20260820.1)(@vitest/runner@4.1.10)(@vitest/snapshot@4.1.10)(vitest@4.1.10)
-      '@cloudflare/workers-types':
-        specifier: 'catalog:'
-        version: 5.20260820.1
       '@types/node':
         specifier: 'catalog:'
         version: 25.5.0
@@ -191,9 +179,6 @@ importers:
       '@cloudflare/vitest-plugin':
         specifier: 'catalog:'
         version: 1.0.0(@cloudflare/workers-types@5.20260820.1)(@vitest/runner@4.1.10)(@vitest/snapshot@4.1.10)(vitest@4.1.10)
-      '@cloudflare/workers-types':
-        specifier: 'catalog:'
-        version: 5.20260820.1
       '@types/node':
         specifier: 'catalog:'
         version: 25.5.0
@@ -2036,7 +2021,8 @@ snapshots:
   '@cloudflare/workerd-windows-64@1.20260820.1':
     optional: true
 
-  '@cloudflare/workers-types@5.20260820.1': {}
+  '@cloudflare/workers-types@5.20260820.1':
+    optional: true
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

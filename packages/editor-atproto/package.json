@@ -28,7 +28,6 @@
     "@atcute/crypto": "2.4.4",
     "@atcute/lex-cli": "3.2.1",
     "@cloudflare/vitest-plugin": "catalog:",
-    "@cloudflare/workers-types": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-istanbul": "catalog:",
     "wrangler": "catalog:"

@@ -16,7 +16,6 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "@cloudflare/vitest-plugin": "catalog:",
-    "@cloudflare/workers-types": "catalog:",
     "@vitest/coverage-istanbul": "catalog:"
   }
 }
