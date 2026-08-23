@@ -10,7 +10,7 @@ const _mainSchema = /*#__PURE__*/ v.query(
 				/**
 				 * Document type to fetch.
 				 */
-				"type": /*#__PURE__*/ v.string<"privacy_policy" | "tos" | (string & {})>(),
+				"docType": /*#__PURE__*/ v.string<"privacy_policy" | "tos" | (string & {})>(),
 			}
 		),
 		"output": {
@@ -24,7 +24,7 @@ const _mainSchema = /*#__PURE__*/ v.query(
 						/*#__PURE__*/ v.string(),
 						[/*#__PURE__*/ v.stringLength(0, 32768)]
 					)),
-					"type": /*#__PURE__*/ v.string<"privacy_policy" | "tos" | (string & {})>(),
+					"docType": /*#__PURE__*/ v.string<"privacy_policy" | "tos" | (string & {})>(),
 					/**
 					 * @maxLength 2048
 					 */

@@ -22,8 +22,7 @@
   },
   "devDependencies": {
     "@atcute/crypto": "^2.4.4",
-    "@cloudflare/vitest-pool-workers": "catalog:",
-    "@cloudflare/workers-types": "catalog:",
+    "@cloudflare/vitest-plugin": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-istanbul": "catalog:",
     "wrangler": "catalog:"

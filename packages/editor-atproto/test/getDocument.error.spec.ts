@@ -9,7 +9,7 @@ describe(ENDPOINT_PATH, () => {
 
   describe('Error cases', () => {
     it('Given invalid document type When getDocument is called Then bad request is returned', async () => {
-      const { response, json } = await getDocument({ type: 'invalid_type' });
+      const { response, json } = await getDocument({ docType: 'invalid_type' });
 
       expect(response.status).toBe(400);
       expect(json).toEqual({
@@ -19,7 +19,7 @@ describe(ENDPOINT_PATH, () => {
     });
 
     it('Given no stored document exists When getDocument is called Then not found is returned', async () => {
-      const { response, json } = await getDocument({ type: 'tos' });
+      const { response, json } = await getDocument({ docType: 'tos' });
 
       expect(response.status).toBe(404);
       expect(json).toEqual({
@@ -39,7 +39,7 @@ describe(ENDPOINT_PATH, () => {
         }),
       } as unknown as D1Database;
 
-      const { response, json } = await getDocument({ type: 'tos' }, { DB: throwingDb });
+      const { response, json } = await getDocument({ docType: 'tos' }, { DB: throwingDb });
 
       expect(response.status).toBe(500);
       expect(json).toEqual({

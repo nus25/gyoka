@@ -6,7 +6,7 @@ const MAX_DOCUMENT_URL_LENGTH = 2048;
 const MAX_DOCUMENT_CONTENT_LENGTH = 32768;
 
 type UpdateDocumentInput = {
-  type: 'tos' | 'privacy_policy';
+  docType: 'tos' | 'privacy_policy';
   url?: string | null;
   content?: string | null;
 };
@@ -31,7 +31,8 @@ export async function updateDocument(db: Env['DB'], input: UpdateDocumentInput):
   assertValidContentLength(content);
 
   try {
-    const result = await db.prepare(SQL_UPDATE_DOCUMENT).bind(input.type, url, content).run();
+    console.log(input);
+    const result = await db.prepare(SQL_UPDATE_DOCUMENT).bind(input.docType, url, content).run();
     if (!result.success) {
       throw new InternalServerError('Failed to update document');
     }
@@ -43,7 +44,7 @@ export async function updateDocument(db: Env['DB'], input: UpdateDocumentInput):
   }
 
   return Response.json({
-    type: input.type,
+    docType: input.docType,
     url,
     content,
   });

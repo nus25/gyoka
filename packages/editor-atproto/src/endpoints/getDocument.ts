@@ -13,14 +13,14 @@ function assertValidDocumentType(type: string): asserts type is DocumentType {
 
 export async function getDocument(
   db: Env['DB'],
-  input: { type: 'tos' | 'privacy_policy' | string }
+  input: { docType: 'tos' | 'privacy_policy' | string }
 ): Promise<Response> {
-  assertValidDocumentType(input.type);
+  assertValidDocumentType(input.docType);
 
   try {
     const { success, results } = await db
       .prepare(SQL_SELECT_DOCUMENT)
-      .bind(input.type)
+      .bind(input.docType)
       .all<{ url: string | null; content: string | null }>();
 
     if (!success) {
@@ -32,7 +32,7 @@ export async function getDocument(
     }
 
     return Response.json({
-      type: input.type,
+      docType: input.docType,
       url: results[0].url,
       content: results[0].content,
     });

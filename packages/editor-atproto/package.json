@@ -1,6 +1,6 @@
 {
   "name": "gyoka-editor-atproto",
-  "version": "0.10.0-beta",
+  "version": "0.10.2-beta",
   "license": "MIT",
   "author": "Nus",
   "type": "module",
@@ -27,8 +27,7 @@
   "devDependencies": {
     "@atcute/crypto": "2.4.4",
     "@atcute/lex-cli": "3.2.1",
-    "@cloudflare/vitest-pool-workers": "catalog:",
-    "@cloudflare/workers-types": "catalog:",
+    "@cloudflare/vitest-plugin": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-istanbul": "catalog:",
     "wrangler": "catalog:"

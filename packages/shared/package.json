@@ -15,8 +15,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@cloudflare/vitest-pool-workers": "catalog:",
-    "@cloudflare/workers-types": "catalog:",
+    "@cloudflare/vitest-plugin": "catalog:",
     "@vitest/coverage-istanbul": "catalog:"
   }
 }

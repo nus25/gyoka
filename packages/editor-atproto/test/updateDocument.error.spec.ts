@@ -11,7 +11,7 @@ describe(ENDPOINT_PATH, () => {
   describe('Error cases', () => {
     it('Given URL exceeds lexicon max length When updateDocument is called Then bad request is returned', async () => {
       const { response, json } = await updateDocument({
-        type: 'tos',
+        docType: 'tos',
         url: `https://example.com/${'a'.repeat(2100)}`,
       });
 
