@@ -9,10 +9,10 @@
         "encoding": "application/json",
         "schema": {
           "type": "object",
-          "required": ["type"],
+          "required": ["docType"],
           "nullable": ["url", "content"],
           "properties": {
-            "type": {
+            "docType": {
               "type": "string",
               "knownValues": ["tos", "privacy_policy"],
               "description": "Document type to update."
@@ -35,10 +35,10 @@
         "encoding": "application/json",
         "schema": {
           "type": "object",
-          "required": ["type", "url", "content"],
+          "required": ["docType", "url", "content"],
           "nullable": ["url", "content"],
           "properties": {
-            "type": {
+            "docType": {
               "type": "string",
               "knownValues": ["tos", "privacy_policy"]
             },

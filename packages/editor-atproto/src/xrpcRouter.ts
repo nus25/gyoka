@@ -143,7 +143,7 @@ export function createXrpcRouter(
       try {
         await requireAuth(request, 'net.nusno.gyoka.document.getDocument');
         return await getDocument(envMap.get(request)!.DB, {
-          type: params.type,
+          docType: params.docType,
         });
       } catch (error) {
         return handleAppError(error, config.isDevMode, logger);
@@ -304,7 +304,7 @@ export function createXrpcRouter(
       try {
         await requireAuth(request, 'net.nusno.gyoka.document.updateDocument');
         return await updateDocument(envMap.get(request)!.DB, {
-          type: input.type as 'tos' | 'privacy_policy',
+          docType: input.docType as 'tos' | 'privacy_policy',
           url: input.url,
           content: input.content,
         });

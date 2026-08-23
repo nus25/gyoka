@@ -11,14 +11,14 @@ describe(ENDPOINT_PATH, () => {
   describe('Boundary cases', () => {
     it('Given stored document has null URL and content When getDocument is called Then null fields are returned', async () => {
       await updateDocument({
-        type: 'privacy_policy',
+        docType: 'privacy_policy',
       });
 
-      const { response, json } = await getDocument({ type: 'privacy_policy' });
+      const { response, json } = await getDocument({ docType: 'privacy_policy' });
 
       expect(response.status).toBe(200);
       expect(json).toEqual({
-        type: 'privacy_policy',
+        docType: 'privacy_policy',
         url: null,
         content: null,
       });

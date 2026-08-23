@@ -21,7 +21,7 @@ const _mainSchema = /*#__PURE__*/ v.procedure(
 					/**
 					 * Document type to update.
 					 */
-					"type": /*#__PURE__*/ v.string<"privacy_policy" | "tos" | (string & {})>(),
+					"docType": /*#__PURE__*/ v.string<"privacy_policy" | "tos" | (string & {})>(),
 					/**
 					 * Optional source URL for the document.
 					 * @maxLength 2048
@@ -44,7 +44,7 @@ const _mainSchema = /*#__PURE__*/ v.procedure(
 						/*#__PURE__*/ v.string(),
 						[/*#__PURE__*/ v.stringLength(0, 32768)]
 					)),
-					"type": /*#__PURE__*/ v.string<"privacy_policy" | "tos" | (string & {})>(),
+					"docType": /*#__PURE__*/ v.string<"privacy_policy" | "tos" | (string & {})>(),
 					/**
 					 * @maxLength 2048
 					 */

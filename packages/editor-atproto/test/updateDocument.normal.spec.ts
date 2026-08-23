@@ -11,7 +11,7 @@ describe(ENDPOINT_PATH, () => {
   describe('Success cases', () => {
     it('Given valid document payload When updateDocument is called Then document is saved', async () => {
       const payload = {
-        type: 'tos' as const,
+        docType: 'tos' as const,
         url: 'https://example.com/tos',
         content: 'hello',
       };
@@ -20,8 +20,8 @@ describe(ENDPOINT_PATH, () => {
       expect(response.status).toBe(200);
       expect(json).toEqual(payload);
 
-      const row = await findDocumentByType('tos');
-      expect(row).toEqual({
+      const dbRow = await findDocumentByType('tos');
+      expect(dbRow).toEqual({
         type: 'tos',
         url: 'https://example.com/tos',
         content: 'hello',
