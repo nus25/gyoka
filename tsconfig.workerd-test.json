@@ -3,7 +3,7 @@
   "compilerOptions": {
     "types": [
       "@cloudflare/workers-types/experimental",
-      "@cloudflare/vitest-pool-workers/types" // For `cloudflare:test` types
+      "@cloudflare/vitest-plugin/types" // For `cloudflare:test` types
     ]
   }
 }
