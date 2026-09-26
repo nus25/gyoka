@@ -66,7 +66,7 @@ function normalizeReason(reason?: PostReason): Record<string, string> | null {
           'Reason type app.bsky.feed.defs#skeletonReasonRepost needs repost field'
         );
       }
-      assertAtUriCollection(reason.repost, 'app.bsky.feed.post', 'repost URI');
+      assertAtUriCollection(reason.repost, 'app.bsky.feed.repost', 'repost URI');
       return {
         $type: reason.$type,
         repost: reason.repost,

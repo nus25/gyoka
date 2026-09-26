@@ -146,7 +146,7 @@ function validateAndProcessPost(post: PostInput, postIndex: number): ValidationR
           };
         }
         try {
-          assertAtUriCollection(post.reason.repost, 'app.bsky.feed.post', 'repost URI');
+          assertAtUriCollection(post.reason.repost, 'app.bsky.feed.repost', 'repost URI');
         } catch (error) {
           return {
             success: false,

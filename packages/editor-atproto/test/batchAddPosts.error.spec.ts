@@ -32,5 +32,46 @@ describe(ENDPOINT_PATH, () => {
 
       expect(await countPostsByFeedUri(FEED_URI)).toBe(0);
     });
+    it('Given invalid repost reason When batchAddPosts is called Then error is returned', async () => {
+      const { response, json } = await batchAddPosts(
+        {
+          entries: [
+            {
+              feed: FEED_URI,
+              posts: [
+                {
+                  ...dummyEntries[0].posts[0],
+                  reason: {
+                    $type: 'net.nusno.gyoka.feed.batchAddPosts#skeletonReasonRepost',
+                    repost: 'at://did:plc:invaliduser/app.bsky.feed.notrepost/invalid',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          MAX_BATCH_POSTS: '10',
+        }
+      );
+
+      expect(response.status).toBe(200);
+      expect(json).toEqual({
+        results: [
+          {
+            feed: 'at://did:plc:testuser/app.bsky.feed.generator/feed1',
+            results: [
+              {
+                error:
+                  'Feed with URI at://did:plc:testuser/app.bsky.feed.generator/feed1 does not exist.',
+                status: 'error',
+                uri: 'at://did:plc:testuser/app.bsky.feed.post/post1',
+              },
+            ],
+          },
+        ],
+      });
+      expect(await countPostsByFeedUri(FEED_URI)).toBe(0);
+    });
   });
 });
