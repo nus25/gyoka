@@ -42,7 +42,7 @@ describe(ENDPOINT_PATH, () => {
                 {
                   ...dummyEntries[0].posts[0],
                   reason: {
-                    $type: 'net.nusno.gyoka.feed.batchAddPosts#skeletonReasonRepost',
+                    $type: 'net.nusno.gyoka.feed.defs#skeletonReasonRepost',
                     repost: 'at://did:plc:invaliduser/app.bsky.feed.notrepost/invalid',
                   },
                 },

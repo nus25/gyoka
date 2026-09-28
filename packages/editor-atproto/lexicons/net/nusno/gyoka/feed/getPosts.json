@@ -41,7 +41,7 @@
               "type": "array",
               "items": {
                 "type": "ref",
-                "ref": "#postView"
+                "ref": "net.nusno.gyoka.feed.defs#postView"
               }
             },
             "cursor": {
@@ -72,64 +72,6 @@
           "description": "Returned when posts cannot be loaded from the database."
         }
       ]
-    },
-    "postView": {
-      "type": "object",
-      "required": ["uri", "cid", "languages", "indexedAt"],
-      "properties": {
-        "uri": {
-          "type": "string",
-          "format": "at-uri",
-          "description": "AT-URI of the app.bsky.feed.post record."
-        },
-        "cid": {
-          "type": "string",
-          "format": "cid"
-        },
-        "languages": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "description": "Normalized primary language tag or '*'."
-          }
-        },
-        "langs": {
-          "type": "array",
-          "description": "Deprecated alias of languages.",
-          "items": {
-            "type": "string",
-            "description": "Normalized primary language tag or '*'."
-          }
-        },
-        "indexedAt": {
-          "type": "string",
-          "format": "datetime"
-        },
-        "reason": {
-          "type": "union",
-          "refs": ["#skeletonReasonRepost", "#skeletonReasonPin"],
-          "closed": true,
-          "description": "AT Protocol feed skeleton reason for this post."
-        },
-        "feedContext": {
-          "type": "string"
-        }
-      }
-    },
-    "skeletonReasonRepost": {
-      "type": "object",
-      "required": ["repost"],
-      "properties": {
-        "repost": {
-          "type": "string",
-          "format": "at-uri",
-          "description": "AT-URI of the app.bsky.feed.repost record associated with this reason."
-        }
-      }
-    },
-    "skeletonReasonPin": {
-      "type": "object",
-      "properties": {}
     }
   }
 }

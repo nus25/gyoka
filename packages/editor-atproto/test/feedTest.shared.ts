@@ -68,16 +68,20 @@ export async function insertPost(
     cid?: string;
     indexedAt?: string;
     languages?: string[];
+    reason?: {
+      $type: string;
+      repost?: string;
+    };
   }
 ): Promise<void> {
   const cid = post.cid ?? CID;
   const indexedAt = post.indexedAt ?? new Date().toISOString();
   const languages = post.languages ?? ['*'];
-
+  const reason = post.reason ? convertReasonToJson(post.reason) : undefined;
   const postResult = await env.DB.prepare(
-    'INSERT INTO posts (feed_id, uri, cid, indexed_at) VALUES (?, ?, ?, ?)'
+    'INSERT INTO posts (feed_id, uri, cid, indexed_at, reason) VALUES (?, ?, ?, ?, ?)'
   )
-    .bind(feedId, post.uri, cid, indexedAt)
+    .bind(feedId, post.uri, cid, indexedAt, reason ?? null)
     .run();
 
   const postId = Number(postResult.meta.last_row_id);
@@ -85,6 +89,21 @@ export async function insertPost(
     await env.DB.prepare('INSERT INTO post_languages (post_id, language) VALUES (?, ?)')
       .bind(postId, language)
       .run();
+  }
+}
+
+function convertReasonToJson(reason?: { $type: string; repost?: string }): string | undefined {
+  if (!reason) {
+    return undefined;
+  }
+  switch (reason.$type) {
+    case `net.nusno.gyoka.feed.defs#skeletonReasonRepost`:
+      return JSON.stringify({
+        $type: `app.bsky.feed.defs#skeletonReasonRepost`,
+        repost: reason.repost,
+      });
+    case `net.nusno.gyoka.feed.defs#skeletonReasonPin`:
+      return JSON.stringify({ $type: `app.bsky.feed.defs#skeletonReasonPin` });
   }
 }
 

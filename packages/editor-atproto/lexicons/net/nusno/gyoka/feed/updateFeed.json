@@ -38,7 +38,7 @@
             },
             "feed": {
               "type": "ref",
-              "ref": "#feedView"
+              "ref": "net.nusno.gyoka.feed.defs#feedView"
             }
           }
         }
@@ -65,22 +65,6 @@
           "description": "Returned when the feed cannot be updated."
         }
       ]
-    },
-    "feedView": {
-      "type": "object",
-      "required": ["uri", "langFilter", "isActive"],
-      "properties": {
-        "uri": {
-          "type": "string",
-          "format": "at-uri"
-        },
-        "langFilter": {
-          "type": "boolean"
-        },
-        "isActive": {
-          "type": "boolean"
-        }
-      }
     }
   }
 }

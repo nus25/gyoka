@@ -1,4 +1,5 @@
 import { BadRequestError, InternalServerError, UnknownFeedError } from 'shared/src/errors/core';
+import { toEditorReason, type EditorReason } from 'shared/src/reason';
 
 import { assertAtUriCollection } from '../validation/atUri';
 
@@ -88,10 +89,18 @@ export async function getPosts(
         languages: normalizedLanguages,
         langs: normalizedLanguages,
         indexedAt: post.indexed_at,
-        reason: post.reason ? JSON.parse(post.reason as string) : undefined,
+        reason: post.reason ? parseEditorReason(post.reason as string) : undefined,
         feedContext: post.feed_context ?? undefined,
       };
     }),
     cursor: nextCursor,
   });
+}
+
+function parseEditorReason(reason: string) {
+  try {
+    return toEditorReason(JSON.parse(reason) as EditorReason);
+  } catch {
+    return undefined;
+  }
 }

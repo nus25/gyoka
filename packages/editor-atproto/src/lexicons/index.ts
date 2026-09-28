@@ -3,6 +3,7 @@ export * as NetNusnoGyokaDocumentUpdateDocument from "./types/net/nusno/gyoka/do
 export * as NetNusnoGyokaFeedAddPost from "./types/net/nusno/gyoka/feed/addPost.js";
 export * as NetNusnoGyokaFeedBatchAddPosts from "./types/net/nusno/gyoka/feed/batchAddPosts.js";
 export * as NetNusnoGyokaFeedBatchRemovePosts from "./types/net/nusno/gyoka/feed/batchRemovePosts.js";
+export * as NetNusnoGyokaFeedDefs from "./types/net/nusno/gyoka/feed/defs.js";
 export * as NetNusnoGyokaFeedGetPosts from "./types/net/nusno/gyoka/feed/getPosts.js";
 export * as NetNusnoGyokaFeedListFeeds from "./types/net/nusno/gyoka/feed/listFeeds.js";
 export * as NetNusnoGyokaFeedRegisterFeed from "./types/net/nusno/gyoka/feed/registerFeed.js";
