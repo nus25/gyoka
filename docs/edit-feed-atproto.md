@@ -11,6 +11,7 @@ Gyoka Editor AT Protocol lets you edit feed content with these operations:
 - Remove multiple posts from multiple feeds in one request (`net.nusno.gyoka.feed.batchRemovePosts`)
 - Remove posts by one author from one feed (`net.nusno.gyoka.feed.removePostByAuthor`)
 - Trim a feed to keep a fixed number of posts (`net.nusno.gyoka.feed.trimFeed`)
+- Trim a feed to keep posts indexed at or after a timestamp (`net.nusno.gyoka.feed.trimFeedBefore`)
 
 Use XRPC endpoint paths in this format:
 `/xrpc/{nsid}`
@@ -471,6 +472,42 @@ Content-Type: application/json
 {
   "message": "Feed trimmed successfully",
   "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "deletedCount": 25
+}
+```
+
+## Trimming a Feed Before a Timestamp (trimFeedBefore)
+
+Use `net.nusno.gyoka.feed.trimFeedBefore` to remove posts indexed before a timestamp.
+Posts indexed at or after the timestamp remain in the feed.
+
+### Request Example
+
+```http
+POST /xrpc/net.nusno.gyoka.feed.trimFeedBefore
+Authorization: Bearer <service-jwt>
+Content-Type: application/json
+```
+
+```json
+{
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "before": "2025-01-01T00:00:00.000Z"
+}
+```
+
+### Parameter Description
+
+- `feed`: Feed URI (required)
+- `before`: Exclusive timestamp boundary (required, datetime)
+
+### Response Example
+
+```json
+{
+  "message": "Posts before timestamp trimmed successfully",
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "before": "2025-01-01T00:00:00.000Z",
   "deletedCount": 25
 }
 ```

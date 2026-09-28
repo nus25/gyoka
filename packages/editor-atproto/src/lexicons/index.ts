@@ -10,6 +10,7 @@ export * as NetNusnoGyokaFeedRegisterFeed from "./types/net/nusno/gyoka/feed/reg
 export * as NetNusnoGyokaFeedRemovePost from "./types/net/nusno/gyoka/feed/removePost.js";
 export * as NetNusnoGyokaFeedRemovePostByAuthor from "./types/net/nusno/gyoka/feed/removePostByAuthor.js";
 export * as NetNusnoGyokaFeedTrimFeed from "./types/net/nusno/gyoka/feed/trimFeed.js";
+export * as NetNusnoGyokaFeedTrimFeedBefore from "./types/net/nusno/gyoka/feed/trimFeedBefore.js";
 export * as NetNusnoGyokaFeedUnregisterFeed from "./types/net/nusno/gyoka/feed/unregisterFeed.js";
 export * as NetNusnoGyokaFeedUpdateFeed from "./types/net/nusno/gyoka/feed/updateFeed.js";
 export * as NetNusnoGyokaPing from "./types/net/nusno/gyoka/ping.js";
