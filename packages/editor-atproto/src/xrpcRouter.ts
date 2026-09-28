@@ -243,6 +243,9 @@ export function createXrpcRouter(
         await requireAuth(request, 'net.nusno.gyoka.feed.getPosts');
         return await getPosts(envMap.get(request)!.DB, {
           feed: params.feed,
+          uri: params.uri,
+          cid: params.cid,
+          indexedAt: params.indexedAt,
           limit: params.limit,
           cursor: params.cursor,
         });

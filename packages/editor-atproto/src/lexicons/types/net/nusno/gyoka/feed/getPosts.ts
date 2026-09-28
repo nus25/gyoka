@@ -9,13 +9,21 @@ const _mainSchema = /*#__PURE__*/ v.query(
 		"params": /*#__PURE__*/ v.object(
 			{
 				/**
-				 * Opaque pagination cursor encoded as <epochMs>::<cid>.
+				 * Optional post CID filter. Must match the cursor when provided.
+				 */
+				"cid": /*#__PURE__*/ v.optional(/*#__PURE__*/ v.cidString()),
+				/**
+				 * Opaque pagination cursor that includes the paging position and normalized search conditions.
 				 */
 				"cursor": /*#__PURE__*/ v.optional(/*#__PURE__*/ v.string()),
 				/**
-				 * AT-URI of the feed generator record to read.
+				 * Feed generator AT-URI. Required when cursor is omitted; must match the cursor when provided.
 				 */
-				"feed": /*#__PURE__*/ v.resourceUriString(),
+				"feed": /*#__PURE__*/ v.optional(/*#__PURE__*/ v.resourceUriString()),
+				/**
+				 * Optional indexed-at timestamp filter. Must match the cursor when provided.
+				 */
+				"indexedAt": /*#__PURE__*/ v.optional(/*#__PURE__*/ v.datetimeString()),
 				/**
 				 * Maximum number of posts to return.
 				 * @minimum 1
@@ -29,12 +37,19 @@ const _mainSchema = /*#__PURE__*/ v.query(
 					),
 					1000
 				),
+				/**
+				 * Optional post AT-URI filter. Must match the cursor when provided.
+				 */
+				"uri": /*#__PURE__*/ v.optional(/*#__PURE__*/ v.resourceUriString()),
 			}
 		),
 		"output": {
 			"type": "lex",
 			"schema": /*#__PURE__*/ v.object(
 				{
+					/**
+					 * Opaque cursor for retrieving the next page with the same search conditions.
+					 */
 					"cursor": /*#__PURE__*/ v.optional(/*#__PURE__*/ v.string()),
 					"feed": /*#__PURE__*/ v.resourceUriString(),
 					get "posts"() {
