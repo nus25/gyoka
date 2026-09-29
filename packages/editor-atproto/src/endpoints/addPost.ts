@@ -123,7 +123,7 @@ export async function addPost(db: Env['DB'], input: AddPostInput): Promise<Respo
       languages,
       indexedAt,
       feedContext: post.feedContext,
-      reason: reason ?? undefined,
+      reason: post.reason,
     },
   });
 }
