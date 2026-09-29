@@ -1,4 +1,4 @@
-# Feed Editing Guide (AT Protocol, Beta)
+# Feed Editing Guide (AT Protocol)
 
 ## Overview
 
