@@ -1,6 +1,7 @@
 import { All_LANGS } from 'shared/src/constants';
 import { BadRequestError, InternalServerError } from 'shared/src/errors/core';
 import { createLogger } from 'shared/src/logger';
+import { toGeneratorReason, type EditorReason, type GeneratorReason } from 'shared/src/reason';
 
 import { assertAtUriCollection } from '../validation/atUri';
 
@@ -13,23 +14,13 @@ INSERT INTO posts (feed_id, uri, cid, indexed_at, feed_context, reason) VALUES (
 const SQL_INSERT_POST_LANG = `
 INSERT INTO post_languages (post_id, language) SELECT post_id, ? FROM posts WHERE feed_id = ? AND cid = ? AND indexed_at = ? LIMIT 1`;
 
-type PostReason =
-  | {
-      $type: string;
-      repost?: string;
-    }
-  | {
-      $type: string;
-      repost?: string;
-    };
-
 type PostInput = {
   uri: string;
   cid: string;
   languages?: string[] | null;
   indexedAt?: string;
   feedContext?: string;
-  reason?: PostReason;
+  reason?: EditorReason;
 };
 
 type BatchAddPostsInput = {
@@ -39,22 +30,13 @@ type BatchAddPostsInput = {
   }>;
 };
 
-type PostReasonNormalized =
-  | {
-      $type: string;
-      repost: string;
-    }
-  | {
-      $type: string;
-    };
-
 type ProcessedPost = {
   uri: string;
   cid: string;
   languages: string[];
   indexedAt: string;
   feedContext?: string;
-  reason: PostReasonNormalized | null;
+  reason: GeneratorReason | null;
   originalIndex: number;
 };
 
@@ -134,41 +116,18 @@ function validateAndProcessPost(post: PostInput, postIndex: number): ValidationR
     ? new Date(post.indexedAt).toISOString()
     : new Date().toISOString();
 
-  let reason: PostReasonNormalized | null = null;
+  let reason: GeneratorReason | null = null;
   if (post.reason) {
-    switch (post.reason.$type) {
-      case 'app.bsky.feed.defs#skeletonReasonRepost':
-      case 'net.nusno.gyoka.feed.batchAddPosts#skeletonReasonRepost':
-        if (!post.reason.repost) {
-          return {
-            success: false,
-            error: 'Reason type skeletonReasonRepost needs repost field',
-          };
-        }
-        try {
-          assertAtUriCollection(post.reason.repost, 'app.bsky.feed.post', 'repost URI');
-        } catch (error) {
-          return {
-            success: false,
-            error: error instanceof Error ? error.message : 'Invalid repost URI',
-          };
-        }
-        reason = {
-          $type: post.reason.$type,
-          repost: post.reason.repost,
-        };
-        break;
-      case 'app.bsky.feed.defs#skeletonReasonPin':
-      case 'net.nusno.gyoka.feed.batchAddPosts#skeletonReasonPin':
-        reason = {
-          $type: post.reason.$type,
-        };
-        break;
-      default:
-        return {
-          success: false,
-          error: `Unsupported reason type: ${post.reason.$type}`,
-        };
+    try {
+      reason = toGeneratorReason(post.reason);
+      if (reason.$type === 'app.bsky.feed.defs#skeletonReasonRepost') {
+        assertAtUriCollection(reason.repost, 'app.bsky.feed.repost', 'repost URI');
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Invalid repost URI',
+      };
     }
   }
 

@@ -15,7 +15,7 @@
               "type": "array",
               "items": {
                 "type": "ref",
-                "ref": "#feedView"
+                "ref": "net.nusno.gyoka.feed.defs#feedView"
               }
             }
           }
@@ -35,26 +35,6 @@
           "description": "Returned when the feed list cannot be loaded from the database."
         }
       ]
-    },
-    "feedView": {
-      "type": "object",
-      "description": "A Gyoka feed entry.",
-      "required": ["uri", "langFilter", "isActive"],
-      "properties": {
-        "uri": {
-          "type": "string",
-          "format": "at-uri",
-          "description": "AT-URI of the feed generator record."
-        },
-        "langFilter": {
-          "type": "boolean",
-          "description": "Whether language filtering is enabled for the feed."
-        },
-        "isActive": {
-          "type": "boolean",
-          "description": "Whether the feed is currently active."
-        }
-      }
     }
   }
 }

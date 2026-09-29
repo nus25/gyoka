@@ -1,5 +1,6 @@
 import { All_LANGS } from 'shared/src/constants';
 import { BadRequestError, InternalServerError, UnknownFeedError } from 'shared/src/errors/core';
+import { toGeneratorReason, type EditorReason, type GeneratorReason } from 'shared/src/reason';
 
 import { assertAtUriCollection } from '../validation/atUri';
 
@@ -13,11 +14,6 @@ const SQL_INSERT_POST_LANG = 'INSERT INTO post_languages (post_id, language) VAL
 
 const PRIMARY_LANGUAGE_TAG_PATTERN = /^[a-z]{2,3}$/;
 
-type PostReason = {
-  $type: string;
-  repost?: string;
-};
-
 type AddPostInput = {
   feed: string;
   post: {
@@ -26,7 +22,7 @@ type AddPostInput = {
     languages?: string[] | null;
     indexedAt?: string;
     feedContext?: string;
-    reason?: PostReason;
+    reason?: EditorReason;
   };
 };
 
@@ -53,32 +49,17 @@ function normalizeLanguages(languages?: string[] | null): string[] {
   return deduped;
 }
 
-function normalizeReason(reason?: PostReason): Record<string, string> | null {
+function normalizeReason(reason?: EditorReason): GeneratorReason | null {
   if (!reason) {
     return null;
   }
 
-  switch (reason.$type) {
-    case 'app.bsky.feed.defs#skeletonReasonRepost':
-    case 'net.nusno.gyoka.feed.addPost#skeletonReasonRepost':
-      if (!reason.repost) {
-        throw new BadRequestError(
-          'Reason type app.bsky.feed.defs#skeletonReasonRepost needs repost field'
-        );
-      }
-      assertAtUriCollection(reason.repost, 'app.bsky.feed.post', 'repost URI');
-      return {
-        $type: reason.$type,
-        repost: reason.repost,
-      };
-    case 'app.bsky.feed.defs#skeletonReasonPin':
-    case 'net.nusno.gyoka.feed.addPost#skeletonReasonPin':
-      return {
-        $type: reason.$type,
-      };
-    default:
-      throw new BadRequestError(`Unsupported reason type: ${reason.$type}`);
+  const generatorReason = toGeneratorReason(reason);
+  if (generatorReason.$type === 'app.bsky.feed.defs#skeletonReasonRepost') {
+    assertAtUriCollection(generatorReason.repost, 'app.bsky.feed.repost', 'repost URI');
   }
+
+  return generatorReason;
 }
 
 export async function addPost(db: Env['DB'], input: AddPostInput): Promise<Response> {

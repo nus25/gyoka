@@ -1,5 +1,8 @@
 # gyoka-editor
 
+> [!NOTE]
+> **Deprecated** This OpenAPI version will removed at v1.0.0
+
 Private management API worker for registering feeds and managing posts/documents.
 
 ## Authentication

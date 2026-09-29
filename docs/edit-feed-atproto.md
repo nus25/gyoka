@@ -1,4 +1,4 @@
-# Feed Editing Guide (AT Protocol, Beta)
+# Feed Editing Guide (AT Protocol)
 
 ## Overview
 
@@ -6,10 +6,12 @@ Gyoka Editor AT Protocol lets you edit feed content with these operations:
 
 - Add a post to one feed (`net.nusno.gyoka.feed.addPost`)
 - Add multiple posts to multiple feeds in one request (`net.nusno.gyoka.feed.batchAddPosts`)
+- List and filter posts in a feed (`net.nusno.gyoka.feed.getPosts`)
 - Remove a post from one feed (`net.nusno.gyoka.feed.removePost`)
 - Remove multiple posts from multiple feeds in one request (`net.nusno.gyoka.feed.batchRemovePosts`)
 - Remove posts by one author from one feed (`net.nusno.gyoka.feed.removePostByAuthor`)
 - Trim a feed to keep a fixed number of posts (`net.nusno.gyoka.feed.trimFeed`)
+- Trim a feed to keep posts indexed at or after a timestamp (`net.nusno.gyoka.feed.trimFeedBefore`)
 
 Use XRPC endpoint paths in this format:
 `/xrpc/{nsid}`
@@ -215,6 +217,60 @@ Content-Type: application/json
 > - This operation is not atomic.
 >   A successful post is added even if another post fails.
 
+## Getting Posts (getPosts)
+
+Use `net.nusno.gyoka.feed.getPosts` to list posts in a feed. You can filter by
+post URI, CID, and indexed timestamp. When multiple filters are specified, a post
+must match all of them.
+
+### Request Example
+
+```http
+GET /xrpc/net.nusno.gyoka.feed.getPosts?feed=at%3A%2F%2Fdid%3Aplc%3Ayouruser%2Fapp.bsky.feed.generator%2Fyour-feed&uri=at%3A%2F%2Fdid%3Aplc%3Aauthoruser%2Fapp.bsky.feed.post%2Fexample-post&limit=100
+Authorization: Bearer <service-jwt>
+```
+
+### Query Parameters
+
+- `feed`: Feed URI. Required for the first request when `cursor` is omitted.
+- `uri`: Optional post URI filter.
+- `cid`: Optional post CID filter.
+- `indexedAt`: Optional indexed timestamp filter. The value is normalized to an
+  ISO 8601 UTC timestamp before it is compared.
+- `limit`: Maximum number of posts to return. Optional; defaults to `1000` and
+  accepts values from `1` through `3000`.
+- `cursor`: Opaque cursor returned from a previous request. It retains the feed,
+  filters, and pagination position.
+
+### Response Example
+
+```json
+{
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "posts": [
+    {
+      "uri": "at://did:plc:authoruser/app.bsky.feed.post/example-post",
+      "cid": "bafyreiabc123example456cid789xyz",
+      "languages": ["en", "ja"],
+      "indexedAt": "2024-01-15T12:00:00.000Z"
+    }
+  ],
+  "cursor": "<opaque-cursor>"
+}
+```
+
+When `cursor` is present, request the next page with the cursor alone:
+
+```http
+GET /xrpc/net.nusno.gyoka.feed.getPosts?cursor=<opaque-cursor>
+Authorization: Bearer <service-jwt>
+```
+
+You may include `feed`, `uri`, `cid`, or `indexedAt` with a cursor only when each
+provided value matches the conditions stored in that cursor. A mismatch returns
+`400 BadRequest`. `limit` may be changed between pages. Omit `cursor` from the
+response when there is no next page.
+
 ## Removing a Post (removePost)
 
 Use `net.nusno.gyoka.feed.removePost` to remove a post from a feed.
@@ -416,6 +472,42 @@ Content-Type: application/json
 {
   "message": "Feed trimmed successfully",
   "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "deletedCount": 25
+}
+```
+
+## Trimming a Feed Before a Timestamp (trimFeedBefore)
+
+Use `net.nusno.gyoka.feed.trimFeedBefore` to remove posts indexed before a timestamp.
+Posts indexed at or after the timestamp remain in the feed.
+
+### Request Example
+
+```http
+POST /xrpc/net.nusno.gyoka.feed.trimFeedBefore
+Authorization: Bearer <service-jwt>
+Content-Type: application/json
+```
+
+```json
+{
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "before": "2025-01-01T00:00:00.000Z"
+}
+```
+
+### Parameter Description
+
+- `feed`: Feed URI (required)
+- `before`: Exclusive timestamp boundary (required, datetime)
+
+### Response Example
+
+```json
+{
+  "message": "Posts before timestamp trimmed successfully",
+  "feed": "at://did:plc:youruser/app.bsky.feed.generator/your-feed",
+  "before": "2025-01-01T00:00:00.000Z",
   "deletedCount": 25
 }
 ```

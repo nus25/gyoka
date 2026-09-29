@@ -69,43 +69,8 @@
           "minLength": 1,
           "items": {
             "type": "ref",
-            "ref": "#postInput"
+            "ref": "net.nusno.gyoka.feed.defs#postInput"
           }
-        }
-      }
-    },
-    "postInput": {
-      "type": "object",
-      "required": ["uri", "cid"],
-      "properties": {
-        "uri": {
-          "type": "string",
-          "format": "at-uri",
-          "description": "AT-URI of the app.bsky.feed.post record to add."
-        },
-        "cid": {
-          "type": "string",
-          "format": "cid"
-        },
-        "languages": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "description": "A BCP-47 language tag or the wildcard '*'."
-          }
-        },
-        "indexedAt": {
-          "type": "string",
-          "format": "datetime"
-        },
-        "feedContext": {
-          "type": "string",
-          "maxLength": 2000
-        },
-        "reason": {
-          "type": "union",
-          "refs": ["#skeletonReasonRepost", "#skeletonReasonPin"],
-          "closed": true
         }
       }
     },
@@ -142,20 +107,6 @@
           "type": "string"
         }
       }
-    },
-    "skeletonReasonRepost": {
-      "type": "object",
-      "required": ["repost"],
-      "properties": {
-        "repost": {
-          "type": "string",
-          "format": "at-uri"
-        }
-      }
-    },
-    "skeletonReasonPin": {
-      "type": "object",
-      "properties": {}
     }
   }
 }

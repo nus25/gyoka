@@ -40,7 +40,7 @@
             },
             "feed": {
               "type": "ref",
-              "ref": "#feedView"
+              "ref": "net.nusno.gyoka.feed.defs#feedView"
             }
           }
         }
@@ -67,24 +67,6 @@
           "description": "Returned when feed registration fails unexpectedly."
         }
       ]
-    },
-    "feedView": {
-      "type": "object",
-      "description": "Registered feed entry.",
-      "required": ["uri", "langFilter", "isActive"],
-      "properties": {
-        "uri": {
-          "type": "string",
-          "format": "at-uri",
-          "description": "AT-URI of the app.bsky.feed.generator record."
-        },
-        "langFilter": {
-          "type": "boolean"
-        },
-        "isActive": {
-          "type": "boolean"
-        }
-      }
     }
   }
 }

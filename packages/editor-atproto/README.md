@@ -1,6 +1,5 @@
 # Gyoka-editor-atproto
 
-(Beta version)
 Worker for gyoka management endpoint for registering feeds and managing posts/documents on AT Protocol.
 
 ## Authentication
@@ -23,7 +22,8 @@ See `gyoka/packages/editor-atproto/lexicons` for more details.
 - `POST /xrpc/net.nusno.gyoka.feed.batchRemovePosts`
 - `POST /xrpc/net.nusno.gyoka.feed.removePostByAuthor`
 - `GET /xrpc/net.nusno.gyoka.feed.getPosts`
-- `POST /xrpc/net.nusno.gyoka.feed.trimPosts`
+- `POST /xrpc/net.nusno.gyoka.feed.trimFeed`
+- `POST /xrpc/net.nusno.gyoka.feed.trimFeedBefore`
 - `POST /xrpc/net.nusno.gyoka.document.updateDocument`
 
 ## Runtime variables

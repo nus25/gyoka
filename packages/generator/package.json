@@ -1,6 +1,6 @@
 {
   "name": "gyoka-generator",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "license": "MIT",
   "author": "Nus",
   "scripts": {
@@ -13,11 +13,11 @@
   },
   "dependencies": {
     "@atcute/atproto": "4.0.4",
-    "@atcute/bluesky": "4.0.17",
+    "@atcute/bluesky": "4.0.22",
     "@atcute/identity": "2.0.2",
-    "@atcute/identity-resolver": "2.0.1",
-    "@atcute/lexicons": "2.0.3",
-    "@atcute/xrpc-server": "2.0.2",
+    "@atcute/identity-resolver": "2.0.2",
+    "@atcute/lexicons": "2.1.1",
+    "@atcute/xrpc-server": "2.0.3",
     "shared": "workspace:*"
   },
   "devDependencies": {

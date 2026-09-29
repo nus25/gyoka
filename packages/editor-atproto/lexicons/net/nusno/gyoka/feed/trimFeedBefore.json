@@ -1,24 +1,25 @@
 {
   "lexicon": 1,
-  "id": "net.nusno.gyoka.feed.addPost",
+  "id": "net.nusno.gyoka.feed.trimFeedBefore",
   "defs": {
     "main": {
       "type": "procedure",
-      "description": "Add a post to a registered Gyoka feed.",
+      "description": "Remove stored posts indexed before a specified timestamp from a registered Gyoka feed.",
       "input": {
         "encoding": "application/json",
         "schema": {
           "type": "object",
-          "required": ["feed", "post"],
+          "required": ["feed", "before"],
           "properties": {
             "feed": {
               "type": "string",
               "format": "at-uri",
-              "description": "AT-URI of the feed generator record receiving the post."
+              "description": "AT-URI of the registered feed."
             },
-            "post": {
-              "type": "ref",
-              "ref": "net.nusno.gyoka.feed.defs#postInput"
+            "before": {
+              "type": "string",
+              "format": "datetime",
+              "description": "Exclusive timestamp boundary. Posts indexed before this time are removed."
             }
           }
         }
@@ -27,7 +28,7 @@
         "encoding": "application/json",
         "schema": {
           "type": "object",
-          "required": ["message", "feed", "post"],
+          "required": ["message", "feed", "before", "deletedCount"],
           "properties": {
             "message": {
               "type": "string"
@@ -36,9 +37,13 @@
               "type": "string",
               "format": "at-uri"
             },
-            "post": {
-              "type": "ref",
-              "ref": "net.nusno.gyoka.feed.defs#postInput"
+            "before": {
+              "type": "string",
+              "format": "datetime"
+            },
+            "deletedCount": {
+              "type": "integer",
+              "minimum": 0
             }
           }
         }
@@ -54,7 +59,7 @@
         },
         {
           "name": "BadRequest",
-          "description": "Returned when the request payload is invalid or the post fields cannot be normalized."
+          "description": "Returned when the request payload is invalid."
         },
         {
           "name": "UnknownFeed",
@@ -62,7 +67,7 @@
         },
         {
           "name": "InternalServerError",
-          "description": "Returned when the post cannot be stored."
+          "description": "Returned when posts cannot be removed."
         }
       ]
     }

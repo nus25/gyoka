@@ -4,15 +4,29 @@
   "defs": {
     "main": {
       "type": "query",
-      "description": "List posts stored in a registered Gyoka feed.",
+      "description": "List posts stored in a registered Gyoka feed. Supports pagination and filtering by post URI, CID, and indexed timestamp.",
       "parameters": {
         "type": "params",
-        "required": ["feed"],
         "properties": {
           "feed": {
             "type": "string",
             "format": "at-uri",
-            "description": "AT-URI of the feed generator record to read."
+            "description": "Feed generator AT-URI. Required when cursor is omitted; must match the cursor when provided."
+          },
+          "uri": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Optional post AT-URI filter. Must match the cursor when provided."
+          },
+          "cid": {
+            "type": "string",
+            "format": "cid",
+            "description": "Optional post CID filter. Must match the cursor when provided."
+          },
+          "indexedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Optional indexed-at timestamp filter. Must match the cursor when provided."
           },
           "limit": {
             "type": "integer",
@@ -23,7 +37,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Opaque pagination cursor encoded as <epochMs>::<cid>."
+            "description": "Opaque pagination cursor that includes the paging position and normalized search conditions."
           }
         }
       },
@@ -41,95 +55,16 @@
               "type": "array",
               "items": {
                 "type": "ref",
-                "ref": "#postView"
+                "ref": "net.nusno.gyoka.feed.defs#postView"
               }
             },
             "cursor": {
-              "type": "string"
+              "type": "string",
+              "description": "Opaque cursor for retrieving the next page with the same search conditions."
             }
           }
         }
-      },
-      "errors": [
-        {
-          "name": "AuthenticationRequired",
-          "description": "Returned when service authentication is required and the caller is not authenticated."
-        },
-        {
-          "name": "Forbidden",
-          "description": "Returned when the authenticated caller is not in the admin allowlist."
-        },
-        {
-          "name": "BadRequest",
-          "description": "Returned when the query parameters are invalid or the cursor is malformed."
-        },
-        {
-          "name": "UnknownFeed",
-          "description": "Returned when the target feed URI is not registered."
-        },
-        {
-          "name": "InternalServerError",
-          "description": "Returned when posts cannot be loaded from the database."
-        }
-      ]
-    },
-    "postView": {
-      "type": "object",
-      "required": ["uri", "cid", "languages", "indexedAt"],
-      "properties": {
-        "uri": {
-          "type": "string",
-          "format": "at-uri",
-          "description": "AT-URI of the app.bsky.feed.post record."
-        },
-        "cid": {
-          "type": "string",
-          "format": "cid"
-        },
-        "languages": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "description": "Normalized primary language tag or '*'."
-          }
-        },
-        "langs": {
-          "type": "array",
-          "description": "Deprecated alias of languages.",
-          "items": {
-            "type": "string",
-            "description": "Normalized primary language tag or '*'."
-          }
-        },
-        "indexedAt": {
-          "type": "string",
-          "format": "datetime"
-        },
-        "reason": {
-          "type": "union",
-          "refs": ["#skeletonReasonRepost", "#skeletonReasonPin"],
-          "closed": true,
-          "description": "AT Protocol feed skeleton reason for this post."
-        },
-        "feedContext": {
-          "type": "string"
-        }
       }
-    },
-    "skeletonReasonRepost": {
-      "type": "object",
-      "required": ["repost"],
-      "properties": {
-        "repost": {
-          "type": "string",
-          "format": "at-uri",
-          "description": "AT-URI of the app.bsky.feed.repost record associated with this reason."
-        }
-      }
-    },
-    "skeletonReasonPin": {
-      "type": "object",
-      "properties": {}
     }
   }
 }

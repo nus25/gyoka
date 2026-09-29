@@ -13,6 +13,7 @@ import { registerFeed } from './endpoints/registerFeed';
 import { removePost } from './endpoints/removePost';
 import { removePostByAuthor } from './endpoints/removePostByAuthor';
 import { trimFeed } from './endpoints/trimFeed';
+import { trimFeedBefore } from './endpoints/trimFeedBefore';
 import { unregisterFeed } from './endpoints/unregisterFeed';
 import { updateDocument } from './endpoints/updateDocument';
 import { updateFeed } from './endpoints/updateFeed';
@@ -29,6 +30,7 @@ import {
   NetNusnoGyokaFeedRemovePost,
   NetNusnoGyokaFeedRemovePostByAuthor,
   NetNusnoGyokaFeedTrimFeed,
+  NetNusnoGyokaFeedTrimFeedBefore,
   NetNusnoGyokaFeedUnregisterFeed,
   NetNusnoGyokaFeedUpdateFeed,
   NetNusnoGyokaPing,
@@ -206,6 +208,20 @@ export function createXrpcRouter(
     },
   });
 
+  router.addProcedure(NetNusnoGyokaFeedTrimFeedBefore.mainSchema, {
+    async handler({ request, input }) {
+      try {
+        await requireAuth(request, 'net.nusno.gyoka.feed.trimFeedBefore');
+        return await trimFeedBefore(envMap.get(request)!.DB, {
+          feed: input.feed,
+          before: input.before,
+        });
+      } catch (error) {
+        return handleAppError(error, config.isDevMode, logger);
+      }
+    },
+  });
+
   router.addProcedure(NetNusnoGyokaFeedRemovePostByAuthor.mainSchema, {
     async handler({ request, input }) {
       try {
@@ -243,6 +259,9 @@ export function createXrpcRouter(
         await requireAuth(request, 'net.nusno.gyoka.feed.getPosts');
         return await getPosts(envMap.get(request)!.DB, {
           feed: params.feed,
+          uri: params.uri,
+          cid: params.cid,
+          indexedAt: params.indexedAt,
           limit: params.limit,
           cursor: params.cursor,
         });

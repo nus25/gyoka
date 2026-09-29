@@ -7,8 +7,8 @@ To populate feeds, run a separate post-collection component.
 That collector can discover posts from Firehose, Jetstream, or other sources, then add or remove them through the editor API.
 
 - `gyoka-generator`: Public feed skeleton endpoint for Bluesky AppView.
-- `gyoka-editor`: Private API to manage feeds and posts (OpenAPI-based).
-- `gyoka-editor-atproto`: `gyoka-editor` API based on AT Protocol Lexicon (beta).
+- `gyoka-editor-atproto`: Private API to manage feeds and posts based on AT Protocol Lexicon.
+- `gyoka-editor`: **deprecated** OpenAPI-based Private API to manage feeds and posts.
 
 ## Why Gyoka?
 
@@ -42,9 +42,9 @@ Current limitations:
 ## Repository Structure
 
 - `packages/generator`: [Generator guide](packages/generator/README.md)
-- `packages/editor`: [Editor guide](packages/editor/README.md)
 - `packages/editor-atproto`: [Editor-atproto guide](packages/editor-atproto/README.md)
 - `packages/shared`: Shared library and migrations
+- `packages/editor (deprecated)`: [Editor guide](packages/editor/README.md)
 - `docs/create-feed.md`: [How to create feed records](docs/create-feed.md)
 - `docs/edit-feed.md`: [How to edit feed data](docs/edit-feed.md)
 - `docs/edit-feed-atproto.md`: [How to edit feed data with AT Protocol](docs/edit-feed-atproto.md)
@@ -79,7 +79,7 @@ See [wrangler D1 create](https://developers.cloudflare.com/workers/wrangler/comm
 3. Configure production settings.
 
 - Set production `database_id` in:
-  - `packages/editor/wrangler.jsonc`
+  - `packages/editor-atproto/wrangler.jsonc`
   - `packages/generator/wrangler.jsonc`
 - Configure worker vars (see each package README):
   - Generator vars: [packages/generator/README.md](packages/generator/README.md)
@@ -94,24 +94,14 @@ pnpm d1-init:production
 5. Deploy both workers.
 
 ```sh
-pnpm editor run deploy
+pnpm editor-atproto run deploy
 pnpm generator run deploy
 ```
 
-6. Set the production editor API key secret.
-
-```sh
-pnpm editor gyoka-api-key:put
-```
-
-> [!NOTE]
-> `X-API-Key` provides only basic authentication.
-> For production, use an additional authentication layer such as [Cloudflare One](https://developers.cloudflare.com/cloudflare-one/).
-
-7. Create and manage feeds.
+6. Create and manage feeds.
 
 - Create feeds: [docs/create-feed.md](docs/create-feed.md)
-- Edit feeds: [docs/edit-feed.md](docs/edit-feed.md)
+- Edit feeds: [docs/edit-feed-atproto.md](docs/edit-feed-atproto.md)
 
 ## Local Development
 
@@ -125,7 +115,7 @@ pnpm d1-add-sample:local
 2. Start workers.
 
 ```sh
-pnpm editor dev
+pnpm editor-atproto dev
 pnpm generator dev
 ```
 
@@ -140,7 +130,7 @@ pnpm generator dev
 - Run all workspace tests: `pnpm test:all`
 - Run package tests:
   - `pnpm generator test run`
-  - `pnpm editor test run`
+  - `pnpm editor-atproto test run`
   - `pnpm shared test run`
 
 ## License

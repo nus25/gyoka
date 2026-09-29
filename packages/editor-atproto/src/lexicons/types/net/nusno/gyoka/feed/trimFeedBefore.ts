@@ -1,10 +1,9 @@
 import type {} from '@atcute/lexicons';
 import * as v from '@atcute/lexicons/validations';
 import type {} from '@atcute/lexicons/ambient';
-import * as NetNusnoGyokaFeedDefs from "./defs.js";
 
 const _mainSchema = /*#__PURE__*/ v.procedure(
-	"net.nusno.gyoka.feed.registerFeed",
+	"net.nusno.gyoka.feed.trimFeedBefore",
 	{
 		"params": null,
 		"input": {
@@ -12,22 +11,13 @@ const _mainSchema = /*#__PURE__*/ v.procedure(
 			"schema": /*#__PURE__*/ v.object(
 				{
 					/**
-					 * Whether the feed is active.
-					 * @default true
+					 * Exclusive timestamp boundary. Posts indexed before this time are removed.
 					 */
-					"isActive": /*#__PURE__*/ v.optional(/*#__PURE__*/ v.boolean(), true),
+					"before": /*#__PURE__*/ v.datetimeString(),
 					/**
-					 * Whether language filtering is enabled for this feed.
-					 * @default true
+					 * AT-URI of the registered feed.
 					 */
-					"langFilter": /*#__PURE__*/ v.optional(
-						/*#__PURE__*/ v.boolean(),
-						true
-					),
-					/**
-					 * AT-URI of the feed generator record to register.
-					 */
-					"uri": /*#__PURE__*/ v.resourceUriString(),
+					"feed": /*#__PURE__*/ v.resourceUriString(),
 				}
 			),
 		},
@@ -35,9 +25,12 @@ const _mainSchema = /*#__PURE__*/ v.procedure(
 			"type": "lex",
 			"schema": /*#__PURE__*/ v.object(
 				{
-					get "feed"() {
-						return NetNusnoGyokaFeedDefs.feedViewSchema
-					},
+					"before": /*#__PURE__*/ v.datetimeString(),
+					/**
+					 * @minimum 0
+					 */
+					"deletedCount": /*#__PURE__*/ v.integer(),
+					"feed": /*#__PURE__*/ v.resourceUriString(),
 					"message": /*#__PURE__*/ v.string(),
 				}
 			),
@@ -56,6 +49,6 @@ export interface $input extends v.InferXRPCBodyInput<mainSchema['input']> {}
 export interface $output extends v.InferXRPCBodyInput<mainSchema['output']> {}
 declare module '@atcute/lexicons/ambient' {
 	interface XRPCProcedures {
-		"net.nusno.gyoka.feed.registerFeed": mainSchema;
+		"net.nusno.gyoka.feed.trimFeedBefore": mainSchema;
 	}
 }
