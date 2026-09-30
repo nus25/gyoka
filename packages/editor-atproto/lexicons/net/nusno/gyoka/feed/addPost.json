@@ -38,7 +38,7 @@
             },
             "post": {
               "type": "ref",
-              "ref": "net.nusno.gyoka.feed.defs#postInput"
+              "ref": "net.nusno.gyoka.feed.defs#postView"
             }
           }
         }

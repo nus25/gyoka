@@ -21,5 +21,21 @@ describe(ENDPOINT_PATH, () => {
       expect((json as { message: string }).message).toBe('Post added successfully');
       expect(await countPostsByUriInFeed(FEED_URI, dummyPost.uri)).toBe(1);
     });
+
+    it('Given repost reason When addPost is called Then the input reason schema is returned', async () => {
+      await insertFeed(FEED_URI);
+      const reason = {
+        $type: 'net.nusno.gyoka.feed.defs#skeletonReasonRepost',
+        repost: 'at://did:plc:reposter/app.bsky.feed.repost/abc123',
+      };
+
+      const { response, json } = await addPost({
+        feed: FEED_URI,
+        post: { ...dummyPost, reason },
+      });
+
+      expect(response.status).toBe(200);
+      expect((json as { post: { reason: typeof reason } }).post.reason).toEqual(reason);
+    });
   });
 });

@@ -28,7 +28,7 @@ const _mainSchema = /*#__PURE__*/ v.procedure(
 					"feed": /*#__PURE__*/ v.resourceUriString(),
 					"message": /*#__PURE__*/ v.string(),
 					get "post"() {
-						return NetNusnoGyokaFeedDefs.postInputSchema
+						return NetNusnoGyokaFeedDefs.postViewSchema
 					},
 				}
 			),
