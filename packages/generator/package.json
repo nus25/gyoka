@@ -1,0 +1,35 @@
+{
+  "name": "gyoka-generator",
+  "version": "1.0.0",
+  "private": "true",
+  "license": "MIT",
+  "author": "Nus",
+  "type": "module",
+  "scripts": {
+    "postinstall": "node ../shared/scripts/copy-config.js",
+    "dev": "CLOUDFLARE_ENV=dev vite dev",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "CLOUDFLARE_ENV=production vite build && echo VERSION=$(node -p \"require('./package.json').version\") GIT_SHA=$(git rev-parse --short HEAD) && wrangler deploy --tag ver:$(node -p \"require('./package.json').version\") --message GIT_SHA:$(git rev-parse --short HEAD)",
+    "cf-typegen": "wrangler types --strict-vars=false --env production"
+  },
+  "dependencies": {
+    "@atcute/atproto": "catalog:",
+    "@atcute/bluesky": "catalog:",
+    "@atcute/identity": "catalog:",
+    "@atcute/identity-resolver": "catalog:",
+    "@atcute/lexicons": "catalog:",
+    "@atcute/xrpc-server": "catalog:",
+    "shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@atcute/cid": "catalog:",
+    "@atcute/crypto": "catalog:",
+    "@cloudflare/vitest-plugin": "catalog:",
+    "@types/node": "catalog:",
+    "@vitest/coverage-istanbul": "catalog:",
+    "wrangler": "catalog:"
+  }
+}

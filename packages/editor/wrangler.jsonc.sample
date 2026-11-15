@@ -1,0 +1,107 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "gyoka-editor",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-13",
+  "compatibility_flags": ["no_nodejs_compat", "no_nodejs_compat_v2"],
+  "env": {
+    "test": {
+      "vars": {
+        "GYOKA_EDITOR_HOST": "editor.test.example.com",
+        "GYOKA_EDITOR_AUTH_REQUIRED": "disabled",
+        "GYOKA_EDITOR_ADMIN_DIDS": ["did:plc:testadmin000000000000000000"],
+        "DID_CACHE_TTL_SECONDS": "86400",
+        "DEVELOPER_MODE": "enabled",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "test_id",
+        },
+      ],
+    },
+    "dev": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "dev_id",
+          "migrations_dir": "../shared/migrations",
+          "migrations_pattern": "../shared/migrations/*.sql",
+          "migrations_table": "d1_migrations",
+        },
+      ],
+      "vars": {
+        "GYOKA_EDITOR_HOST": "editor.dev.example.com",
+        "GYOKA_EDITOR_AUTH_REQUIRED": "disabled",
+        "GYOKA_EDITOR_ADMIN_DIDS": ["did:plc:developer000000000000000000"],
+        "DID_CACHE_TTL_SECONDS": "86400",
+        "DEVELOPER_MODE": "enabled",
+      },
+    },
+    "production": {
+      "name": "feed-editor",
+      "preview_urls": false,
+      // Default: Use feed-editor.[your_subdomain].workers.dev
+      // Set this false if using following options
+      "workers_dev": true,
+      // See details: https://developers.cloudflare.com/workers/configuration/routing/
+      // Option 1: Custom domain — Worker is the origin, DNS is managed automatically
+      // "routes":  [{ "pattern": "feed-editor.example.com", "custom_domain": true }],
+      // Option 2: Route — Worker runs in front of an existing origin
+      // Requires a proxied DNS record for feed-editor.example.com
+      // "routes": [
+      //   {
+      //     "pattern": "feed-editor.example.com/.well-known/did.json",
+      //     "zone_name": "example.com",
+      //   },
+      //   {
+      //     "pattern": "feed-editor.example.com/xrpc/*",
+      //     "zone_name": "example.com",
+      //   },
+      // ],
+      // Worker placement. Near D1 database is recommended
+      "placement": {
+        "region": "aws:us-west-1",
+      },
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1.0,
+        "logs": {
+          "invocation_logs": true,
+        },
+        "traces": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "persist": true,
+        },
+      },
+      "vars": {
+        /* Deployed worker host accessed by editor clients */
+        "GYOKA_EDITOR_HOST": "editor.example.com",
+        /* Runtime flag: enable service JWT authentication for XRPC endpoints */
+        "GYOKA_EDITOR_AUTH_REQUIRED": "enabled",
+        /* DIDs allowed to use administrative editor endpoints */
+        "GYOKA_EDITOR_ADMIN_DIDS": ["did:plc:abc123..."],
+        /* DID resolver cache TTL in seconds. 86400 = 1 day. */
+        "DID_CACHE_TTL_SECONDS": "86400",
+        /* Runtime flag: enables verbose debug logging in endpoints when set to "enabled". */
+        "DEVELOPER_MODE": "disabled",
+        /* Experimental: enable D1 sessions for read replication(beta). */
+        "D1_USE_SESSION": "disabled",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+          "migrations_dir": "../shared/migrations",
+          "migrations_pattern": "../shared/migrations/*.sql",
+          "migrations_table": "d1_migrations",
+        },
+      ],
+    },
+  },
+}

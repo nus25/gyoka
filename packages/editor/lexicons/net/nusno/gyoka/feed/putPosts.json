@@ -1,0 +1,76 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.putPosts",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Replace posts and assign them new order ranks in one feed.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "posts"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "posts": {
+              "type": "array",
+              "minLength": 1,
+              "maxLength": 1000,
+              "items": {
+                "type": "ref",
+                "ref": "net.nusno.gyoka.feed.defs#postInput"
+              }
+            },
+            "placement": {
+              "type": "ref",
+              "ref": "net.nusno.gyoka.feed.defs#placement",
+              "description": "Placement for the submitted post URIs. Defaults to append."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "orderRevision"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "orderRevision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when request structure, placement, or post input is invalid."
+        },
+        {
+          "name": "UnknownFeed",
+          "description": "Returned when the target feed URI is not registered."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when posts cannot be stored."
+        }
+      ]
+    }
+  }
+}

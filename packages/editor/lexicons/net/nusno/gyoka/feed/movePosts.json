@@ -1,0 +1,95 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.movePosts",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Move existing posts to an explicit position in a feed.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "posts", "placement", "expectedRevision"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "posts": {
+              "type": "array",
+              "minLength": 1,
+              "maxLength": 25,
+              "items": {
+                "type": "string",
+                "format": "at-uri"
+              }
+            },
+            "placement": {
+              "type": "ref",
+              "ref": "net.nusno.gyoka.feed.defs#placement"
+            },
+            "expectedRevision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "orderRevision", "movedCount"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "orderRevision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "movedCount": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when request structure, placement, or move targets are invalid."
+        },
+        {
+          "name": "UnknownFeed",
+          "description": "Returned when the target feed URI is not registered."
+        },
+        {
+          "name": "RevisionConflict",
+          "description": "Returned when expectedRevision does not match the current order revision."
+        },
+        {
+          "name": "OrderRankSpaceExhausted",
+          "description": "Returned when no rank can be generated within the maximum rank length."
+        },
+        {
+          "name": "OrderConflict",
+          "description": "Returned when a rank conflict remains after retrying."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when posts cannot be moved."
+        }
+      ]
+    }
+  }
+}

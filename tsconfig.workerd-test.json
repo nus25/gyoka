@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.workerd.json",
+  "compilerOptions": {
+    "types": [
+      "@cloudflare/vitest-plugin/types" // For `cloudflare:test` types
+    ]
+  }
+}

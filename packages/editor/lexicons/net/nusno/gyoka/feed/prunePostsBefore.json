@@ -1,0 +1,75 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.prunePostsBefore",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Remove posts indexed before an exclusive timestamp boundary.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "before"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "before": {
+              "type": "string",
+              "format": "datetime"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "before", "deletedCount", "orderRevision"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "before": {
+              "type": "string",
+              "format": "datetime"
+            },
+            "deletedCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "orderRevision": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Current feed order revision after pruning."
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when request input is invalid."
+        },
+        {
+          "name": "UnknownFeed",
+          "description": "Returned when the target feed URI is not registered."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when posts cannot be pruned."
+        }
+      ]
+    }
+  }
+}

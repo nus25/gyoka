@@ -1,0 +1,45 @@
+import { InternalServerError, UnknownFeedError } from 'shared/src/errors/core';
+import { FeedRow } from 'shared/src/types';
+
+import { assertAtUriCollection } from '../validation/atUri';
+
+const SQL_DELETE_FEED = 'DELETE FROM feeds WHERE feed_uri = ?';
+const SQL_DELETE_POSTS =
+  'DELETE FROM posts WHERE feed_id = (SELECT feed_id FROM feeds WHERE feed_uri = ?)';
+const SQL_SELECT_FEED = 'SELECT * FROM feeds WHERE feed_uri = ?';
+
+export async function unregisterFeed(
+  db: Env['DB'],
+  input: { uri: string },
+  context?: Record<string, unknown>
+): Promise<Response> {
+  const { uri } = input;
+
+  assertAtUriCollection(uri, 'app.bsky.feed.generator', 'feed URI');
+  if (context) Object.assign(context, { feed: uri, stage: 'read' });
+
+  const { success: selectSuccess, results } = await db
+    .prepare(SQL_SELECT_FEED)
+    .bind(uri)
+    .all<FeedRow>();
+  if (!selectSuccess) {
+    throw new InternalServerError('Failed to query the database');
+  }
+  if (results.length === 0) {
+    throw new UnknownFeedError(`Feed with URI ${uri} does not exist.`);
+  }
+
+  const deletePostsStmt = db.prepare(SQL_DELETE_POSTS).bind(uri);
+  const deleteFeedStmt = db.prepare(SQL_DELETE_FEED).bind(uri);
+  if (context) context.stage = 'write';
+  const batchResult = await db.batch([deletePostsStmt, deleteFeedStmt]);
+  if (context) context.deletedCount = batchResult[0]?.meta?.changes;
+
+  if (!batchResult.every((result) => result.success)) {
+    throw new InternalServerError('Failed to unregister feed and associated posts');
+  }
+
+  return Response.json({
+    message: 'Feed unregistered successfully',
+  });
+}

@@ -1,0 +1,75 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.removePostsByAuthor",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Remove every post in a feed whose post URI is authored by the specified DID.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "author"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "author": {
+              "type": "string",
+              "format": "did"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "author", "deletedCount", "orderRevision"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "author": {
+              "type": "string",
+              "format": "did"
+            },
+            "deletedCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "orderRevision": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Current feed order revision after removing posts."
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when request input is invalid."
+        },
+        {
+          "name": "UnknownFeed",
+          "description": "Returned when the target feed URI is not registered."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when posts cannot be removed."
+        }
+      ]
+    }
+  }
+}

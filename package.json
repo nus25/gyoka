@@ -1,0 +1,35 @@
+{
+  "name": "gyoka",
+  "version": "1.0.0",
+  "private": "true",
+  "description": "simple feed generator for bluesky which works on cloudflare workers",
+  "license": "MIT",
+  "author": "Nus",
+  "type": "module",
+  "scripts": {
+    "editor": "pnpm -F gyoka-editor",
+    "generator": "pnpm -F gyoka-generator",
+    "shared": "pnpm -F shared",
+    "code:check": "pnpm fmt:check && pnpm lint && pnpm test:all",
+    "code:fix": "pnpm fmt && pnpm lint:fix",
+    "d1-setup": "node scripts/set-database-id.js",
+    "d1-migrate:local": "pnpm editor d1-migrate:local",
+    "d1-migrate:production": "pnpm editor d1-migrate:production",
+    "d1-add-dummy:local": "pnpm editor d1-add-dummy:local",
+    "test:all": "pnpm -r test run",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware"
+  },
+  "devDependencies": {
+    "oxfmt": "0.78.0",
+    "oxlint": "1.93.0",
+    "oxlint-tsgolint": "7.0.2007",
+    "vite": "catalog:",
+    "@cloudflare/vite-plugin": "catalog:",
+    "vitest": "catalog:",
+    "wrangler": "catalog:"
+  },
+  "packageManager": "pnpm@12.17.0"
+}

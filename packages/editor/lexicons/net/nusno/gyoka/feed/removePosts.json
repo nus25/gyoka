@@ -1,0 +1,75 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.removePosts",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Remove posts from a feed by post URI.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "uris"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "uris": {
+              "type": "array",
+              "minLength": 1,
+              "maxLength": 1000,
+              "items": {
+                "type": "string",
+                "format": "at-uri"
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feed", "orderRevision", "deletedCount"],
+          "properties": {
+            "feed": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "orderRevision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "deletedCount": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "BadRequest",
+          "description": "Returned when request structure or URI input is invalid."
+        },
+        {
+          "name": "UnknownFeed",
+          "description": "Returned when the target feed URI is not registered."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when posts cannot be removed."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,106 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "gyoka-generator",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-13",
+  "compatibility_flags": ["no_nodejs_compat", "no_nodejs_compat_v2"],
+  "env": {
+    "test": {
+      "vars": {
+        "FEEDGEN_AUTH_REQUIRED": "disabled",
+        "DID_CACHE_TTL_SECONDS": "86400",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "test_id",
+        },
+      ],
+    },
+    "dev": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "dev_id",
+        },
+      ],
+      /**
+       * Environment Variables
+       * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+       */
+      "vars": {
+        "FEEDGEN_PUBLISHER_DID": "did:example:developer",
+        "FEEDGEN_HOST": "dev.example.com",
+        "FEEDGEN_AUTH_REQUIRED": "disabled",
+        "DID_CACHE_TTL_SECONDS": "86400",
+        "DEVELOPER_MODE": "enabled",
+      },
+    },
+    "production": {
+      "name": "feed-generator",
+      "preview_urls": false,
+      // Default: Use feed-generator.[your_subdomain].workers.dev
+      // Set this false if using following options
+      "workers_dev": true,
+      // See details: https://developers.cloudflare.com/workers/configuration/routing/
+      // Option 1: Custom domain — Worker is the origin, DNS is managed automatically
+      // "routes":  [{ "pattern": "feed-generator.example.com", "custom_domain": true }],
+      // Option 2: Route — Worker runs in front of an existing origin
+      // Requires a proxied DNS record for feed-generator.example.com
+      // "routes": [
+      //   {
+      //     "pattern": "feed-generator.example.com/.well-known/did.json",
+      //     "zone_name": "example.com",
+      //   },
+      //   {
+      //     "pattern": "feed-generator.example.com/xrpc/*",
+      //     "zone_name": "example.com",
+      //   },
+      //   {
+      //     "pattern": "feed-generator.example.com/doc/*",
+      //     "zone_name": "example.com",
+      //   },
+      // ],
+      // Worker placement. Near D1 database and Bluesky AppView is recommended
+      "placement": {
+        "region": "aws:us-west-1",
+      },
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1.0,
+        "logs": {
+          "invocation_logs": true,
+        },
+        "traces": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "persist": true,
+        },
+      },
+      "vars": {
+        /* DID of your Bluesky account or alternative publisher */
+        "FEEDGEN_PUBLISHER_DID": "did:plc:abc123...",
+        /* deployed worker host accessed from AppView */
+        "FEEDGEN_HOST": "feed-generator.example.com",
+        /* Runtime flag: enable service JWT authentication for XRPC endpoints */
+        "FEEDGEN_AUTH_REQUIRED": "enabled",
+        /* DID resolver cache TTL in seconds. 86400 = 1 day. */
+        "DID_CACHE_TTL_SECONDS": "86400",
+        /* Runtime flag: enables verbose debug logging in endpoints when set to "enabled". */
+        "DEVELOPER_MODE": "disabled",
+        /* Experimental: enable D1 session in getFeedSkeleton endpoint. This is for D1 read replication(beta). */
+        "D1_USE_SESSION": "disabled",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        },
+      ],
+    },
+  },
+}

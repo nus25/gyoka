@@ -1,0 +1,40 @@
+{
+  "lexicon": 1,
+  "id": "net.nusno.gyoka.feed.listFeeds",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "List all registered feeds.",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["feeds"],
+          "properties": {
+            "feeds": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "net.nusno.gyoka.feed.defs#feedView"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "AuthenticationRequired",
+          "description": "Returned when service authentication is required and the caller is not authenticated."
+        },
+        {
+          "name": "Forbidden",
+          "description": "Returned when the authenticated caller is not in the admin allowlist."
+        },
+        {
+          "name": "InternalServerError",
+          "description": "Returned when the feed list cannot be loaded from the database."
+        }
+      ]
+    }
+  }
+}
