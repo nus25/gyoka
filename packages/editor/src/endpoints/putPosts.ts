@@ -31,7 +31,7 @@ export async function putPosts(
       operation: 'putPosts',
       stage: 'validation',
       postCount: input.posts.length,
-      placement: input.placement?.type ?? 'append',
+      placement: input.placement?.position ?? 'append',
     });
   }
   requirePostUris(
@@ -53,8 +53,8 @@ export async function putPosts(
       reason: post.reason ? JSON.stringify(toGeneratorReason(post.reason)) : null,
     };
   });
-  const placement = input.placement ?? { type: 'append' as const };
-  if ((placement.type === 'before' || placement.type === 'after') && !placement.anchor) {
+  const placement = input.placement ?? { position: 'append' as const };
+  if ((placement.position === 'before' || placement.position === 'after') && !placement.anchor) {
     throw new BadRequestError('before and after placement require an anchor.');
   }
   if (placement.anchor)

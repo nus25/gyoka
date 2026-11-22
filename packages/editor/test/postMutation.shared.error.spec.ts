@@ -50,7 +50,7 @@ describe('postMutation.shared error cases', () => {
     expect(() =>
       ranksForPlacement(
         [{ uri: POST_URI, order_rank: 'a0' as OrderRank }],
-        { type: 'before', anchor: `${POST_URI}-missing` },
+        { position: 'before', anchor: `${POST_URI}-missing` },
         1
       )
     ).toThrow('Placement anchor does not exist.');
@@ -66,7 +66,7 @@ describe('postMutation.shared error cases', () => {
 
   it('Given the feed does not exist When getting placement bounds Then it throws unknown feed', async () => {
     await expect(
-      getFeedAndPlacementBounds(env.DB, FEED_URI, { type: 'append' }, [])
+      getFeedAndPlacementBounds(env.DB, FEED_URI, { position: 'append' }, [])
     ).rejects.toMatchObject({ errorCode: 'UnknownFeed' });
   });
 
@@ -78,7 +78,7 @@ describe('postMutation.shared error cases', () => {
         env.DB,
         FEED_URI,
         {
-          type: 'before',
+          position: 'before',
           anchor: POST_URI,
         },
         []

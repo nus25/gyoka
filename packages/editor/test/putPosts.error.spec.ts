@@ -181,7 +181,7 @@ describe('putPosts', () => {
     const { response, json } = await callProcedure(PUT_PATH, {
       feed: FEED_URI,
       posts: [{ uri: POST_ONE, cid: TEST_CID }],
-      placement: { type: 'append' },
+      placement: { position: 'append' },
     });
 
     expect(response.status).toBe(200);
@@ -194,7 +194,7 @@ describe('putPosts', () => {
     const { response, json } = await callProcedure(PUT_PATH, {
       feed: FEED_URI,
       posts: [{ uri: POST_ONE, cid: TEST_CID }],
-      placement: { type: 'before' },
+      placement: { position: 'before' },
     });
 
     expect(response.status).toBe(400);
@@ -210,7 +210,7 @@ describe('putPosts', () => {
     const { response, json } = await callProcedure(PUT_PATH, {
       feed: FEED_URI,
       posts: [{ uri: POST_ONE, cid: TEST_CID }],
-      placement: { type: 'after', anchor: POST_ONE },
+      placement: { position: 'after', anchor: POST_ONE },
     });
 
     expect(response.status).toBe(400);

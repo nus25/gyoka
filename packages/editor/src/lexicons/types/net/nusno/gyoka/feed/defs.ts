@@ -30,7 +30,12 @@ const _placementSchema = /*#__PURE__*/ v.object(
 		 * AT-URI of the anchor post. Required by before and after placements.
 		 */
 		"anchor": /*#__PURE__*/ v.optional(/*#__PURE__*/ v.resourceUriString()),
-		"type": /*#__PURE__*/ v.literalEnum(["after", "append", "before", "prepend"]),
+		"position": /*#__PURE__*/ v.literalEnum([
+			"after",
+			"append",
+			"before",
+			"prepend"
+		]),
 	}
 );
 const _postInputSchema = /*#__PURE__*/ v.object(

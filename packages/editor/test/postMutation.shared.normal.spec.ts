@@ -23,7 +23,7 @@ describe('postMutation.shared', () => {
     await insertPost(feedId, { uri: POST_URI_3, orderRank: 'a2' });
 
     await expect(
-      getFeedAndPlacementBounds(env.DB, FEED_URI, { type: 'before', anchor: POST_URI_3 }, [
+      getFeedAndPlacementBounds(env.DB, FEED_URI, { position: 'before', anchor: POST_URI_3 }, [
         POST_URI_2,
       ])
     ).resolves.toMatchObject({

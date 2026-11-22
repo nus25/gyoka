@@ -20,7 +20,7 @@ describe('movePosts', () => {
     const { response } = await callProcedure(MOVE_PATH, {
       feed: FEED_URI,
       posts: [POST_TWO, POST_ONE],
-      placement: { type: 'append' },
+      placement: { position: 'append' },
       expectedRevision: 1,
     });
 
@@ -45,7 +45,7 @@ describe('movePosts', () => {
     const { response, json } = await callProcedure(MOVE_PATH, {
       feed: FEED_URI,
       posts: [POST_TWO],
-      placement: { type: 'prepend' },
+      placement: { position: 'prepend' },
       expectedRevision: 1,
     });
 
