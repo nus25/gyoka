@@ -95,9 +95,9 @@
     },
     "placement": {
       "type": "object",
-      "required": ["type"],
+      "required": ["position"],
       "properties": {
-        "type": {
+        "position": {
           "type": "string",
           "enum": ["append", "prepend", "before", "after"]
         },

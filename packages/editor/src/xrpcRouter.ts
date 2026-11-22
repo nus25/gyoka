@@ -284,7 +284,7 @@ export function createXrpcRouter(
         operation: 'movePosts',
         stage: 'auth',
         postCount: input.posts.length,
-        placement: input.placement.type,
+        placement: input.placement.position,
         expectedRevision: input.expectedRevision,
       };
       try {

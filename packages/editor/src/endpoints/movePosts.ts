@@ -18,7 +18,7 @@ export async function movePosts(
   if (context) context.stage = 'validation';
   requirePostUris(input.posts, MAX_MOVE_POSTS);
   if (
-    (input.placement.type === 'before' || input.placement.type === 'after') &&
+    (input.placement.position === 'before' || input.placement.position === 'after') &&
     !input.placement.anchor
   )
     throw new BadRequestError('before and after placement require an anchor.');
@@ -36,7 +36,7 @@ export async function movePosts(
     throw new BadRequestError('All posts to move must exist.');
   const remaining = rows.filter((row) => !input.posts.includes(row.uri));
   if (
-    (input.placement.type === 'before' || input.placement.type === 'after') &&
+    (input.placement.position === 'before' || input.placement.position === 'after') &&
     !remaining.some((row) => row.uri === input.placement.anchor)
   ) {
     throw new BadRequestError('Placement anchor does not exist.');

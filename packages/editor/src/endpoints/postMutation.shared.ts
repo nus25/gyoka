@@ -22,7 +22,7 @@ export type PostInput = {
   indexedAt?: string;
   reason?: import('shared/src/reason').EditorReason;
 };
-export type Placement = { type: 'append' | 'prepend' | 'before' | 'after'; anchor?: string };
+export type Placement = { position: 'append' | 'prepend' | 'before' | 'after'; anchor?: string };
 
 export function normalizeLanguages(languages?: string[] | null): string[] {
   if ((languages?.length ?? 0) > MAX_LANGUAGES) {
@@ -101,8 +101,8 @@ export async function getFeedAndPlacementBounds(
       SELECT 1 FROM json_each(?) WHERE value = posts.uri
     )`;
 
-  if (placement.type === 'append' || placement.type === 'prepend') {
-    const direction = placement.type === 'append' ? 'DESC' : 'ASC';
+  if (placement.position === 'append' || placement.position === 'prepend') {
+    const direction = placement.position === 'append' ? 'DESC' : 'ASC';
     const [feedResult, boundResult] = await db.batch([
       feedStatement,
       db
@@ -118,14 +118,14 @@ export async function getFeedAndPlacementBounds(
     const feed = feedResult!.results[0] as FeedRow | undefined;
     if (!feed) throw new UnknownFeedError(`Feed with URI ${uri} does not exist.`);
     const bound = boundResult!.results[0] as { order_rank: OrderRank } | undefined;
-    return placement.type === 'append'
+    return placement.position === 'append'
       ? { feed, lower: bound?.order_rank, upper: undefined }
       : { feed, lower: undefined, upper: bound?.order_rank };
   }
 
   const anchor = placement.anchor!;
-  const comparison = placement.type === 'before' ? '<' : '>';
-  const direction = placement.type === 'before' ? 'DESC' : 'ASC';
+  const comparison = placement.position === 'before' ? '<' : '>';
+  const direction = placement.position === 'before' ? 'DESC' : 'ASC';
   const [feedResult, anchorResult, boundResult] = await db.batch([
     feedStatement,
     db
@@ -157,7 +157,7 @@ export async function getFeedAndPlacementBounds(
   const anchorRow = anchorResult!.results[0] as { order_rank: OrderRank } | undefined;
   if (!anchorRow) throw new BadRequestError('Placement anchor does not exist.');
   const bound = boundResult!.results[0] as { order_rank: OrderRank } | undefined;
-  return placement.type === 'before'
+  return placement.position === 'before'
     ? { feed, lower: bound?.order_rank, upper: anchorRow.order_rank }
     : { feed, lower: anchorRow.order_rank, upper: bound?.order_rank };
 }
@@ -176,11 +176,11 @@ export function ranksForPlacement(
   count: number
 ) {
   let index = rows.length;
-  if (placement.type === 'prepend') index = 0;
-  if (placement.type === 'before' || placement.type === 'after') {
+  if (placement.position === 'prepend') index = 0;
+  if (placement.position === 'before' || placement.position === 'after') {
     const anchorIndex = rows.findIndex((row) => row.uri === placement.anchor);
     if (anchorIndex < 0) throw new BadRequestError('Placement anchor does not exist.');
-    index = placement.type === 'before' ? anchorIndex : anchorIndex + 1;
+    index = placement.position === 'before' ? anchorIndex : anchorIndex + 1;
   }
   return rankBetweenN(
     { lower: rows[index - 1]?.order_rank, upper: rows[index]?.order_rank },

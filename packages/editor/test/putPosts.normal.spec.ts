@@ -217,7 +217,7 @@ describe('putPosts', () => {
     const { response, json } = await callProcedure(PUT_PATH, {
       feed: FEED_URI,
       posts: [{ uri: POST_TWO, cid: TEST_CID }],
-      placement: { type: 'before', anchor: POST_ONE },
+      placement: { position: 'before', anchor: POST_ONE },
     });
 
     expect(response.status).toBe(200);

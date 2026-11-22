@@ -15,7 +15,7 @@ describe('movePosts', () => {
         {
           feed: FEED_URI,
           posts: [POST_ONE],
-          placement: { type: 'append' },
+          placement: { position: 'append' },
           expectedRevision: 1,
         },
         { DEVELOPER_MODE: 'disabled' }
@@ -41,7 +41,7 @@ describe('movePosts', () => {
     const { response, json } = await callProcedure(MOVE_PATH, {
       feed: FEED_URI,
       posts: [POST_ONE],
-      placement: { type: 'append' },
+      placement: { position: 'append' },
       expectedRevision: 1,
     });
 
@@ -58,7 +58,7 @@ describe('movePosts', () => {
     const { response, json } = await callProcedure(MOVE_PATH, {
       feed: FEED_URI,
       posts: [POST_ONE],
-      placement: { type: 'append' },
+      placement: { position: 'append' },
       expectedRevision: 0,
     });
 
@@ -73,7 +73,7 @@ describe('movePosts', () => {
     const { response, json } = await callProcedure(MOVE_PATH, {
       feed: FEED_URI,
       posts: [POST_ONE],
-      placement: { type: 'append' },
+      placement: { position: 'append' },
       expectedRevision: 0,
     });
 
@@ -90,7 +90,7 @@ describe('movePosts', () => {
     const { response, json } = await callProcedure(MOVE_PATH, {
       feed: FEED_URI,
       posts: [POST_ONE],
-      placement: { type: 'before' },
+      placement: { position: 'before' },
       expectedRevision: 0,
     });
 
@@ -107,7 +107,7 @@ describe('movePosts', () => {
     const { response, json } = await callProcedure(MOVE_PATH, {
       feed: FEED_URI,
       posts: [POST_ONE],
-      placement: { type: 'before', anchor: POST_ONE },
+      placement: { position: 'before', anchor: POST_ONE },
       expectedRevision: 0,
     });
 

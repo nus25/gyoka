@@ -36,7 +36,7 @@ describe('movePosts', () => {
       {
         feed: FEED_URI,
         posts: orderedPosts,
-        placement: { type: 'append' },
+        placement: { position: 'append' },
         expectedRevision: 0,
       },
       { DB: dbWithBatchCounter }
